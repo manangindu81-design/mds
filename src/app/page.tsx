@@ -58,27 +58,6 @@ const products = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Budi Santoso",
-    role: "Anggota sejak 2019",
-    quote: "KSP Mulia Dana Sejahtera sangat membantu modal usaha saya. Proses cepat dan bunga terjangkau.",
-    image: "👨",
-  },
-  {
-    name: "Siti Rahayu",
-    role: "Anggota sejak 2020",
-    quote: "Layanan digitalnya sangat memudahkan. Tabungan dan pinjaman bisa dilakukan dari rumah.",
-    image: "👩",
-  },
-  {
-    name: "Ahmad Wijaya",
-    role: "Anggota sejak 2018",
-    quote: "Sekarang usaha saya berkembang pesat berkat dukungan KSP Mulia Dana Sejahtera.",
-    image: "👨",
-  },
-];
-
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
@@ -437,51 +416,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="section" style={{ background: "var(--color-primary)" }}>
-        <div className="container">
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div style={{ 
-              display: "inline-block", 
-              color: "var(--color-secondary)", 
-              fontSize: 14, 
-              fontWeight: 600, 
-              letterSpacing: 2,
-              marginBottom: 16
-            }}>
-              TESTIMONI ANGGOTA
-            </div>
-            <h2 className="section-title" style={{ textAlign: "center", color: "var(--color-text-light)" }}>
-              Apa Kata Anggota Kami
-            </h2>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-            {testimonials.map((testimonial, index) => (
-              <div 
-                key={index} 
-                style={{ 
-                  background: "rgba(255,255,255,0.1)", 
-                  borderRadius: 16, 
-                  padding: 32,
-                  backdropFilter: "blur(10px)"
-                }}
-              >
-                <div style={{ fontSize: 48, marginBottom: 16 }}>&ldquo;</div>
-                <p style={{ fontSize: 16, color: "var(--color-text-light)", fontStyle: "italic", marginBottom: 24, lineHeight: 1.7 }}>
-                  {testimonial.quote}
-                </p>
-                <div style={{ fontWeight: 600, color: "var(--color-text-light)" }}>
-                  {testimonial.name}
-                </div>
-                <div style={{ fontSize: 14, color: "var(--color-secondary)" }}>
-                  {testimonial.role}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* Contact Section */}
       <section id="kontak" className="section" style={{ background: "var(--color-surface)" }}>
