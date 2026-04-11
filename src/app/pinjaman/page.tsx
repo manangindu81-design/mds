@@ -4,23 +4,34 @@ import Link from "next/link";
 import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
 
 export default function PinjamanPage() {
-  const { pinjaman, addPinjaman } = useData();
+  const { anggota, pinjaman, angsuran, addPinjaman, addAngsuran, updatePinjaman, addTransaksi } = useData();
+  const [activeTab, setActiveTab] = useState<"pencairan" | "daftar" | "angsuran">("pencairan");
+  
   const [formData, setFormData] = useState({
+    idAnggota: "",
     nama: "",
     nomorAnggota: "",
-    tanggal: "",
-    sistem: "",
+    tanggal: new Date().toISOString().split("T")[0],
+    sistem: "flat",
     jenisPinjaman: "",
     jumlah: "",
-    tenor: "",
-    bunga: "",
+    tenor: "12",
+    bunga: "1.5",
+    biayaAdmin: "25000",
     tujuan: "",
-    jaminan: "",
-    metodePembayaran: "",
-    catatan: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [submittedPencairan, setSubmittedPencairan] = useState(false);
+
+  const [formAngsuran, setFormAngsuran] = useState({
+    idPinjaman: "",
+    tanggal: new Date().toISOString().split("T")[0],
+    angsuranPokok: "",
+    angsuranBunga: "",
+    denda: "0",
+  });
+  const [formErrorsAngsuran, setFormErrorsAngsuran] = useState<Record<string, string>>({});
+  const [submittedAngsuran, setSubmittedAngsuran] = useState(false);
 
   const sistemOptions = [
     { value: "musiman", label: "Musiman (Saldo Menurun)", bunga: 2.5, tenorMax: 6, deskripsi: "Bunga 2,5% per bulan" },
@@ -29,11 +40,25 @@ export default function PinjamanPage() {
 
   const currentOption = sistemOptions.find(o => o.value === formData.sistem);
 
+  const handleSelectAnggota = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    const selected = anggota.find(a => a.id.toString() === selectedId);
+    if (selected) {
+      setFormData({
+        ...formData,
+        idAnggota: selectedId,
+        nama: selected.nama,
+        nomorAnggota: selected.nik || `AG-${String(selected.id).padStart(3, "0")}`,
+      });
+    }
+  };
+
   const calculatePreview = () => {
-    if (!formData.sistem || !formData.jumlah || !formData.tenor) return null;
+    if (!formData.jumlah || !formData.tenor) return null;
     const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
     const tenor = parseInt(formData.tenor);
     const bunga = currentOption?.bunga || 0;
+    const biayaAdmin = parseInt(formData.biayaAdmin.replace(/\D/g, "")) || 0;
 
     if (jumlah <= 0 || tenor <= 0) return null;
 
@@ -47,7 +72,9 @@ export default function PinjamanPage() {
       return {
         totalBunga,
         angsuranPerBulan: angsuranPerBulan + (totalBunga / tenor),
-        totalPembayaran: jumlah + totalBunga
+        totalPembayaran: jumlah + totalBunga,
+        biayaAdmin,
+        totalTagihan: jumlah + totalBunga + biayaAdmin
       };
     } else {
       totalBunga = jumlah * (bunga / 100) * tenor;
@@ -55,7 +82,9 @@ export default function PinjamanPage() {
       return {
         totalBunga,
         angsuranPerBulan,
-        totalPembayaran: jumlah + totalBunga
+        totalPembayaran: jumlah + totalBunga,
+        biayaAdmin,
+        totalTagihan: jumlah + totalBunga + biayaAdmin
       };
     }
   };
@@ -64,15 +93,11 @@ export default function PinjamanPage() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    if (!formData.nama.trim()) errors.nama = "Nama wajib diisi";
-    if (!formData.nomorAnggota.trim()) errors.nomorAnggota = "Nomor anggota wajib diisi";
+    if (!formData.idAnggota) errors.idAnggota = "Anggota wajib dipilih";
     if (!formData.tanggal) errors.tanggal = "Tanggal wajib diisi";
-    if (!formData.sistem) errors.sistem = "Sistem perhitungan wajib dipilih";
     if (!formData.jenisPinjaman) errors.jenisPinjaman = "Jenis pinjaman wajib dipilih";
     if (!formData.jumlah) errors.jumlah = "Jumlah wajib diisi";
     if (!formData.tenor) errors.tenor = "Jangka waktu wajib dipilih";
-    if (!formData.tujuan.trim()) errors.tujuan = "Tujuan wajib diisi";
-    if (!formData.metodePembayaran) errors.metodePembayaran = "Metode pembayaran wajib dipilih";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -81,10 +106,12 @@ export default function PinjamanPage() {
     e.preventDefault();
     if (validateForm()) {
       const jumlahNum = parseInt(formData.jumlah.replace(/\D/g, ""));
+      const biayaAdminNum = parseInt(formData.biayaAdmin.replace(/\D/g, "")) || 25000;
       const currentOption = sistemOptions.find(o => o.value === formData.sistem);
+      
       const newPinjaman: PinjamanType = {
         id: pinjaman.length + 1,
-        idAnggota: 0,
+        idAnggota: parseInt(formData.idAnggota),
         nama: formData.nama,
         nomorAnggota: formData.nomorAnggota,
         tanggal: formData.tanggal,
@@ -94,27 +121,204 @@ export default function PinjamanPage() {
         tenor: parseInt(formData.tenor),
         bunga: currentOption?.bunga || 0,
         tujuan: formData.tujuan,
-        status: "Menunggu",
+        status: "Disetujui",
+        biayaAdmin: biayaAdminNum,
+        sudahDibayar: 0,
+        outstanding: jumlahNum,
       };
       addPinjaman(newPinjaman);
-      setSubmitted(true);
+
+      addTransaksi({
+        id: 0,
+        noBukti: `PK-${String(Date.now()).slice(-6)}`,
+        tanggal: formData.tanggal,
+        jam: new Date().toLocaleTimeString("id-ID"),
+        akun: "Piutang Pinjaman",
+        kategori: "Debet",
+        uraian: `Pencairan Pinjaman ${formData.nama} - ${formData.jenisPinjaman}`,
+        debet: jumlahNum,
+        kredit: 0,
+        saldo: jumlahNum,
+        operator: "System",
+      });
+
+      addTransaksi({
+        id: 0,
+        noBukti: `PK-${String(Date.now()).slice(-6)}`,
+        tanggal: formData.tanggal,
+        jam: new Date().toLocaleTimeString("id-ID"),
+        akun: "Kas/Bank",
+        kategori: "Kredit",
+        uraian: `Pencairan Pinjaman ${formData.nama} - ${formData.jenisPinjaman}`,
+        debet: 0,
+        kredit: jumlahNum,
+        saldo: -jumlahNum,
+        operator: "System",
+      });
+
+      if (biayaAdminNum > 0) {
+        addTransaksi({
+          id: 0,
+          noBukti: `ADM-${String(Date.now()).slice(-6)}`,
+          tanggal: formData.tanggal,
+          jam: new Date().toLocaleTimeString("id-ID"),
+          akun: "Pendapatan Admin",
+          kategori: "Kredit",
+          uraian: `Biaya Admin Pinjaman ${formData.nama}`,
+          debet: 0,
+          kredit: biayaAdminNum,
+          saldo: biayaAdminNum,
+          operator: "System",
+        });
+      }
+
+      setSubmittedPencairan(true);
       setTimeout(() => {
-        setSubmitted(false);
+        setSubmittedPencairan(false);
         setFormData({
+          idAnggota: "",
           nama: "",
           nomorAnggota: "",
-          tanggal: "",
-          sistem: "",
+          tanggal: new Date().toISOString().split("T")[0],
+          sistem: "flat",
           jenisPinjaman: "",
           jumlah: "",
-          tenor: "",
-          bunga: "",
+          tenor: "12",
+          bunga: "1.5",
+          biayaAdmin: "25000",
           tujuan: "",
-          jaminan: "",
-          metodePembayaran: "",
-          catatan: "",
         });
       }, 3000);
+    }
+  };
+
+  const validateFormAngsuran = () => {
+    const errors: Record<string, string> = {};
+    if (!formAngsuran.idPinjaman) errors.idPinjaman = "Pinjaman wajib dipilih";
+    if (!formAngsuran.tanggal) errors.tanggal = "Tanggal wajib diisi";
+    if (!formAngsuran.angsuranPokok) errors.angsuranPokok = "Angsuran Pokok wajib diisi";
+    if (!formAngsuran.angsuranBunga) errors.angsuranBunga = "Angsuran Bunga wajib diisi";
+    setFormErrorsAngsuran(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmitAngsuran = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateFormAngsuran()) {
+      const selectedPinjaman = pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
+      if (!selectedPinjaman) return;
+
+      const angsuranPokokNum = parseInt(formAngsuran.angsuranPokok.replace(/\D/g, ""));
+      const angsuranBungaNum = parseInt(formAngsuran.angsuranBunga.replace(/\D/g, ""));
+      const dendaNum = parseInt(formAngsuran.denda.replace(/\D/g, "")) || 0;
+      const totalBayar = angsuranPokokNum + angsuranBungaNum + dendaNum;
+      const angsuranKe = angsuran.filter(a => a.idPinjaman === selectedPinjaman.id).length + 1;
+      const newSudahDibayar = selectedPinjaman.sudahDibayar + angsuranPokokNum;
+      const newOutstanding = selectedPinjaman.outstanding - angsuranPokokNum;
+
+      addAngsuran({
+        id: 0,
+        idPinjaman: selectedPinjaman.id,
+        idAnggota: selectedPinjaman.idAnggota,
+        nama: selectedPinjaman.nama,
+        nomorAnggota: selectedPinjaman.nomorAnggota,
+        tanggal: formAngsuran.tanggal,
+        angsuranKe,
+        angsuranPokok: angsuranPokokNum,
+        angsuranBunga: angsuranBungaNum,
+        denda: dendaNum,
+        totalBayar,
+        saldoPiutang: newOutstanding,
+      });
+
+      updatePinjaman(selectedPinjaman.id, newSudahDibayar, newOutstanding);
+
+      addTransaksi({
+        id: 0,
+        noBukti: `AN-${String(Date.now()).slice(-6)}`,
+        tanggal: formAngsuran.tanggal,
+        jam: new Date().toLocaleTimeString("id-ID"),
+        akun: "Piutang Pinjaman",
+        kategori: "Kredit",
+        uraian: `Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
+        debet: 0,
+        kredit: angsuranPokokNum,
+        saldo: -angsuranPokokNum,
+        operator: "System",
+      });
+
+      addTransaksi({
+        id: 0,
+        noBukti: `AN-${String(Date.now()).slice(-6)}`,
+        tanggal: formAngsuran.tanggal,
+        jam: new Date().toLocaleTimeString("id-ID"),
+        akun: "Kas/Bank",
+        kategori: "Debet",
+        uraian: `Penerimaan Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
+        debet: totalBayar,
+        kredit: 0,
+        saldo: totalBayar,
+        operator: "System",
+      });
+
+      if (angsuranBungaNum > 0) {
+        addTransaksi({
+          id: 0,
+          noBukti: `Bunga-${String(Date.now()).slice(-6)}`,
+          tanggal: formAngsuran.tanggal,
+          jam: new Date().toLocaleTimeString("id-ID"),
+          akun: "Pendapatan Bunga",
+          kategori: "Kredit",
+          uraian: `Pendapatan Bunga Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
+          debet: 0,
+          kredit: angsuranBungaNum,
+          saldo: angsuranBungaNum,
+          operator: "System",
+        });
+      }
+
+      if (dendaNum > 0) {
+        addTransaksi({
+          id: 0,
+          noBukti: `DN-${String(Date.now()).slice(-6)}`,
+          tanggal: formAngsuran.tanggal,
+          jam: new Date().toLocaleTimeString("id-ID"),
+          akun: "Pendapatan Denda",
+          kategori: "Kredit",
+          uraian: `Denda Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
+          debet: 0,
+          kredit: dendaNum,
+          saldo: dendaNum,
+          operator: "System",
+        });
+      }
+
+      setSubmittedAngsuran(true);
+      setTimeout(() => {
+        setSubmittedAngsuran(false);
+        setFormAngsuran({
+          idPinjaman: "",
+          tanggal: new Date().toISOString().split("T")[0],
+          angsuranPokok: "",
+          angsuranBunga: "",
+          denda: "0",
+        });
+      }, 3000);
+    }
+  };
+
+  const handleSelectPinjaman = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = e.target.value;
+    const selected = pinjaman.find(p => p.id.toString() === selectedId);
+    if (selected) {
+      const angsuranPokok = Math.floor(selected.jumlah / selected.tenor);
+      const angsuranBunga = Math.floor((selected.jumlah * selected.bunga / 100));
+      setFormAngsuran({
+        ...formAngsuran,
+        idPinjaman: selectedId,
+        angsuranPokok: angsuranPokok.toString(),
+        angsuranBunga: angsuranBunga.toString(),
+      });
     }
   };
 
@@ -126,6 +330,8 @@ export default function PinjamanPage() {
   const formatRupiahNum = (num: number) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
   };
+
+  const activePinjaman = pinjaman.filter(p => p.status === "Disetujui" && p.outstanding > 0);
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--color-background)" }}>
@@ -148,282 +354,435 @@ export default function PinjamanPage() {
       </header>
 
       <div className="container" style={{ padding: "120px 24px 64px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏦</div>
             <h1 style={{ fontSize: 36, fontFamily: "var(--font-heading)", marginBottom: 12, color: "var(--color-text-primary)" }}>
-              Pengajuan Pinjaman
+              Manajemen Pinjaman
             </h1>
             <p style={{ fontSize: 16, color: "var(--color-text-secondary)" }}>
-              Formulir pengajuan pinjaman anggota dengan kalkulasi bunga otomatis
+              Pencairan, Tracking, dan Angsuran Pinjaman Anggota
             </p>
           </div>
 
-          {submitted && (
-            <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
-              ✓ Pengajuan pinjaman berhasil! Tim akan memproses dalam 1-3 hari kerja.
-            </div>
-          )}
+          <div style={{ display: "flex", gap: 8, marginBottom: 32, background: "var(--color-surface)", padding: 8, borderRadius: 12 }}>
+            <button
+              onClick={() => setActiveTab("pencairan")}
+              style={{
+                flex: 1,
+                padding: "14px 24px",
+                border: "none",
+                borderRadius: 8,
+                background: activeTab === "pencairan" ? "var(--color-primary)" : "transparent",
+                color: activeTab === "pencairan" ? "white" : "var(--color-text-primary)",
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: "pointer",
+              }}
+            >
+              📝 Pencairan
+            </button>
+            <button
+              onClick={() => setActiveTab("daftar")}
+              style={{
+                flex: 1,
+                padding: "14px 24px",
+                border: "none",
+                borderRadius: 8,
+                background: activeTab === "daftar" ? "var(--color-primary)" : "transparent",
+                color: activeTab === "daftar" ? "white" : "var(--color-text-primary)",
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: "pointer",
+              }}
+            >
+              📋 Daftar Peminjam
+            </button>
+            <button
+              onClick={() => setActiveTab("angsuran")}
+              style={{
+                flex: 1,
+                padding: "14px 24px",
+                border: "none",
+                borderRadius: 8,
+                background: activeTab === "angsuran" ? "var(--color-primary)" : "transparent",
+                color: activeTab === "angsuran" ? "white" : "var(--color-text-primary)",
+                fontWeight: 600,
+                fontSize: 15,
+                cursor: "pointer",
+              }}
+            >
+              💳 Angsuran
+            </button>
+          </div>
 
-          <div className="card" style={{ padding: 40 }}>
-            <form onSubmit={handleSubmit}>
-              <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
-                Data Peminjaman
-              </h3>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nama Lengkap *</label>
-                  <input
-                    type="text"
-                    value={formData.nama}
-                    onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.nama ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
-                    placeholder="Masukkan nama lengkap"
-                  />
-                  {formErrors.nama && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.nama}</div>}
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nomor Anggota *</label>
-                  <input
-                    type="text"
-                    value={formData.nomorAnggota}
-                    onChange={(e) => setFormData({ ...formData, nomorAnggota: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.nomorAnggota ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
-                    placeholder="Contoh: AG-001"
-                  />
-                  {formErrors.nomorAnggota && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.nomorAnggota}</div>}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Pengajuan *</label>
-                  <input
-                    type="date"
-                    value={formData.tanggal}
-                    onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tanggal ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
-                  />
-                  {formErrors.tanggal && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tanggal}</div>}
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Sistem Perhitungan *</label>
-                  <select
-                    value={formData.sistem}
-                    onChange={(e) => setFormData({ ...formData, sistem: e.target.value, tenor: "", bunga: "" })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.sistem ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
-                  >
-                    <option value="">Pilih sistem</option>
-                    {sistemOptions.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label} - {opt.deskripsi}</option>
-                    ))}
-                  </select>
-                  {formErrors.sistem && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.sistem}</div>}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pinjaman *</label>
-                  <select
-                    value={formData.jenisPinjaman}
-                    onChange={(e) => setFormData({ ...formData, jenisPinjaman: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
-                  >
-                    <option value="">Pilih jenis pinjaman</option>
-                    <option value="umum">Pinjaman Umum</option>
-                    <option value="bisnis">Pinjaman Bisnis</option>
-                    <option value="produktif">Pinjaman Produktif</option>
-                    <option value="dana-sehat">Dana Sehat</option>
-                    <option value="pendidikan">Pinjaman Pendidikan</option>
-                  </select>
-                  {formErrors.jenisPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisPinjaman}</div>}
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jumlah Pinjaman (Rp) *</label>
-                  <input
-                    type="text"
-                    value={formData.jumlah}
-                    onChange={(e) => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
-                    placeholder="Rp 0"
-                  />
-                  {formErrors.jumlah && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jumlah}</div>}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jangka Waktu *</label>
-                  <select
-                    value={formData.tenor}
-                    onChange={(e) => setFormData({ ...formData, tenor: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
-                    disabled={!formData.sistem}
-                  >
-                    <option value="">Pilih jangka waktu</option>
-                    {formData.sistem === "musiman" ? (
-                      [1, 2, 3, 4, 5, 6].map(bulan => (
-                        <option key={bulan} value={bulan}>{bulan} Bulan</option>
-                      ))
-                    ) : (
-                      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36].map(bulan => (
-                        <option key={bulan} value={bulan}>{bulan} Bulan</option>
-                      ))
-                    )}
-                  </select>
-                  {formErrors.tenor && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tenor}</div>}
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Bunga (%)</label>
-                  <input
-                    type="text"
-                    value={currentOption ? `${currentOption.bunga}% per bulan` : "-"}
-                    readOnly
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }}
-                  />
-                </div>
-              </div>
-
-              {preview && (
-                <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)", borderRadius: 12, padding: 24, marginBottom: 24, color: "white" }}>
-                  <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Kalkulasi Pinjaman</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, textAlign: "center" }}>
-                    <div>
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>Bunga Total</div>
-                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.totalBunga)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>Angsuran/Bulan</div>
-                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.angsuranPerBulan)}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, opacity: 0.8 }}>Total Pembayaran</div>
-                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.totalPembayaran)}</div>
-                    </div>
-                  </div>
+          {activeTab === "pencairan" && (
+            <div className="card" style={{ padding: 40 }}>
+              {submittedPencairan && (
+                <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+                  ✓ Pencairan Pinjaman Berhasil! jurnal Otomatis Dibuat.
                 </div>
               )}
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan Penggunaan *</label>
+              <form onSubmit={handleSubmit}>
+                <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
+                  Form Pencairan Pinjaman
+                </h3>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Anggota *</label>
+                    <select
+                      value={formData.idAnggota}
+                      onChange={handleSelectAnggota}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.idAnggota ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    >
+                      <option value="">Pilih Anggota</option>
+                      {anggota.map(a => (
+                        <option key={a.id} value={a.id}>{a.nama} ({a.nik || `AG-${String(a.id).padStart(3, "0")}`})</option>
+                      ))}
+                    </select>
+                    {formErrors.idAnggota && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.idAnggota}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Pencairan *</label>
+                    <input
+                      type="date"
+                      value={formData.tanggal}
+                      onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tanggal ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                    />
+                    {formErrors.tanggal && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tanggal}</div>}
+                  </div>
+                </div>
+
+                {formData.nama && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24, padding: 16, background: "var(--color-background)", borderRadius: 8 }}>
+                    <div>
+                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Nama Anggota</div>
+                      <div style={{ fontSize: 16, fontWeight: 600 }}>{formData.nama}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Nomor Anggota</div>
+                      <div style={{ fontSize: 16, fontWeight: 600 }}>{formData.nomorAnggota}</div>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Sistem Perhitungan *</label>
+                    <select
+                      value={formData.sistem}
+                      onChange={(e) => setFormData({ ...formData, sistem: e.target.value, tenor: "", bunga: "" })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    >
+                      {sistemOptions.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label} - {opt.deskripsi}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pinjaman *</label>
+                    <select
+                      value={formData.jenisPinjaman}
+                      onChange={(e) => setFormData({ ...formData, jenisPinjaman: e.target.value })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    >
+                      <option value="">Pilih jenis pinjaman</option>
+                      <option value="umum">Pinjaman Umum</option>
+                      <option value="bisnis">Pinjaman Bisnis</option>
+                      <option value="produktif">Pinjaman Produktif</option>
+                      <option value="dana-sehat">Dana Sehat</option>
+                      <option value="pendidikan">Pinjaman Pendidikan</option>
+                    </select>
+                    {formErrors.jenisPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisPinjaman}</div>}
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nominal Pinjaman (Rp) *</label>
+                    <input
+                      type="text"
+                      value={formData.jumlah}
+                      onChange={(e) => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                      placeholder="Rp 0"
+                    />
+                    {formErrors.jumlah && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jumlah}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tenor (Bulan) *</label>
+                    <select
+                      value={formData.tenor}
+                      onChange={(e) => setFormData({ ...formData, tenor: e.target.value })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    >
+                      {formData.sistem === "musiman" ? (
+                        [1, 2, 3, 4, 5, 6].map(bulan => (
+                          <option key={bulan} value={bulan}>{bulan} Bulan</option>
+                        ))
+                      ) : (
+                        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36].map(bulan => (
+                          <option key={bulan} value={bulan}>{bulan} Bulan</option>
+                        ))
+                      )}
+                    </select>
+                    {formErrors.tenor && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tenor}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Biaya Admin (Rp)</label>
+                    <input
+                      type="text"
+                      value={formData.biayaAdmin}
+                      onChange={(e) => setFormData({ ...formData, biayaAdmin: formatRupiah(e.target.value) })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none" }}
+                      placeholder="Rp 25.000"
+                    />
+                  </div>
+                </div>
+
+                {preview && (
+                  <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)", borderRadius: 12, padding: 24, marginBottom: 24, color: "white" }}>
+                    <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Kalkulasi Pinjaman</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, textAlign: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Plafon</div>
+                        <div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(parseInt(formData.jumlah.replace(/\D/g, "")))}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Bunga Total</div>
+                        <div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.totalBunga)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Admin</div>
+                        <div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.biayaAdmin)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, opacity: 0.8 }}>Angsuran/Bulan</div>
+                        <div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.angsuranPerBulan + (preview.biayaAdmin / parseInt(formData.tenor)))}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ marginBottom: 32 }}>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan Penggunaan</label>
                   <input
                     type="text"
                     value={formData.tujuan}
                     onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tujuan ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
-                    placeholder="Contoh: Modal usaha, beli kendaraan"
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none" }}
+                    placeholder="Contoh: Modal usaha"
                   />
-                  {formErrors.tujuan && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tujuan}</div>}
                 </div>
 
-                <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jaminan</label>
-                  <select
-                    value={formData.jaminan}
-                    onChange={(e) => setFormData({ ...formData, jaminan: e.target.value })}
-                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
-                  >
-                    <option value="">Pilih jaminan</option>
-                    <option value="tanpa-jaminan">Tanpa Jaminan</option>
-                    <option value="bpkb">BPKB Kendaraan</option>
-                    <option value="shm">SHM Tanah/Bangunan</option>
-                    <option value="emas">Barang Berharga</option>
-                  </select>
-                </div>
-              </div>
+                <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
+                  💰 Cairkan Pinjaman
+                </button>
+              </form>
+            </div>
+          )}
 
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Metode Pembayaran Angsuran *</label>
-                <select
-                  value={formData.metodePembayaran}
-                  onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })}
-                  style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
-                >
-                  <option value="">Pilih metode</option>
-                  <option value="tunai">Tunai</option>
-                  <option value="transfer">Transfer Otomatis</option>
-                  <option value="potong-gaji">Potong Gaji</option>
-                </select>
-                {formErrors.metodePembayaran && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.metodePembayaran}</div>}
-              </div>
-
-              <div style={{ marginBottom: 32 }}>
-                <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Catatan</label>
-                <textarea
-                  value={formData.catatan}
-                  onChange={(e) => setFormData({ ...formData, catatan: e.target.value })}
-                  rows={3}
-                  style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none", resize: "vertical", fontFamily: "inherit" }}
-                  placeholder="Catatan tambahan (opsional)"
-                />
-              </div>
-
-              <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
-                Ajukan Pinjaman
-              </button>
-            </form>
-          </div>
-
-          {pinjaman.length > 0 && (
-            <div className="card" style={{ padding: 40, marginTop: 32 }}>
+          {activeTab === "daftar" && (
+            <div className="card" style={{ padding: 40 }}>
               <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
                 Daftar Anggota Peminjam
               </h3>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-                <thead>
-                  <tr style={{ background: "var(--color-background)" }}>
-                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No</th>
-                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
-                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No. Anggota</th>
-                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
-                    <th style={{ padding: "12px 8px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
-                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Tenor</th>
-                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Bunga</th>
-                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pinjaman.map((p, idx) => (
-                    <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={{ padding: "12px 8px" }}>{idx + 1}</td>
-                      <td style={{ padding: "12px 8px", fontWeight: 500 }}>{p.nama}</td>
-                      <td style={{ padding: "12px 8px" }}>{p.nomorAnggota}</td>
-                      <td style={{ padding: "12px 8px" }}>{p.jenisPinjaman}</td>
-                      <td style={{ padding: "12px 8px", textAlign: "right" }}>{formatRupiahNum(p.jumlah)}</td>
-                      <td style={{ padding: "12px 8px", textAlign: "center" }}>{p.tenor} bln</td>
-                      <td style={{ padding: "12px 8px", textAlign: "center" }}>{p.bunga}%</td>
-                      <td style={{ padding: "12px 8px", textAlign: "center" }}>
-                        <span style={{ 
-                          padding: "4px 12px", 
-                          borderRadius: 16, 
-                          fontSize: 12,
-                          background: p.status === "Disetujui" ? "#d4edda" : p.status === "Menunggu" ? "#fff3cd" : "#f8d7da",
-                          color: p.status === "Disetujui" ? "#155724" : p.status === "Menunggu" ? "#856404" : "#721c24"
-                        }}>
-                          {p.status}
-                        </span>
-                      </td>
+              {pinjaman.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 48, color: "var(--color-text-secondary)" }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+                  <p>Belum ada peminjam. Lakukan pencairan terlebih dahulu.</p>
+                </div>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                  <thead>
+                    <tr style={{ background: "var(--color-background)" }}>
+                      <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No</th>
+                      <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                      <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No. Anggota</th>
+                      <th style={{ padding: "12px 8px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Plafon</th>
+                      <th style={{ padding: "12px 8px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Sudah Dibayar</th>
+                      <th style={{ padding: "12px 8px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Outstanding</th>
+                      <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Tenor</th>
+                      <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ marginTop: 24, padding: 16, background: "var(--color-background)", borderRadius: 8, display: "flex", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Peminjam</div>
-                  <div style={{ fontSize: 24, fontWeight: 700 }}>{pinjaman.length} Anggota</div>
+                  </thead>
+                  <tbody>
+                    {pinjaman.map((p, idx) => (
+                      <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
+                        <td style={{ padding: "12px 8px" }}>{idx + 1}</td>
+                        <td style={{ padding: "12px 8px", fontWeight: 500 }}>{p.nama}</td>
+                        <td style={{ padding: "12px 8px" }}>{p.nomorAnggota}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "right", fontWeight: 500 }}>{formatRupiahNum(p.jumlah)}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "right", color: "#27ae60" }}>{formatRupiahNum(p.sudahDibayar || 0)}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "right", color: "#e74c3c", fontWeight: 600 }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td>
+                        <td style={{ padding: "12px 8px", textAlign: "center" }}>{p.tenor} bln</td>
+                        <td style={{ padding: "12px 8px", textAlign: "center" }}>
+                          <span style={{ 
+                            padding: "4px 12px", 
+                            borderRadius: 16, 
+                            fontSize: 12,
+                            background: p.status === "Disetujui" ? "#d4edda" : p.status === "Menunggu" ? "#fff3cd" : "#f8d7da",
+                            color: p.status === "Disetujui" ? "#155724" : p.status === "Menunggu" ? "#856404" : "#721c24"
+                          }}>
+                            {p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {pinjaman.length > 0 && (
+                <div style={{ marginTop: 24, padding: 16, background: "var(--color-background)", borderRadius: 8, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Peminjam</div>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>{pinjaman.length} Anggota</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Plafon</div>
+                    <div style={{ fontSize: 24, fontWeight: 700 }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + p.jumlah, 0))}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Outstanding</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: "#e74c3c" }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + (p.outstanding || p.jumlah), 0))}</div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Pinjaman Aktif</div>
-                  <div style={{ fontSize: 24, fontWeight: 700 }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + p.jumlah, 0))}</div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "angsuran" && (
+            <div className="card" style={{ padding: 40 }}>
+              {submittedAngsuran && (
+                <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+                  ✓ Angsuran Berhasil Dicatat! jurnal Otomatis Dibuat.
                 </div>
-              </div>
+              )}
+
+              <form onSubmit={handleSubmitAngsuran}>
+                <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
+                  Input Angsuran
+                </h3>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Pinjaman *</label>
+                    <select
+                      value={formAngsuran.idPinjaman}
+                      onChange={handleSelectPinjaman}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.idPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    >
+                      <option value="">Pilih Pinjaman</option>
+                      {activePinjaman.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.nama} - {formatRupiahNum(p.outstanding || p.jumlah)} (Outstanding)
+                        </option>
+                      ))}
+                    </select>
+                    {formErrorsAngsuran.idPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.idPinjaman}</div>}
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Angsuran *</label>
+                    <input
+                      type="date"
+                      value={formAngsuran.tanggal}
+                      onChange={(e) => setFormAngsuran({ ...formAngsuran, tanggal: e.target.value })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.tanggal ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                    />
+                    {formErrorsAngsuran.tanggal && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.tanggal}</div>}
+                  </div>
+                </div>
+
+                {formAngsuran.idPinjaman && (
+                  <div style={{ padding: 16, background: "var(--color-background)", borderRadius: 8, marginBottom: 24 }}>
+                    {(() => {
+                      const selected = pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
+                      if (!selected) return null;
+                      return (
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                          <div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Nama</div>
+                            <div style={{ fontSize: 16, fontWeight: 600 }}>{selected.nama}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Angsuran Ke</div>
+                            <div style={{ fontSize: 16, fontWeight: 600 }}>{angsuran.filter(a => a.idPinjaman === selected.id).length + 1}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Sisa Outstanding</div>
+                            <div style={{ fontSize: 16, fontWeight: 600, color: "#e74c3c" }}>{formatRupiahNum(selected.outstanding || selected.jumlah)}</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Angsuran Pokok (Rp) *</label>
+                    <input
+                      type="text"
+                      value={formAngsuran.angsuranPokok}
+                      onChange={(e) => setFormAngsuran({ ...formAngsuran, angsuranPokok: formatRupiah(e.target.value) })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.angsuranPokok ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                      placeholder="Rp 0"
+                    />
+                    {formErrorsAngsuran.angsuranPokok && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.angsuranPokok}</div>}
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4 }}>Mengurangi Piutang</div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Angsuran Bunga (Rp) *</label>
+                    <input
+                      type="text"
+                      value={formAngsuran.angsuranBunga}
+                      onChange={(e) => setFormAngsuran({ ...formAngsuran, angsuranBunga: formatRupiah(e.target.value) })}
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.angsuranBunga ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                      placeholder="Rp 0"
+                    />
+                    {formErrorsAngsuran.angsuranBunga && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.angsuranBunga}</div>}
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4 }}>Menambah Pendapatan</div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 32 }}>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda (Rp)</label>
+                  <input
+                    type="text"
+                    value={formAngsuran.denda}
+                    onChange={(e) => setFormAngsuran({ ...formAngsuran, denda: formatRupiah(e.target.value) })}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none" }}
+                    placeholder="Rp 0"
+                  />
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4 }}>Menambah Pendapatan Denda</div>
+                </div>
+
+                {(formAngsuran.angsuranPokok || formAngsuran.angsuranBunga) && (
+                  <div style={{ background: "#e8f5e9", borderRadius: 8, padding: 16, marginBottom: 24 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Total Pembayaran:</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: "#27ae60" }}>
+                      {formatRupiahNum(
+                        (parseInt(formAngsuran.angsuranPokok?.replace(/\D/g, "")) || 0) +
+                        (parseInt(formAngsuran.angsuranBunga?.replace(/\D/g, "")) || 0) +
+                        (parseInt(formAngsuran.denda?.replace(/\D/g, "")) || 0)
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>
+                  💳 Simpan Angsuran
+                </button>
+              </form>
             </div>
           )}
 

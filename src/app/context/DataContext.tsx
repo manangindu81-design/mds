@@ -49,6 +49,24 @@ export interface Pinjaman {
   bunga: number;
   tujuan: string;
   status: string;
+  biayaAdmin: number;
+  sudahDibayar: number;
+  outstanding: number;
+}
+
+export interface Angsuran {
+  id: number;
+  idPinjaman: number;
+  idAnggota: number;
+  nama: string;
+  nomorAnggota: string;
+  tanggal: string;
+  angsuranKe: number;
+  angsuranPokok: number;
+  angsuranBunga: number;
+  denda: number;
+  totalBayar: number;
+  saldoPiutang: number;
 }
 
 export interface Transaksi {
@@ -69,10 +87,13 @@ interface DataContextType {
   anggota: Anggota[];
   simpanan: Simpanan[];
   pinjaman: Pinjaman[];
+  angsuran: Angsuran[];
   transaksi: Transaksi[];
   addAnggota: (data: Anggota) => void;
   addSimpanan: (data: Simpanan) => void;
   addPinjaman: (data: Pinjaman) => void;
+  addAngsuran: (data: Angsuran) => void;
+  updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
 }
 
@@ -82,6 +103,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [anggota, setAnggota] = useState<Anggota[]>([]);
   const [simpanan, setSimpanan] = useState<Simpanan[]>([]);
   const [pinjaman, setPinjaman] = useState<Pinjaman[]>([]);
+  const [angsuran, setAngsuran] = useState<Angsuran[]>([]);
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
 
   const addAnggota = (data: Anggota) => {
@@ -96,6 +118,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setPinjaman(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
 
+  const addAngsuran = (data: Angsuran) => {
+    setAngsuran(prev => [...prev, { ...data, id: prev.length + 1 }]);
+  };
+
+  const updatePinjaman = (id: number, sudahDibayar: number, outstanding: number) => {
+    setPinjaman(prev => prev.map(p => 
+      p.id === id ? { ...p, sudahDibayar, outstanding } : p
+    ));
+  };
+
   const addTransaksi = (data: Transaksi) => {
     setTransaksi(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
@@ -104,11 +136,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     <DataContext.Provider value={{
       anggota,
       simpanan,
-     pinjaman,
+      pinjaman,
+      angsuran,
       transaksi,
       addAnggota,
       addSimpanan,
       addPinjaman,
+      addAngsuran,
+      updatePinjaman,
       addTransaksi,
     }}>
       {children}
