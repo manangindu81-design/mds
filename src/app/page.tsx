@@ -122,6 +122,7 @@ export default function Home() {
             <Link href="/simpanan" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Simpanan</Link>
             <Link href="/pinjaman" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Pinjaman</Link>
             <Link href="/anggota" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Anggota</Link>
+            <Link href="/dashboard" style={{ textDecoration: "none", color: "var(--color-secondary)", fontWeight: 600, fontSize: 15 }}>Dashboard</Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -141,6 +142,7 @@ export default function Home() {
             <Link href="/simpanan" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Simpanan</Link>
             <Link href="/pinjaman" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Pinjaman</Link>
             <Link href="/anggota" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Anggota</Link>
+            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-secondary)", fontWeight: 600 }}>Dashboard</Link>
           </div>
         )}
       </header>
