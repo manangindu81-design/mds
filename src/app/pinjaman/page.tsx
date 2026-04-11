@@ -147,7 +147,7 @@ export default function PinjamanPage() {
 
           {submitted && (
             <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
-              ✓ Pengajuan pinjaman berhasil! Tim kami akan memproses dalam 1-3 hari kerja.
+              ✓ Pengajuan pinjaman berhasil! Tim akan memproses dalam 1-3 hari kerja.
             </div>
           )}
 

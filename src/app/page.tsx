@@ -77,7 +77,7 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      alert("Terima kasih! Pesan Anda telah terkirim. Tim kami akan menghubungi Anda segera.");
+      alert("Terima kasih! Pesan Anda telah terkirim. Tim akan menghubungi Anda segera.");
       setFormData({ name: "", email: "", phone: "", message: "" });
     }
   };
@@ -162,7 +162,7 @@ export default function Home() {
               <a href="#kontak" className="btn btn-secondary" style={{ fontSize: 16 }}>
                 Bergabung Sekarang
               </a>
-              <a href="#tentang" style={{ 
+              <a href="#profil" style={{ 
                 display: "inline-block", 
                 padding: "16px 32px", 
                 background: "transparent", 
@@ -219,13 +219,13 @@ export default function Home() {
               letterSpacing: 2,
               marginBottom: 16
             }}>
-              LAYANAN KAMI
+              LAYANAN
             </div>
             <h2 className="section-title" style={{ textAlign: "center" }}>
               Solusi Keuangan Terpercaya
             </h2>
             <p className="section-subtitle" style={{ margin: "0 auto", textAlign: "center" }}>
-              Kami menyediakan berbagai layanan keuangan yang dirancang untuk memenuhi kebutuhan anggota dengan aman, mudah, dan menguntungkan.
+              Layanan keuangan yang dirancang untuk memenuhi kebutuhan anggota dengan aman, mudah, dan menguntungkan.
             </p>
           </div>
 
@@ -259,7 +259,7 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="tentang" className="section" style={{ background: "var(--color-surface)" }}>
+      <section id="profil" className="section" style={{ background: "var(--color-surface)" }}>
         <div className="container" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
           <div style={{ 
             background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%)", 
@@ -289,14 +289,14 @@ export default function Home() {
               letterSpacing: 2,
               marginBottom: 16
             }}>
-              TENTANG KAMI
+              PROFIL
             </div>
             <h2 className="section-title">
               Membangun Kepercayaan, Menciptakan Kemakmuran
             </h2>
             <p style={{ fontSize: 16, color: "var(--color-text-secondary)", marginBottom: 32, lineHeight: 1.8 }}>
               KSP Mulia Dana Sejahtera adalah lembaga keuangan mikro yang dikelola secara profesional 
-              dengan prinsip kehati-hatian. Kami berkomitmen untuk membantu masyarakat mengakses layanan keuangan 
+              dengan prinsip kehati-hatian. KSP berkomitmen untuk membantu masyarakat mengakses layanan keuangan 
               yang mudah, aman, dan terjangkau.
             </p>
             
@@ -365,7 +365,7 @@ export default function Home() {
               </div>
             </div>
             
-            <a href="#produk" className="btn btn-primary">
+            <a href="#layanan" className="btn btn-primary">
               Lihat Produk Lainnya
             </a>
           </div>
@@ -384,7 +384,7 @@ export default function Home() {
               letterSpacing: 2,
               marginBottom: 16
             }}>
-              PRODUK KAMI
+              PRODUK
             </div>
             <h2 className="section-title" style={{ textAlign: "center" }}>
               Pilihan Investasi & Pembiayaan
@@ -705,8 +705,8 @@ export default function Home() {
           #beranda h1 { font-size: 40px !important; }
           #beranda p { font-size: 18px !important; }
           #beranda > div > div:last-child { margin-top: 40px; }
-          #tentang .container { grid-template-columns: 1fr !important; }
-          #tentang > div > div:last-child { order: -1; }
+          #profil .container { grid-template-columns: 1fr !important; }
+          #profil > div > div:last-child { order: -1; }
           #kontak .container { grid-template-columns: 1fr !important; }
           footer > div > div { grid-template-columns: 1fr !important; gap: 32px !important; text-align: center; }
           footer > div > div > div:first-child { display: flex; flex-direction: column; align-items: center; }
