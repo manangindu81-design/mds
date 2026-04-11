@@ -15,21 +15,19 @@ export default function PinjamanPage() {
     alamat: "",
     tanggal: new Date().toISOString().split("T")[0],
     sistem: "flat",
+    bunga: "1.5",
     jenisPinjaman: "",
     jumlah: "",
     tenor: "12",
-    bunga: "1.5",
     denda: "2",
-    biayaAdmin: "25000",
     tujuan: "",
+    agunan: "",
     jenisKredit: "",
     jenisPencairan: "",
     noPerjanjian: "",
     tanggalRealisasi: "",
-    tanggalJatuhTempo: "",
-    biayaMaterai: "6000",
-    biayaLegalisasi: "0",
-    feeNotaris: "0",
+    bpjstk: false,
+    bpjstkAmount: "0",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submittedPencairan, setSubmittedPencairan] = useState(false);
@@ -44,12 +42,26 @@ export default function PinjamanPage() {
   const [formErrorsAngsuran, setFormErrorsAngsuran] = useState<Record<string, string>>({});
   const [submittedAngsuran, setSubmittedAngsuran] = useState(false);
 
-  const sistemOptions = [
-    { value: "musiman", label: "Musiman (Saldo Menurun)", bunga: 2.5, tenorMax: 6, deskripsi: "Bunga 2,5% per bulan" },
-    { value: "flat", label: "Flat (Angsuran Tetap)", bunga: 1.5, tenorMax: 36, deskripsi: "Bunga 1,5% - 2% per bulan" },
+  const flatBungaOptions = [
+    { value: "1.5", label: "1,5% per bulan" },
+    { value: "1.6", label: "1,6% per bulan" },
+    { value: "1.65", label: "1,65% per bulan" },
+    { value: "1.7", label: "1,7% per bulan" },
+    { value: "1.75", label: "1,75% per bulan" },
+    { value: "1.8", label: "1,8% per bulan" },
+    { value: "2", label: "2% per bulan" },
   ];
 
-  const currentOption = sistemOptions.find(o => o.value === formData.sistem);
+  const musimanBungaOptions = [
+    { value: "2.5", label: "2,5% per bulan" },
+  ];
+
+  const handleSistemChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const sistem = e.target.value;
+    const bunga = sistem === "musiman" ? "2.5" : "1.5";
+    const tenor = sistem === "musiman" ? "3" : "12";
+    setFormData({ ...formData, sistem, bunga, tenor });
+  };
 
   const handleSelectAnggota = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = e.target.value;
@@ -65,6 +77,24 @@ export default function PinjamanPage() {
     }
   };
 
+  const handleTenorInput = (value: string) => {
+    let tenorNum = parseInt(value) || 0;
+    if (tenorNum > 12) tenorNum = 12;
+    setFormData({ ...formData, tenor: tenorNum.toString() });
+  };
+
+  const handlePinjamanChange = (value: string) => {
+    const selected =pinjaman.find(p => p.id.toString() === value);
+    if (selected) {
+      setFormAngsuran({
+        ...formAngsuran,
+        idPinjaman: value,
+        angsuranPokok: Math.floor(selected.jumlah / selected.tenor).toString(),
+        angsuranBunga: Math.floor(selected.jumlah * selected.bunga / 100).toString(),
+      });
+    }
+  };
+
   const calculateJatuhTempo = () => {
     if (!formData.tanggalRealisasi || !formData.tenor) return "";
     const tgl = new Date(formData.tanggalRealisasi);
@@ -72,15 +102,39 @@ export default function PinjamanPage() {
     return tgl.toISOString().split("T")[0];
   };
 
+  const calculateBiaya = () => {
+    const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
+    const tenor = parseInt(formData.tenor) || 1;
+    const hasAgunan = formData.agunan === "ada";
+    const bpjstkAmount = formData.bpjstk ? tenor * 20000 : 0;
+    
+    const biayaAdmin = Math.round(jumlah * 0.02);
+    const danaRisiko = Math.round(jumlah * 0.01);
+    const danaSosial = Math.round(jumlah * 0.01);
+    const insentif = !hasAgunan ? Math.round(jumlah * 0.01) : 0;
+    const legalisasi = hasAgunan ? 400000 : 0;
+    const feeNotaris = 100000;
+    const materai = 24000;
+    
+    return {
+      biayaAdmin,
+      danaRisiko,
+      danaSosial,
+      insentif,
+      legalisasi,
+      feeNotaris,
+      materai,
+      bpjstk: bpjstkAmount,
+      totalPotongan: biayaAdmin + danaRisiko + danaSosial + insentif + legalisasi + feeNotaris + materai + bpjstkAmount
+    };
+  };
+
   const calculatePreview = () => {
     if (!formData.jumlah || !formData.tenor) return null;
     const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
     const tenor = parseInt(formData.tenor);
-    const bunga = currentOption?.bunga || 0;
-    const biayaAdmin = parseInt(formData.biayaAdmin.replace(/\D/g, "")) || 0;
-    const biayaMaterai = parseInt(formData.biayaMaterai.replace(/\D/g, "")) || 0;
-    const biayaLegalisasi = parseInt(formData.biayaLegalisasi.replace(/\D/g, "")) || 0;
-    const feeNotaris = parseInt(formData.feeNotaris.replace(/\D/g, "")) || 0;
+    const bunga = parseFloat(formData.bunga) || 0;
+    const biaya = calculateBiaya();
 
     if (jumlah <= 0 || tenor <= 0) return null;
 
@@ -92,47 +146,37 @@ export default function PinjamanPage() {
       const rate = bunga / 100;
       totalBunga = jumlah * rate * (tenor + 1) / 2;
       angsuranPerBulan = (jumlah / tenor) + (totalBunga / tenor);
-      return {
-        totalBunga,
-        angsuranPerBulan,
-        totalPembayaran: jumlah + totalBunga,
-        biayaAdmin,
-        biayaMaterai,
-        biayaLegalisasi,
-        feeNotaris,
-        totalTagihan: jumlah + totalBunga + biayaAdmin + biayaMaterai + biayaLegalisasi + feeNotaris,
-        pokokPerBulan
-      };
     } else {
       totalBunga = jumlah * (bunga / 100) * tenor;
       angsuranPerBulan = (jumlah / tenor) + (totalBunga / tenor);
-      return {
-        totalBunga,
-        angsuranPerBulan,
-        totalPembayaran: jumlah + totalBunga,
-        biayaAdmin,
-        biayaMaterai,
-        biayaLegalisasi,
-        feeNotaris,
-        totalTagihan: jumlah + totalBunga + biayaAdmin + biayaMaterai + biayaLegalisasi + feeNotaris,
-        pokokPerBulan
-      };
     }
+
+    const jumlahDicairkan = jumlah - biaya.totalPotongan;
+
+    return {
+      totalBunga,
+      angsuranPerBulan,
+      totalPembayaran: jumlah + totalBunga,
+      pokokPerBulan,
+      jumlahDicairkan,
+      biaya
+    };
   };
 
   const preview = calculatePreview();
+  const currentBungaOptions = formData.sistem === "musiman" ? musimanBungaOptions : flatBungaOptions;
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!formData.idAnggota) errors.idAnggota = "Anggota wajib dipilih";
     if (!formData.tanggal) errors.tanggal = "Tanggal wajib diisi";
-    if (!formData.jenisPinjaman) errors.jenisPinjaman = "Jenis pinjaman wajib dipilih";
+    if (!formData.jenisPinjaman) errors.jenisPinjaman = "Jenis pinjaman wajib diisi";
     if (!formData.jumlah) errors.jumlah = "Jumlah wajib diisi";
-    if (!formData.tenor) errors.tenor = "Jangka waktu wajib dipilih";
+    if (!formData.tenor) errors.tenor = "Jangka waktu wajib diisi";
     if (!formData.jenisKredit) errors.jenisKredit = "Jenis kredit wajib dipilih";
     if (!formData.jenisPencairan) errors.jenisPencairan = "Jenis pencairan wajib dipilih";
-    if (!formData.tanggalRealisasi) errors.tanggalRealisasi = "Tanggal realisasi wajib diisi";
     if (!formData.noPerjanjian) errors.noPerjanjian = "No. perjanjian wajib diisi";
+    if (!formData.tanggalRealisasi) errors.tanggalRealisasi = "Tanggal realisasi wajib diisi";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -141,13 +185,10 @@ export default function PinjamanPage() {
     e.preventDefault();
     if (validateForm()) {
       const jumlahNum = parseInt(formData.jumlah.replace(/\D/g, ""));
-      const biayaAdminNum = parseInt(formData.biayaAdmin.replace(/\D/g, "")) || 0;
-      const biayaMateraiNum = parseInt(formData.biayaMaterai.replace(/\D/g, "")) || 0;
-      const biayaLegalisasiNum = parseInt(formData.biayaLegalisasi.replace(/\D/g, "")) || 0;
-      const feeNotarisNum = parseInt(formData.feeNotaris.replace(/\D/g, "")) || 0;
-      const dendaNum = parseFloat(formData.denda) || 2;
-      const currentOption = sistemOptions.find(o => o.value === formData.sistem);
+      const currentBunga = parseFloat(formData.bunga);
       const jatuhTempo = calculateJatuhTempo();
+      const biaya = calculateBiaya();
+      const hasAgunan = formData.agunan === "ada";
       
       const newPinjaman: PinjamanType = {
         id: pinjaman.length + 1,
@@ -161,11 +202,11 @@ export default function PinjamanPage() {
         jenisPinjaman: formData.jenisPinjaman,
         jumlah: jumlahNum,
         tenor: parseInt(formData.tenor),
-        bunga: currentOption?.bunga || 0,
-        denda: dendaNum,
+        bunga: currentBunga,
+        denda: parseFloat(formData.denda) || 2,
         tujuan: formData.tujuan,
         status: "Disetujui",
-        biayaAdmin: biayaAdminNum,
+        biayaAdmin: biaya.totalPotongan,
         sudahDibayar: 0,
         outstanding: jumlahNum,
         jenisKredit: formData.jenisKredit,
@@ -173,13 +214,12 @@ export default function PinjamanPage() {
         noPerjanjian: formData.noPerjanjian,
         tanggalRealisasi: formData.tanggalRealisasi,
         tanggalJatuhTempo: jatuhTempo,
-        biayaMaterai: biayaMateraiNum,
-        biayaLegalisasi: biayaLegalisasiNum,
-        feeNotaris: feeNotarisNum,
+        biayaMaterai: biaya.materai,
+        biayaLegalisasi: biaya.legalisasi,
+        feeNotaris: biaya.feeNotaris,
       };
       addPinjaman(newPinjaman);
 
-      const totalBiaya = biayaAdminNum + biayaMateraiNum + biayaLegalisasiNum + feeNotarisNum;
       addTransaksi({
         id: 0,
         noBukti: `PK-${String(Date.now()).slice(-6)}`,
@@ -187,7 +227,7 @@ export default function PinjamanPage() {
         jam: new Date().toLocaleTimeString("id-ID"),
         akun: "Piutang Pinjaman",
         kategori: "Debet",
-        uraian: `Pencairan Pinjaman ${formData.nama} - ${formData.jenisPinjaman}`,
+        uraian: `Pencairan Pinjaman ${formData.nama}`,
         debet: jumlahNum,
         kredit: 0,
         saldo: jumlahNum,
@@ -201,229 +241,67 @@ export default function PinjamanPage() {
         jam: new Date().toLocaleTimeString("id-ID"),
         akun: "Kas/Bank",
         kategori: "Kredit",
-        uraian: `Pencairan Pinjaman ${formData.nama} - ${formData.jenisPinjaman}`,
+        uraian: `Pencairan Pinjaman ${formData.nama}`,
         debet: 0,
         kredit: jumlahNum,
         saldo: -jumlahNum,
         operator: "System",
       });
 
-      if (biayaAdminNum > 0) {
-        addTransaksi({
-          id: 0,
-          noBukti: `ADM-${String(Date.now()).slice(-6)}`,
-          tanggal: formData.tanggalRealisasi,
-          jam: new Date().toLocaleTimeString("id-ID"),
-          akun: "Pendapatan Admin",
-          kategori: "Kredit",
-          uraian: `Biaya Admin Pinjaman ${formData.nama}`,
-          debet: 0,
-          kredit: biayaAdminNum,
-          saldo: biayaAdminNum,
-          operator: "System",
-        });
+      if (biaya.biayaAdmin > 0) {
+        addTransaksi({ id: 0, noBukti: `ADM-${String(Date.now()).slice(-6)}`, tanggal: formData.tanggalRealisasi, jam: new Date().toLocaleTimeString("id-ID"), akun: "Pendapatan Admin", kategori: "Kredit", uraian: `Biaya Admin`, debet: 0, kredit: biaya.biayaAdmin, saldo: biaya.biayaAdmin, operator: "System" });
       }
-      if (biayaMateraiNum > 0) {
-        addTransaksi({
-          id: 0,
-          noBukti: `MAT-${String(Date.now()).slice(-6)}`,
-          tanggal: formData.tanggalRealisasi,
-          jam: new Date().toLocaleTimeString("id-ID"),
-          akun: "Pendapatan Materai",
-          kategori: "Kredit",
-          uraian: `Biaya Materai Pinjaman ${formData.nama}`,
-          debet: 0,
-          kredit: biayaMateraiNum,
-          saldo: biayaMateraiNum,
-          operator: "System",
-        });
+      if (biaya.danaRisiko > 0) {
+        addTransaksi({ id: 0, noBukti: `RSK-${String(Date.now()).slice(-6)}`, tanggal: formData.tanggalRealisasi, jam: new Date().toLocaleTimeString("id-ID"), akun: "Dana Resiko", kategori: "Kredit", uraian: `Dana Resiko`, debet: 0, kredit: biaya.danaRisiko, saldo: biaya.danaRisiko, operator: "System" });
       }
-      if (feeNotarisNum > 0) {
-        addTransaksi({
-          id: 0,
-          noBukti: `NOT-${String(Date.now()).slice(-6)}`,
-          tanggal: formData.tanggalRealisasi,
-          jam: new Date().toLocaleTimeString("id-ID"),
-          akun: "Pendapatan Fee Notaris",
-          kategori: "Kredit",
-          uraian: `Fee Notaris Pinjaman ${formData.nama}`,
-          debet: 0,
-          kredit: feeNotarisNum,
-          saldo: feeNotarisNum,
-          operator: "System",
-        });
+      if (biaya.danaSosial > 0) {
+        addTransaksi({ id: 0, noBukti: `SOS-${String(Date.now()).slice(-6)}`, tanggal: formData.tanggalRealisasi, jam: new Date().toLocaleTimeString("id-ID"), akun: "Dana Sosial", kategori: "Kredit", uraian: `Dana Sosial`, debet: 0, kredit: biaya.danaSosial, saldo: biaya.danaSosial, operator: "System" });
+      }
+      if (biaya.insentif > 0) {
+        addTransaksi({ id: 0, noBukti: `INS-${String(Date.now()).slice(-6)}`, tanggal: formData.tanggalRealisasi, jam: new Date().toLocaleTimeString("id-ID"), akun: "Insentif Penanggung Jawab", kategori: "Kredit", uraian: `Insentif PJ`, debet: 0, kredit: biaya.insentif, saldo: biaya.insentif, operator: "System" });
       }
 
       setSubmittedPencairan(true);
       setTimeout(() => {
         setSubmittedPencairan(false);
         setFormData({
-          idAnggota: "",
-          nama: "",
-          nomorAnggota: "",
-          namaSuamiIstri: "",
-          alamat: "",
-          tanggal: new Date().toISOString().split("T")[0],
-          sistem: "flat",
-          jenisPinjaman: "",
-          jumlah: "",
-          tenor: "12",
-          bunga: "1.5",
-          denda: "2",
-          biayaAdmin: "25000",
-          tujuan: "",
-          jenisKredit: "",
-          jenisPencairan: "",
-          noPerjanjian: "",
-          tanggalRealisasi: "",
-          tanggalJatuhTempo: "",
-          biayaMaterai: "6000",
-          biayaLegalisasi: "0",
-          feeNotaris: "0",
+          idAnggota: "", nama: "", nomorAnggota: "", namaSuamiIstri: "", alamat: "",
+          tanggal: new Date().toISOString().split("T")[0], sistem: "flat", bunga: "1.5",
+          jenisPinjaman: "", jumlah: "", tenor: "12", denda: "2", tujuan: "", agunan: "",
+          jenisKredit: "", jenisPencairan: "", noPerjanjian: "", tanggalRealisasi: "",
+          bpjstk: false, bpjstkAmount: "0",
         });
       }, 3000);
     }
-  };
-
-  const validateFormAngsuran = () => {
-    const errors: Record<string, string> = {};
-    if (!formAngsuran.idPinjaman) errors.idPinjaman = "Pinjaman wajib dipilih";
-    if (!formAngsuran.tanggal) errors.tanggal = "Tanggal wajib diisi";
-    if (!formAngsuran.angsuranPokok) errors.angsuranPokok = "Angsuran Pokok wajib diisi";
-    if (!formAngsuran.angsuranBunga) errors.angsuranBunga = "Angsuran Bunga wajib diisi";
-    setFormErrorsAngsuran(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const handleSubmitAngsuran = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateFormAngsuran()) {
-      const selectedPinjaman = pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
-      if (!selectedPinjaman) return;
+    const selectedPinjaman =pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
+    if (!selectedPinjaman || !formAngsuran.angsuranPokok || !formAngsuran.angsuranBunga) return;
 
-      const angsuranPokokNum = parseInt(formAngsuran.angsuranPokok.replace(/\D/g, ""));
-      const angsuranBungaNum = parseInt(formAngsuran.angsuranBunga.replace(/\D/g, ""));
-      const dendaNum = parseInt(formAngsuran.denda.replace(/\D/g, "")) || 0;
-      const totalBayar = angsuranPokokNum + angsuranBungaNum + dendaNum;
-      const angsuranKe = angsuran.filter(a => a.idPinjaman === selectedPinjaman.id).length + 1;
-      const newSudahDibayar = selectedPinjaman.sudahDibayar + angsuranPokokNum;
-      const newOutstanding = selectedPinjaman.outstanding - angsuranPokokNum;
+    const angsuranPokokNum = parseInt(formAngsuran.angsuranPokok.replace(/\D/g, ""));
+    const angsuranBungaNum = parseInt(formAngsuran.angsuranBunga.replace(/\D/g, ""));
+    const dendaNum = parseInt(formAngsuran.denda.replace(/\D/g, "")) || 0;
+    const totalBayar = angsuranPokokNum + angsuranBungaNum + dendaNum;
+    const angsuranKe = angsuran.filter(a => a.idPinjaman === selectedPinjaman.id).length + 1;
+    const newOutstanding = selectedPinjaman.outstanding - angsuranPokokNum;
 
-      addAngsuran({
-        id: 0,
-        idPinjaman: selectedPinjaman.id,
-        idAnggota: selectedPinjaman.idAnggota,
-        nama: selectedPinjaman.nama,
-        nomorAnggota: selectedPinjaman.nomorAnggota,
-        tanggal: formAngsuran.tanggal,
-        angsuranKe,
-        angsuranPokok: angsuranPokokNum,
-        angsuranBunga: angsuranBungaNum,
-        denda: dendaNum,
-        totalBayar,
-        saldoPiutang: newOutstanding,
-      });
+    addAngsuran({ id: 0, idPinjaman: selectedPinjaman.id, idAnggota: selectedPinjaman.idAnggota, nama: selectedPinjaman.nama, nomorAnggota: selectedPinjaman.nomorAnggota, tanggal: formAngsuran.tanggal, angsuranKe, angsuranPokok: angsuranPokokNum, angsuranBunga: angsuranBungaNum, denda: dendaNum, totalBayar, saldoPiutang: newOutstanding });
+    updatePinjaman(selectedPinjaman.id, selectedPinjaman.sudahDibayar + angsuranPokokNum, newOutstanding);
 
-      updatePinjaman(selectedPinjaman.id, newSudahDibayar, newOutstanding);
-
-      addTransaksi({
-        id: 0,
-        noBukti: `AN-${String(Date.now()).slice(-6)}`,
-        tanggal: formAngsuran.tanggal,
-        jam: new Date().toLocaleTimeString("id-ID"),
-        akun: "Piutang Pinjaman",
-        kategori: "Kredit",
-        uraian: `Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
-        debet: 0,
-        kredit: angsuranPokokNum,
-        saldo: -angsuranPokokNum,
-        operator: "System",
-      });
-
-      addTransaksi({
-        id: 0,
-        noBukti: `AN-${String(Date.now()).slice(-6)}`,
-        tanggal: formAngsuran.tanggal,
-        jam: new Date().toLocaleTimeString("id-ID"),
-        akun: "Kas/Bank",
-        kategori: "Debet",
-        uraian: `Penerimaan Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
-        debet: totalBayar,
-        kredit: 0,
-        saldo: totalBayar,
-        operator: "System",
-      });
-
-      if (angsuranBungaNum > 0) {
-        addTransaksi({
-          id: 0,
-          noBukti: `Bunga-${String(Date.now()).slice(-6)}`,
-          tanggal: formAngsuran.tanggal,
-          jam: new Date().toLocaleTimeString("id-ID"),
-          akun: "Pendapatan Bunga",
-          kategori: "Kredit",
-          uraian: `Pendapatan Bunga Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
-          debet: 0,
-          kredit: angsuranBungaNum,
-          saldo: angsuranBungaNum,
-          operator: "System",
-        });
-      }
-
-      if (dendaNum > 0) {
-        addTransaksi({
-          id: 0,
-          noBukti: `DN-${String(Date.now()).slice(-6)}`,
-          tanggal: formAngsuran.tanggal,
-          jam: new Date().toLocaleTimeString("id-ID"),
-          akun: "Pendapatan Denda",
-          kategori: "Kredit",
-          uraian: `Denda Angsuran ke-${angsuranKe} ${selectedPinjaman.nama}`,
-          debet: 0,
-          kredit: dendaNum,
-          saldo: dendaNum,
-          operator: "System",
-        });
-      }
-
-      setSubmittedAngsuran(true);
-      setTimeout(() => {
-        setSubmittedAngsuran(false);
-        setFormAngsuran({
-          idPinjaman: "",
-          tanggal: new Date().toISOString().split("T")[0],
-          angsuranPokok: "",
-          angsuranBunga: "",
-          denda: "0",
-        });
-      }, 3000);
+    addTransaksi({ id: 0, noBukti: `AN-${String(Date.now()).slice(-6)}`, tanggal: formAngsuran.tanggal, jam: new Date().toLocaleTimeString("id-ID"), akun: "Piutang Pinjaman", kategori: "Kredit", uraian: `Angsuran ke-${angsuranKe}`, debet: 0, kredit: angsuranPokokNum, saldo: -angsuranPokokNum, operator: "System" });
+    addTransaksi({ id: 0, noBukti: `AN-${String(Date.now()).slice(-6)}`, tanggal: formAngsuran.tanggal, jam: new Date().toLocaleTimeString("id-ID"), akun: "Kas/Bank", kategori: "Debet", uraian: `Angsuran ke-${angsuranKe}`, debet: totalBayar, kredit: 0, saldo: totalBayar, operator: "System" });
+    if (angsuranBungaNum > 0) {
+      addTransaksi({ id: 0, noBukti: `Bunga-${String(Date.now()).slice(-6)}`, tanggal: formAngsuran.tanggal, jam: new Date().toLocaleTimeString("id-ID"), akun: "Pendapatan Bunga", kategori: "Kredit", uraian: `Bunga Angsuran`, debet: 0, kredit: angsuranBungaNum, saldo: angsuranBungaNum, operator: "System" });
     }
+
+    setSubmittedAngsuran(true);
+    setTimeout(() => setSubmittedAngsuran(false), 3000);
   };
 
-  const handleSelectPinjaman = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = e.target.value;
-    const selected = pinjaman.find(p => p.id.toString() === selectedId);
-    if (selected) {
-      const angsuranPokok = Math.floor(selected.jumlah / selected.tenor);
-      const angsuranBunga = Math.floor((selected.jumlah * selected.bunga / 100));
-      setFormAngsuran({
-        ...formAngsuran,
-        idPinjaman: selectedId,
-        angsuranPokok: angsuranPokok.toString(),
-        angsuranBunga: angsuranBunga.toString(),
-      });
-    }
-  };
-
-  const formatRupiah = (value: string) => {
-    const num = value.replace(/\D/g, "");
-    return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
-  const formatRupiahNum = (num: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
-  };
-
+  const formatRupiah = (value: string) => value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const formatRupiahNum = (num: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
   const activePinjaman = pinjaman.filter(p => p.status === "Disetujui" && p.outstanding > 0);
 
   return (
@@ -432,10 +310,7 @@ export default function PinjamanPage() {
         <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 80 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
             <span style={{ fontSize: 32 }}>🏛️</span>
-            <div>
-              <div style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 600, color: "var(--color-primary)" }}>KSP Mulia Dana Sejahtera</div>
-              <div style={{ fontSize: 11, color: "var(--color-secondary)", letterSpacing: 1 }}>TERDAFTAR & TERAWASI</div>
-            </div>
+            <div><div style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 600, color: "var(--color-primary)" }}>KSP Mulia Dana Sejahtera</div><div style={{ fontSize: 11, color: "var(--color-secondary)", letterSpacing: 1 }}>TERDAFTAR & TERAWASI</div></div>
           </Link>
           <nav style={{ display: "flex", gap: 24 }}>
             <Link href="/" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Beranda</Link>
@@ -450,17 +325,13 @@ export default function PinjamanPage() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏦</div>
-            <h1 style={{ fontSize: 36, fontFamily: "var(--font-heading)", marginBottom: 12, color: "var(--color-text-primary)" }}>
-              Manajemen Pinjaman
-            </h1>
-            <p style={{ fontSize: 16, color: "var(--color-text-secondary)" }}>
-              Pencairan, Tracking, dan Angsuran Pinjaman Anggota
-            </p>
+            <h1 style={{ fontSize: 36, fontFamily: "var(--font-heading)", marginBottom: 12, color: "var(--color-text-primary)" }}>Manajemen Pinjaman</h1>
+            <p style={{ fontSize: 16, color: "var(--color-text-secondary)" }}>Pencairan, Tracking, dan Angsuran Pinjaman Anggota</p>
           </div>
 
           <div style={{ display: "flex", gap: 8, marginBottom: 32, background: "var(--color-surface)", padding: 8, borderRadius: 12 }}>
             <button onClick={() => setActiveTab("pencairan")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "pencairan" ? "var(--color-primary)" : "transparent", color: activeTab === "pencairan" ? "white" : "var(--color-text-primary)", fontWeight: 600, fontSize: 15, cursor: "pointer" }}>📝 Pencairan</button>
-            <button onClick={() => setActiveTab("daftar")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "var(--color-primary)" : "transparent", color: activeTab === "daftar" ? "white" : "var(--color-text-primary)", fontWeight: 600, fontSize: 15, cursor: "pointer" }}>📋 Daftar Peminjam</button>
+            <button onClick={() => setActiveTab("daftar")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "var(--color-primary)" : "transparent", color: activeTab === "daftar" ? "white" : "var(--color-text-primary)", fontWeight: 600, fontSize: 15, cursor: "pointer" }}>📋 Daftar</button>
             <button onClick={() => setActiveTab("angsuran")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "angsuran" ? "var(--color-primary)" : "transparent", color: activeTab === "angsuran" ? "white" : "var(--color-text-primary)", fontWeight: 600, fontSize: 15, cursor: "pointer" }}>💳 Angsuran</button>
           </div>
 
@@ -470,49 +341,64 @@ export default function PinjamanPage() {
               <form onSubmit={handleSubmit}>
                 <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>Data Peminjam</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Anggota *</label><select value={formData.idAnggota} onChange={handleSelectAnggota} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.idAnggota ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih Anggota</option>{anggota.map(a => <option key={a.id} value={a.id}>{a.nama} ({a.nik || `AG-${String(a.id).padStart(3, "0")}`})</option>)}</select>{formErrors.idAnggota && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.idAnggota}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>NBA (Nomor Anggota)</label><input type="text" value={formData.nomorAnggota} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nama Peminjam</label><input type="text" value={formData.nama} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Anggota *</label><select value={formData.idAnggota} onChange={handleSelectAnggota} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.idAnggota ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih Anggota</option>{anggota.map(a => <option key={a.id} value={a.id}>{a.nama} ({a.nik || `AG-${String(a.id).padStart(3, "0")}`})</option>)}</select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>NBA</label><input type="text" value={formData.nomorAnggota} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nama</label><input type="text" value={formData.nama} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nama Suami/Istri</label><input type="text" value={formData.namaSuamiIstri} onChange={e => setFormData({ ...formData, namaSuamiIstri: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Nama Suami/Istri" /></div>
-                  <div style={{ gridColumn: "1 / -1" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Alamat</label><input type="text" value={formData.alamat} onChange={e => setFormData({ ...formData, alamat: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Alamat lengkap" /></div>
+                  <div style={{ gridColumn: "1 / -1" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Alamat</label><input type="text" value={formData.alamat} onChange={e => setFormData({ ...formData, alamat: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Alamat" /></div>
                 </div>
 
                 <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12, marginTop: 32 }}>Detail Pinjaman</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Sistem *</label><select value={formData.sistem} onChange={handleSistemChange} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "white" }}><option value="flat">Flat (Angsuran Tetap)</option><option value="musiman">Musiman (Saldo Menurun)</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Bunga/Jasa *</label><select value={formData.bunga} onChange={e => setFormData({ ...formData, bunga: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "white" }}>{currentBungaOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Pinjaman</label><input type="date" value={formData.tanggal} onChange={e => setFormData({ ...formData, tanggal: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Sistem Perhitungan</label><select value={formData.sistem} onChange={e => setFormData({ ...formData, sistem: e.target.value, tenor: "", bunga: "" })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "white" }}>{sistemOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label} - {opt.deskripsi}</option>)}</select></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pinjaman *</label><select value={formData.jenisPinjaman} onChange={e => setFormData({ ...formData, jenisPinjaman: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih jenis</option><option value="umum">Pinjaman Umum</option><option value="bisnis">Pinjaman Bisnis</option><option value="produktif">Pinjaman Produktif</option><option value="dana-sehat">Dana Sehat</option><option value="pendidikan">Pinjaman Pendidikan</option></select>{formErrors.jenisPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisPinjaman}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Besar Pinjaman (Rp) *</label><input type="text" value={formData.jumlah} onChange={e => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" />{formErrors.jumlah && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jumlah}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jangka Waktu (Bulan) *</label><select value={formData.tenor} onChange={e => setFormData({ ...formData, tenor: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}>{formData.sistem === "musiman" ? [1,2,3,4,5,6].map(b => <option key={b} value={b}>{b} Bulan</option>) : [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36].map(b => <option key={b} value={b}>{b} Bulan</option>)}</select>{formErrors.tenor && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tenor}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Bunga/Jasa (%/Bulan)</label><input type="text" value={currentOption ? `${currentOption.bunga}% per bulan` : "-"} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda Terlambat Bayar (%/Bulan)</label><input type="text" value={formData.denda} onChange={e => setFormData({ ...formData, denda: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="%" /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan Penggunaan</label><input type="text" value={formData.tujuan} onChange={e => setFormData({ ...formData, tujuan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Contoh: Modal usaha" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pinjaman *</label><select value={formData.jenisPinjaman} onChange={e => setFormData({ ...formData, jenisPinjaman: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="umum">Pinjaman Umum</option><option value="bisnis">Pinjaman Bisnis</option><option value="produktif">Pinjaman Produktif</option><option value="dana-sehat">Dana Sehat</option><option value="pendidikan">Pinjaman Pendidikan</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Besar Pinjaman (Rp) *</label><input type="text" value={formData.jumlah} onChange={e => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jangka Waktu (Bulan) *</label><select value={formData.tenor} onChange={e => handleTenorInput(e.target.value)} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}>{formData.sistem === "musiman" ? [1,2,3,4,5,6].map(b => <option key={b} value={b}>{b} Bulan</option>) : Array.from({length: 36}, (_, i) => i + 1).map(b => <option key={b} value={b}>{b} Bulan</option>)}</select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda (%/Bulan)</label><input type="text" value={formData.denda} onChange={e => setFormData({ ...formData, denda: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="%" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan</label><input type="text" value={formData.tujuan} onChange={e => setFormData({ ...formData, tujuan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Tujuan Penggunaan" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Agunan</label><select value={formData.agunan} onChange={e => setFormData({ ...formData, agunan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="ada">Ada Agunan</option><option value="tidak">Tanpa Agunan</option></select></div>
                 </div>
 
                 <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12, marginTop: 32 }}>Informasi Kredit & Pencairan</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Kredit *</label><select value={formData.jenisKredit} onChange={e => setFormData({ ...formData, jenisKredit: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisKredit ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih jenis</option><option value="invest">Investment/Kapital Kerja</option><option value="kmk">KMK (Kredit Modal Kerja)</option><option value="kpr">KPR (Kredit Pemilikan Rumah)</option><option value="konsumtif">Konsumtif</option></select>{formErrors.jenisKredit && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisKredit}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pencairan Kredit *</label><select value={formData.jenisPencairan} onChange={e => setFormData({ ...formData, jenisPencairan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPencairan ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih jenis</option><option value="tls">Tunai Langsung ke Siswa</option><option value="tk">Tunai ke Kultum</option><option value="transfer">Transfer ke Rekening</option><option value="potong">Potong Gaji</option></select>{formErrors.jenisPencairan && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisPencairan}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>No. Perjanjian Kredit *</label><input type="text" value={formData.noPerjanjian} onChange={e => setFormData({ ...formData, noPerjanjian: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.noPerjanjian ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Contoh: PK/2024/001" />{formErrors.noPerjanjian && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.noPerjanjian}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Realisasi *</label><input type="date" value={formData.tanggalRealisasi} onChange={e => setFormData({ ...formData, tanggalRealisasi: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tanggalRealisasi ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} />{formErrors.tanggalRealisasi && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tanggalRealisasi}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Jatuh Tempo</label><input type="date" value={calculateJatuhTempo()} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
-                </div>
-
-                <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12, marginTop: 32 }}>Biaya-Biaya</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Biaya Administrasi (Rp)</label><input type="text" value={formData.biayaAdmin} onChange={e => setFormData({ ...formData, biayaAdmin: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Rp 25.000" /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Biaya Materai (Rp)</label><input type="text" value={formData.biayaMaterai} onChange={e => setFormData({ ...formData, biayaMaterai: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Rp 6.000" /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Fee Notaris (Rp)</label><input type="text" value={formData.feeNotaris} onChange={e => setFormData({ ...formData, feeNotaris: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Kredit *</label><select value={formData.jenisKredit} onChange={e => setFormData({ ...formData, jenisKredit: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisKredit ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="invest">Investment/Kapital Kerja</option><option value="kmk">KMK</option><option value="kpr">KPR</option><option value="konsumtif">Konsumtif</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pencairan *</label><select value={formData.jenisPencairan} onChange={e => setFormData({ ...formData, jenisPencairan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPencairan ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="tls">Tunai ke Siswa</option><option value="tk">Tunai ke Kultum</option><option value="transfer">Transfer</option><option value="potong">Potong Gaji</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>No. Perjanjian *</label><input type="text" value={formData.noPerjanjian} onChange={e => setFormData({ ...formData, noPerjanjian: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.noPerjanjian ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="PK/2024/001" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Realisasi *</label><input type="date" value={formData.tanggalRealisasi} onChange={e => setFormData({ ...formData, tanggalRealisasi: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tanggalRealisasi ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Jatuh Tempo</label><input type="text" value={calculateJatuhTempo()} readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
+                  <div><label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 500 }}><input type="checkbox" checked={formData.bpjstk} onChange={e => setFormData({ ...formData, bpjstk: e.target.checked })} /> Iuran BPJSTK PBPU Rp 20.000/bln</label></div>
                 </div>
 
                 {preview && (
                   <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)", borderRadius: 12, padding: 24, marginBottom: 24, color: "white" }}>
                     <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Kalkulasi Pinjaman</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, textAlign: "center" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, textAlign: "center", marginBottom: 16 }}>
                       <div><div style={{ fontSize: 12, opacity: 0.8 }}>Pokok</div><div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(parseInt(formData.jumlah.replace(/\D/g, "")))}</div></div>
                       <div><div style={{ fontSize: 12, opacity: 0.8 }}>Bunga Total</div><div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.totalBunga)}</div></div>
                       <div><div style={{ fontSize: 12, opacity: 0.8 }}>Angsuran/Bulan</div><div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.angsuranPerBulan)}</div></div>
-                      <div><div style={{ fontSize: 12, opacity: 0.8 }}>Total Tagihan</div><div style={{ fontSize: 18, fontWeight: 700 }}>{formatRupiahNum(preview.totalTagihan)}</div></div>
+                    </div>
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.3)", paddingTop: 16 }}>
+                      <div style={{ fontSize: 14, marginBottom: 12 }}>Potongan Otomatis:</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, fontSize: 13 }}>
+                        <div>Admin 2%: {formatRupiahNum(preview.biaya.biayaAdmin)}</div>
+                        <div>Dana Risiko 1%: {formatRupiahNum(preview.biaya.danaRisiko)}</div>
+                        <div>Dana Sosial 1%: {formatRupiahNum(preview.biaya.danaSosial)}</div>
+                        {preview.biaya.insentif > 0 && <div>Insentif PJ 1%: {formatRupiahNum(preview.biaya.insentif)}</div>}
+                        {preview.biaya.legalisasi > 0 && <div>Legalisasi: {formatRupiahNum(preview.biaya.legalisasi)}</div>}
+                        <div>Fee Notaris: {formatRupiahNum(preview.biaya.feeNotaris)}</div>
+                        <div>Materai: {formatRupiahNum(preview.biaya.materai)}</div>
+                        {preview.biaya.bpjstk > 0 && <div>BPJSTK: {formatRupiahNum(preview.biaya.bpjstk)}</div>}
+                      </div>
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.3)", paddingTop: 12, marginTop: 12, display: "flex", justifyContent: "space-between" }}>
+                        <div>Total Potongan:</div>
+                        <div style={{ fontWeight: 700 }}>{formatRupiahNum(preview.biaya.totalPotongan)}</div>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                        <div>Jumlah Dicairkan:</div>
+                        <div style={{ fontWeight: 700, fontSize: 18 }}>{formatRupiahNum(preview.jumlahDicairkan)}</div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -524,71 +410,35 @@ export default function PinjamanPage() {
 
           {activeTab === "daftar" && (
             <div className="card" style={{ padding: 40 }}>
-              <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>Daftar Anggota Peminjam</h3>
-              {pinjaman.length === 0 ? (
-                <div style={{ textAlign: "center", padding: 48, color: "var(--color-text-secondary)" }}><div style={{ fontSize: 48, marginBottom: 16 }}>📋</div><p>Belum ada peminjam.</p></div>
-              ) : (
+              <h3 style={{ fontSize: 18, marginBottom: 24 }}>Daftar Peminjam</h3>
+              {pinjaman.length === 0 ? <div style={{ textAlign: "center", padding: 48 }}><p>Belum ada peminjam.</p></div> : (
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                  <thead><tr style={{ background: "var(--color-background)" }}><th style={{ padding: "10px 6px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No</th><th style={{ padding: "10px 6px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th><th style={{ padding: "10px 6px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No. Perjanjian</th><th style={{ padding: "10px 6px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Plafon</th><th style={{ padding: "10px 6px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Outstanding</th><th style={{ padding: "10px 6px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Tenor</th><th style={{ padding: "10px 6px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Jatuh Tempo</th><th style={{ padding: "10px 6px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th></tr></thead>
-                  <tbody>{pinjaman.map((p, idx) => (
-                    <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
-                      <td style={{ padding: "10px 6px" }}>{idx + 1}</td>
-                      <td style={{ padding: "10px 6px", fontWeight: 500 }}>{p.nama}</td>
-                      <td style={{ padding: "10px 6px", fontFamily: "monospace", fontSize: 12 }}>{p.noPerjanjian || "-"}</td>
-                      <td style={{ padding: "10px 6px", textAlign: "right", fontWeight: 500 }}>{formatRupiahNum(p.jumlah)}</td>
-                      <td style={{ padding: "10px 6px", textAlign: "right", color: "#e74c3c", fontWeight: 600 }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td>
-                      <td style={{ padding: "10px 6px", textAlign: "center" }}>{p.tenor} bln</td>
-                      <td style={{ padding: "10px 6px", textAlign: "center" }}>{p.tanggalJatuhTempo || "-"}</td>
-                      <td style={{ padding: "10px 6px", textAlign: "center" }}><span style={{ padding: "4px 10px", borderRadius: 12, fontSize: 11, background: p.status === "Disetujui" ? "#d4edda" : "#fff3cd", color: p.status === "Disetujui" ? "#155724" : "#856404" }}>{p.status}</span></td>
-                    </tr>
+                  <thead><tr><th>#</th><th>Nama</th><th>No. Perjanjian</th><th>Plafon</th><th>Outstanding</th><th>Tenor</th><th>Jatuh Tempo</th><th>Status</th></tr></thead>
+                  <tbody>{pinjaman.map((p, i) => (
+                    <tr key={p.id}><td>{i+1}</td><td>{p.nama}</td><td>{p.noPerjanjian || "-"}</td><td>{formatRupiahNum(p.jumlah)}</td><td style={{ color: "#e74c3c" }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td><td>{p.tenor} bln</td><td>{p.tanggalJatuhTempo || "-"}</td><td><span style={{ padding: "4px 8px", borderRadius: 12, fontSize: 11, background: p.status==="Disetujui"?"#d4edda":"#fff3cd" }}>{p.status}</span></td></tr>
                   ))}</tbody>
                 </table>
-              )}
-              {pinjaman.length > 0 && (
-                <div style={{ marginTop: 24, padding: 16, background: "var(--color-background)", borderRadius: 8, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
-                  <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Peminjam</div><div style={{ fontSize: 24, fontWeight: 700 }}>{pinjaman.length}</div></div>
-                  <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Plafon</div><div style={{ fontSize: 24, fontWeight: 700 }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + p.jumlah, 0))}</div></div>
-                  <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Outstanding</div><div style={{ fontSize: 24, fontWeight: 700, color: "#e74c3c" }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + (p.outstanding || p.jumlah), 0))}</div></div>
-                </div>
               )}
             </div>
           )}
 
           {activeTab === "angsuran" && (
             <div className="card" style={{ padding: 40 }}>
-              {submittedAngsuran && <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>✓ Angsuran Berhasil Dicatat! Jurnal Otomatis Dibuat.</div>}
               <form onSubmit={handleSubmitAngsuran}>
-                <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>Input Angsuran</h3>
+                <h3 style={{ fontSize: 18, marginBottom: 24 }}>Input Angsuran</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Pinjaman *</label><select value={formAngsuran.idPinjaman} onChange={handleSelectPinjaman} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.idPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih Pinjaman</option>{activePinjaman.map(p => <option key={p.id} value={p.id}>{p.nama} - {formatRupiahNum(p.outstanding || p.jumlah)}</option>)}</select>{formErrorsAngsuran.idPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.idPinjaman}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tanggal Angsuran *</label><input type="date" value={formAngsuran.tanggal} onChange={e => setFormAngsuran({ ...formAngsuran, tanggal: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.tanggal ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} />{formErrorsAngsuran.tanggal && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.tanggal}</div>}</div>
+                  <div><label>Pinjaman *</label><select value={formAngsuran.idPinjaman} onChange={(e) => handlePinjamanChange(e.target.value)} style={{ width: "100%", padding: 14, borderRadius: 8, border: "2px solid #eee" }}><option value="">Pilih</option>{activePinjaman.map((p) => <option key={p.id} value={p.id}>{p.nama} - {formatRupiahNum(p.outstanding || p.jumlah)}</option>)}</select></div>
+                  <div><label>Tanggal</label><input type="date" value={formAngsuran.tanggal} onChange={e=>setFormAngsuran({...formAngsuran,tanggal:e.target.value})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                 </div>
-                {formAngsuran.idPinjaman && (() => {
-                  const selected = pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
-                  if (!selected) return null;
-                  return (
-                    <div style={{ padding: 16, background: "var(--color-background)", borderRadius: 8, marginBottom: 24 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                        <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Nama</div><div style={{ fontSize: 16, fontWeight: 600 }}>{selected.nama}</div></div>
-                        <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Angsuran Ke</div><div style={{ fontSize: 16, fontWeight: 600 }}>{angsuran.filter(a => a.idPinjaman === selected.id).length + 1}</div></div>
-                        <div><div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Sisa Outstanding</div><div style={{ fontSize: 16, fontWeight: 600, color: "#e74c3c" }}>{formatRupiahNum(selected.outstanding || selected.jumlah)}</div></div>
-                      </div>
-                    </div>
-                  );
-                })()}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pembayaran Pokok (Rp) *</label><input type="text" value={formAngsuran.angsuranPokok} onChange={e => setFormAngsuran({ ...formAngsuran, angsuranPokok: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.angsuranPokok ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" />{formErrorsAngsuran.angsuranPokok && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.angsuranPokok}</div>}</div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pembayaran Bunga (Rp) *</label><input type="text" value={formAngsuran.angsuranBunga} onChange={e => setFormAngsuran({ ...formAngsuran, angsuranBunga: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrorsAngsuran.angsuranBunga ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" />{formErrorsAngsuran.angsuranBunga && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrorsAngsuran.angsuranBunga}</div>}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
+                  <div><label>Pokok (Rp) *</label><input type="text" value={formAngsuran.angsuranPokok} onChange={e=>setFormAngsuran({...formAngsuran,angsuranPokok:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
+                  <div><label>Bunga (Rp) *</label><input type="text" value={formAngsuran.angsuranBunga} onChange={e=>setFormAngsuran({...formAngsuran,angsuranBunga:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                 </div>
-                <div style={{ marginBottom: 32 }}><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda (Rp)</label><input type="text" value={formAngsuran.denda} onChange={e => setFormAngsuran({ ...formAngsuran, denda: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" /></div>
-                <button type="submit" className="btn btn-primary" style={{ width: "100%" }}>💳 Simpan Angsuran</button>
+                <div style={{marginBottom:24}}><label>Denda (Rp)</label><input type="text" value={formAngsuran.denda} onChange={e=>setFormAngsuran({...formAngsuran,denda:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
+                <button type="submit" className="btn btn-primary" style={{width:"100%"}}>💳 Simpan</button>
               </form>
             </div>
           )}
-
-          <div style={{ marginTop: 24, textAlign: "center" }}>
-            <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>← Kembali ke Beranda</Link>
-          </div>
         </div>
       </div>
     </main>
