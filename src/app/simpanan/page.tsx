@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useData, Simpanan as SimpananType } from "../context/DataContext";
 
 export default function SimpananPage() {
+  const { simpanan, addSimpanan } = useData();
   const [formData, setFormData] = useState({
     nama: "",
     nomorAnggota: "",
@@ -30,6 +32,19 @@ export default function SimpananPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
+      const jumlahNum = parseInt(formData.jumlah.replace(/\D/g, ""));
+      const newSimpanan: SimpananType = {
+        id: simpanan.length + 1,
+        idAnggota: 0,
+        nama: formData.nama,
+        nomorAnggota: formData.nomorAnggota,
+        tanggal: formData.tanggal,
+        jenisSimpanan: formData.jenisSimpanan,
+        jumlah: jumlahNum,
+        metode: formData.metodePembayaran,
+        bunga: 0,
+      };
+      addSimpanan(newSimpanan);
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);

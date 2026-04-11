@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useData } from "../context/DataContext";
 
 const laporanTypes = [
   { 
@@ -54,6 +55,12 @@ const formatRupiah = (value: number) => {
 export default function LaporanPage() {
   const [activeReport, setActiveReport] = useState("neraca");
   const [periode, setPeriode] = useState("2024");
+  const { anggota, simpanan, pinjaman, transaksi } = useData();
+  
+  const totalSimpanan = simpanan.reduce((acc, s) => acc + s.jumlah, 0);
+  const totalPinjaman = pinjaman.reduce((acc, p) => acc + p.jumlah, 0);
+  const totalTransaksiMasuk = transaksi.filter(t => (t.debet || 0) > 0).reduce((acc, t) => acc + (t.debet || 0), 0);
+  const totalTransaksiKeluar = transaksi.filter(t => (t.kredit || 0) > 0).reduce((acc, t) => acc + (t.kredit || 0), 0);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
@@ -152,9 +159,9 @@ export default function LaporanPage() {
                 </thead>
                 <tbody>
                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>ASET LANCAR</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalTransaksiMasuk)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(0)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPinjaman)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Dibayar Dimuka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td colSpan={2} style={{ padding: "12px 0 8px", fontWeight: 600 }}>ASET TETAP</td></tr>

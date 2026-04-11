@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
 
 export default function PinjamanPage() {
+  const { pinjaman, addPinjaman } = useData();
   const [formData, setFormData] = useState({
     nama: "",
     nomorAnggota: "",
@@ -82,6 +84,23 @@ export default function PinjamanPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
+      const jumlahNum = parseInt(formData.jumlah.replace(/\D/g, ""));
+      const currentOption = sistemOptions.find(o => o.value === formData.sistem);
+      const newPinjaman: PinjamanType = {
+        id: pinjaman.length + 1,
+        idAnggota: 0,
+        nama: formData.nama,
+        nomorAnggota: formData.nomorAnggota,
+        tanggal: formData.tanggal,
+        sistem: formData.sistem,
+        jenisPinjaman: formData.jenisPinjaman,
+        jumlah: jumlahNum,
+        tenor: parseInt(formData.tenor),
+        bunga: currentOption?.bunga || 0,
+        tujuan: formData.tujuan,
+        status: "Menunggu",
+      };
+      addPinjaman(newPinjaman);
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);

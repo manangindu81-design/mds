@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { DataProvider } from "./context/DataContext";
 
 export const metadata: Metadata = {
   title: "KSP Mulia Dana Sejahtera",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        {children}
+        <DataProvider>
+          {children}
+        </DataProvider>
       </body>
     </html>
   );

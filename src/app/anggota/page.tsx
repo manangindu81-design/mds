@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useData, Anggota as AnggotaType } from "../context/DataContext";
 
 export default function AnggotaPage() {
+  const { anggota, addAnggota } = useData();
   const [formData, setFormData] = useState({
     nik: "",
     nama: "",
@@ -51,6 +53,29 @@ export default function AnggotaPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
+      const newAnggota: AnggotaType = {
+        id: anggota.length + 1,
+        nik: formData.nik,
+        nama: formData.nama,
+        tempatLahir: formData.tempatLahir,
+        tanggalLahir: formData.tanggalLahir,
+        jkelamin: formData.jkelamin,
+        status: formData.status,
+        alamat: formData.alamat,
+        rt: formData.rt,
+        rw: formData.rw,
+        kel: formData.kel,
+        kec: formData.kec,
+        kota: formData.kota,
+        telepon: formData.telepon,
+        email: formData.email,
+        pekerjaan: formData.pekerjaan,
+        tempatKerja: formData.tempatKerja,
+        pendapatan: formData.pendapatan,
+        tanggalJoin: new Date().toISOString().split("T")[0],
+        statusKeanggotaan: "Aktif",
+      };
+      addAnggota(newAnggota);
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
