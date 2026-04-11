@@ -41,17 +41,28 @@ export interface Pinjaman {
   idAnggota: number;
   nama: string;
   nomorAnggota: string;
+  namaSuamiIstri: string;
+  alamat: string;
   tanggal: string;
   sistem: string;
   jenisPinjaman: string;
   jumlah: number;
   tenor: number;
   bunga: number;
+  denda: number;
   tujuan: string;
   status: string;
   biayaAdmin: number;
   sudahDibayar: number;
   outstanding: number;
+  jenisKredit: string;
+  jenisPencairan: string;
+  noPerjanjian: string;
+  tanggalRealisasi: string;
+  tanggalJatuhTempo: string;
+  biayaMaterai: number;
+  biayaLegalisasi: number;
+  feeNotaris: number;
 }
 
 export interface Angsuran {
