@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const services = [
   {
@@ -117,23 +118,10 @@ export default function Home() {
           
           {/* Desktop Navigation */}
           <nav style={{ display: "flex", gap: 32 }} className="desktop-nav">
-            {["Beranda", "Layanan", "Tentang", "Produk", "Kontak"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                style={{
-                  textDecoration: "none",
-                  color: "var(--color-text-primary)",
-                  fontWeight: 500,
-                  fontSize: 15,
-                  transition: "color 0.3s",
-                }}
-                onMouseOver={(e) => e.currentTarget.style.color = "var(--color-primary)"}
-                onMouseOut={(e) => e.currentTarget.style.color = "var(--color-text-primary)"}
-              >
-                {item}
-              </a>
-            ))}
+            <Link href="/" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Beranda</Link>
+            <Link href="/simpanan" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Simpanan</Link>
+            <Link href="/pinjaman" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Pinjaman</Link>
+            <Link href="/anggota" style={{ textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, fontSize: 15 }}>Anggota</Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -149,16 +137,10 @@ export default function Home() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="mobile-menu" style={{ padding: "24px", background: "var(--color-surface)", borderTop: "1px solid #eee" }}>
-            {["Beranda", "Layanan", "Tentang", "Produk", "Kontak"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, borderBottom: "1px solid #f0f0f0" }}
-              >
-                {item}
-              </a>
-            ))}
+            <Link href="/" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Beranda</Link>
+            <Link href="/simpanan" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Simpanan</Link>
+            <Link href="/pinjaman" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Pinjaman</Link>
+            <Link href="/anggota" onClick={() => setMobileMenuOpen(false)} style={{ display: "block", padding: "12px 0", textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500 }}>Anggota</Link>
           </div>
         )}
       </header>
@@ -729,17 +711,10 @@ export default function Home() {
             <div>
               <h4 style={{ fontSize: 16, marginBottom: 20 }}>Menu</h4>
               <nav style={{ display: "grid", gap: 12 }}>
-                {["Beranda", "Layanan", "Tentang", "Produk", "Kontak"].map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    style={{ fontSize: 14, opacity: 0.8, textDecoration: "none", transition: "opacity 0.3s" }}
-                    onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
-                    onMouseOut={(e) => e.currentTarget.style.opacity = "0.8"}
-                  >
-                    {item}
-                  </a>
-                ))}
+                <Link href="/" style={{ fontSize: 14, opacity: 0.8, textDecoration: "none" }}>Beranda</Link>
+                <Link href="/simpanan" style={{ fontSize: 14, opacity: 0.8, textDecoration: "none" }}>Simpanan</Link>
+                <Link href="/pinjaman" style={{ fontSize: 14, opacity: 0.8, textDecoration: "none" }}>Pinjaman</Link>
+                <Link href="/anggota" style={{ fontSize: 14, opacity: 0.8, textDecoration: "none" }}>Anggota</Link>
               </nav>
             </div>
             
