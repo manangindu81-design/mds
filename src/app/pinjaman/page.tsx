@@ -37,7 +37,7 @@ export default function PinjamanPage() {
     tanggal: new Date().toISOString().split("T")[0],
     angsuranPokok: "",
     angsuranBunga: "",
-    denda: "0",
+    hariTerlambat: "0",
   });
   const [formErrorsAngsuran, setFormErrorsAngsuran] = useState<Record<string, string>>({});
   const [submittedAngsuran, setSubmittedAngsuran] = useState(false);
@@ -282,7 +282,8 @@ export default function PinjamanPage() {
 
     const angsuranPokokNum = parseInt(formAngsuran.angsuranPokok.replace(/\D/g, ""));
     const angsuranBungaNum = parseInt(formAngsuran.angsuranBunga.replace(/\D/g, ""));
-    const dendaNum = parseInt(formAngsuran.denda.replace(/\D/g, "")) || 0;
+    const hariTerlambat = parseInt(formAngsuran.hariTerlambat) || 0;
+    const dendaNum = hariTerlambat > 0 ? Math.floor(selectedPinjaman.jumlah * 0.03 / 30 * hariTerlambat) : 0;
     const totalBayar = angsuranPokokNum + angsuranBungaNum + dendaNum;
     const angsuranKe = angsuran.filter(a => a.idPinjaman === selectedPinjaman.id).length + 1;
     const newOutstanding = selectedPinjaman.outstanding - angsuranPokokNum;
@@ -356,7 +357,7 @@ export default function PinjamanPage() {
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Agunan *</label><select value={formData.jenisPinjaman} onChange={e => setFormData({ ...formData, jenisPinjaman: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="pendiri">Pendiri</option><option value="simpanan">Simpanan</option><option value="bpkb">BPKB</option><option value="akta-tanah">Akta Tanah</option><option value="sertifikat">Sertifikat</option><option value="surat-desa">Surat Desa</option></select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Besar Pinjaman (Rp) *</label><input type="text" value={formData.jumlah} onChange={e => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16 }} placeholder="Rp 0" /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jangka Waktu (Bulan) *</label><select value={formData.tenor} onChange={e => handleTenorInput(e.target.value)} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, background: "white" }}>{formData.sistem === "musiman" ? [1,2,3,4,5,6].map(b => <option key={b} value={b}>{b} Bulan</option>) : Array.from({length: 36}, (_, i) => i + 1).map(b => <option key={b} value={b}>{b} Bulan</option>)}</select></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda (%/Bulan)</label><input type="text" value={formData.denda} onChange={e => setFormData({ ...formData, denda: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="%" /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Denda (%/Bulan)</label><input type="text" value="3% per bulan" readOnly style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }} /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan</label><input type="text" value={formData.tujuan} onChange={e => setFormData({ ...formData, tujuan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16 }} placeholder="Tujuan Penggunaan" /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Agunan</label><select value={formData.agunan} onChange={e => setFormData({ ...formData, agunan: e.target.value })} style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "white" }}><option value="">Pilih</option><option value="ada">Ada Agunan</option><option value="tidak">Tanpa Agunan</option></select></div>
                 </div>
@@ -434,7 +435,7 @@ export default function PinjamanPage() {
                   <div><label>Pokok (Rp) *</label><input type="text" value={formAngsuran.angsuranPokok} onChange={e=>setFormAngsuran({...formAngsuran,angsuranPokok:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                   <div><label>Bunga (Rp) *</label><input type="text" value={formAngsuran.angsuranBunga} onChange={e=>setFormAngsuran({...formAngsuran,angsuranBunga:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                 </div>
-                <div style={{marginBottom:24}}><label>Denda (Rp)</label><input type="text" value={formAngsuran.denda} onChange={e=>setFormAngsuran({...formAngsuran,denda:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
+                <div style={{marginBottom:24}}><label>Hari Terlambat</label><input type="number" value={formAngsuran.hariTerlambat} onChange={e=>setFormAngsuran({...formAngsuran,hariTerlambat:e.target.value})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}} placeholder="0"/><small style={{color:"#666"}}>(3% per bulan x hari / 30 = nominal denda)</small></div>
                 <button type="submit" className="btn btn-primary" style={{width:"100%"}}>💳 Simpan</button>
               </form>
             </div>
