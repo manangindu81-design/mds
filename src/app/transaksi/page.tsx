@@ -22,24 +22,9 @@ const kategoriAkun = [
   { kode: "4202", nama: "Beban Operasional", jenis: "Beban" },
 ];
 
-const mockTransaksi = [
-  { id: 1, noBukti: "BKM-001", tanggal: "2024-04-11", jam: "08:15", akun: "1101", kategori: "Kas", jenisTransaksi: "Kas Masuk", uraian: "Setoran simpanan sukarela", debet: 500000, kredit: 0, saldo: 500000, operator: "Admin" },
-  { id: 2, noBukti: "BKK-001", tanggal: "2024-04-11", jam: "09:30", akun: "2201", kategori: "Pinjaman", jenisTransaksi: "Kas Keluar", uraian: "Pencairan pinjaman", debet: 0, kredit: 3000000, saldo: -2500000, operator: "Admin" },
-  { id: 3, noBukti: "BKM-002", tanggal: "2024-04-11", jam: "10:45", akun: "2201", kategori: "Pinjaman", jenisTransaksi: "Kas Masuk", uraian: "Angsuran ke-1", debet: 250000, kredit: 0, saldo: -2250000, operator: "Admin" },
-  { id: 4, noBukti: "BKM-003", tanggal: "2024-04-10", jam: "08:00", akun: "1101", kategori: "Kas", jenisTransaksi: "Kas Masuk", uraian: "Setoran simpanan wajib", debet: 1000000, kredit: 0, saldo: 1500000, operator: "Admin" },
-  { id: 5, noBukti: "BKM-004", tanggal: "2024-04-10", jam: "11:20", akun: "4101", kategori: "Pendapatan", jenisTransaksi: "Kas Masuk", uraian: "Bunga bulan April", debet: 50000, kredit: 0, saldo: 1550000, operator: "Admin" },
-  { id: 6, noBukti: "BKK-002", tanggal: "2024-04-10", jam: "14:00", akun: "2202", kategori: "Pinjaman", jenisTransaksi: "Kas Keluar", uraian: "Pencairan modal bisnis", debet: 0, kredit: 5000000, saldo: -3450000, operator: "Admin" },
-  { id: 7, noBukti: "BKM-005", tanggal: "2024-04-09", jam: "09:00", akun: "1103", kategori: "Bank", jenisTransaksi: "Kas Masuk", uraian: "Setoran via potong gaji", debet: 750000, saldo: -750000, operator: "Admin" },
-  { id: 8, noBukti: "BKK-003", tanggal: "2024-04-09", jam: "13:30", akun: "2201", kategori: "Pinjaman", jenisTransaksi: "Kas Keluar", uraian: "Angsuran bulan April", debet: 0, kredit: 180000, saldo: -930000, operator: "Admin" },
-];
+const mockTransaksi: { id: number; noBukti: string; tanggal: string; jam: string; akun: string; kategori: string; jenisTransaksi: string; uraian: string; debet?: number; kredit?: number; saldo?: number; operator: string }[] = [];
 
-const mockAnggota = [
-  { id: 1, nama: "Budi Santoso", nomor: "AG-001", saldoSimpanan: 5500000, saldoPinjaman: 0 },
-  { id: 2, nama: "Siti Rahayu", nomor: "AG-002", saldoSimpanan: 3250000, saldoPinjaman: 3000000 },
-  { id: 3, nama: "Ahmad Wijaya", nomor: "AG-003", saldoSimpanan: 10500000, saldoPinjaman: 5000000 },
-  { id: 4, nama: "Dewi Lestari", nomor: "AG-004", saldoSimpanan: 250000, saldoPinjaman: 0 },
-  { id: 5, nama: "Joko Pramono", nomor: "AG-005", saldoSimpanan: 0, saldoPinjaman: 5000000 },
-];
+const mockAnggota: { id: number; nama: string; nomor: string; saldoSimpanan: number; saldoPinjaman: number }[] = [];
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -64,9 +49,9 @@ export default function TransaksiPage() {
     referensi: "",
   });
   
-  const totalMasuk = mockTransaksi.filter(t => (t.debet || 0) > 0).reduce((acc, t) => acc + (t.debet || 0), 0);
-  const totalKeluar = mockTransaksi.filter(t => (t.kredit || 0) > 0).reduce((acc, t) => acc + (t.kredit || 0), 0);
-  const saldoKas = totalMasuk - totalKeluar;
+  const totalMasuk = 0;
+  const totalKeluar = 0;
+  const saldoKas = 0;
 
   const formatRupiahInput = (value: string) => {
     const num = value.replace(/\D/g, "");
@@ -219,7 +204,7 @@ export default function TransaksiPage() {
                   </td>
                   <td style={{ padding: 14, textAlign: "right", fontSize: 13, color: "#22c55e", fontWeight: 500 }}>{(t.debet || 0) > 0 ? formatRupiah(t.debet || 0) : "-"}</td>
                   <td style={{ padding: 14, textAlign: "right", fontSize: 13, color: "#ef4444", fontWeight: 500 }}>{(t.kredit || 0) > 0 ? formatRupiah(t.kredit || 0) : "-"}</td>
-                  <td style={{ padding: 14, textAlign: "right", fontSize: 13, fontWeight: 600, color: t.saldo >= 0 ? "#22c55e" : "#ef4444" }}>{formatRupiah(Math.abs(t.saldo))}</td>
+                  <td style={{ padding: 14, textAlign: "right", fontSize: 13, fontWeight: 600, color: (t.saldo || 0) >= 0 ? "#22c55e" : "#ef4444" }}>{formatRupiah(Math.abs(t.saldo || 0))}</td>
                   <td style={{ padding: 14, textAlign: "center" }}>
                     <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--color-primary)" }}>📝</button>
                   </td>
@@ -347,7 +332,7 @@ export default function TransaksiPage() {
                         <td style={{ padding: 10, fontSize: 12, fontFamily: "monospace" }}>{t.akun}</td>
                         <td style={{ padding: 10, fontSize: 12 }}>{kategoriAkun.find(a => a.kode === t.akun)?.nama || t.kategori}</td>
                         <td style={{ padding: 10, fontSize: 12 }}>{t.uraian}</td>
-                        <td style={{ padding: 10, fontSize: 12, textAlign: "right", color: t.isDebet && t.debet > 0 ? "#22c55e" : "#9ca3af" }}>{t.isDebet && t.debet > 0 ? formatRupiah(t.debet) : "-"}</td>
+                        <td style={{ padding: 10, fontSize: 12, textAlign: "right", color: t.isDebet && (t.debet || 0) > 0 ? "#22c55e" : "#9ca3af" }}>{t.isDebet && (t.debet || 0) > 0 ? formatRupiah(t.debet || 0) : "-"}</td>
                         <td style={{ padding: 10, fontSize: 12, textAlign: "right", color: !t.isDebet && (t.kredit || 0) > 0 ? "#ef4444" : "#9ca3af" }}>{!t.isDebet && (t.kredit || 0) > 0 ? formatRupiah(t.kredit || 0) : "-"}</td>
                       </tr>
                     ))}

@@ -2,28 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const mockAnggota = [
-  { id: 1, nik: "3175012345678901", nama: "Budi Santoso", telepon: "081234567890", tanggalLahir: "1990-05-15", pekerjaan: "Wiraswasta", status: "Aktif", joinDate: "2019-03-10" },
-  { id: 2, nik: "3175012345678902", nama: "Siti Rahayu", telepon: "081234567891", tanggalLahir: "1985-08-22", pekerjaan: "Karyawan", status: "Aktif", joinDate: "2020-01-15" },
-  { id: 3, nik: "3175012345678903", nama: "Ahmad Wijaya", telepon: "081234567892", tanggalLahir: "1988-12-03", pekerjaan: "Pegawai Negeri", status: "Aktif", joinDate: "2018-06-20" },
-  { id: 4, nik: "3175012345678904", nama: "Dewi Lestari", telepon: "081234567893", tanggalLahir: "1992-11-28", pekerjaan: "Guru", status: "Aktif", joinDate: "2021-02-08" },
-  { id: 5, nik: "3175012345678905", nama: "Joko Pramono", telepon: "081234567894", tanggalLahir: "1987-07-14", pekerjaan: "Pedagang", status: "Non-Aktif", joinDate: "2019-09-01" },
-];
+const mockAnggota: { id: number; nik: string; nama: string; telepon: string; tanggalLahir: string; pekerjaan: string; status: string; joinDate: string }[] = [];
 
-const mockSimpanan = [
-  { id: 1, idAnggota: 1, nama: "Budi Santoso", jenis: "Sukarela", jumlah: 5000000, tanggal: "2024-01-15", metode: "Transfer" },
-  { id: 2, idAnggota: 2, nama: "Siti Rahayu", jenis: "Pokok", jumlah: 250000, tanggal: "2024-01-10", metode: "Tunai" },
-  { id: 3, idAnggota: 3, nama: "Ahmad Wijaya", jenis: "Berjangka", jumlah: 10000000, tanggal: "2024-02-01", metode: "Transfer" },
-  { id: 4, idAnggota: 1, nama: "Budi Santoso", jenis: "Sukarela", jumlah: 2000000, tanggal: "2024-02-15", metode: "Transfer" },
-  { id: 5, idAnggota: 4, nama: "Dewi Lestari", jenis: "Pokok", jumlah: 250000, tanggal: "2024-02-20", metode: "Potong Gaji" },
-];
+const mockSimpanan: { id: number; idAnggota: number; nama: string; jenis: string; jumlah: number; tanggal: string; metode: string }[] = [];
 
-const mockPinjaman = [
-  { id: 1, idAnggota: 1, nama: "Budi Santoso", jenis: "Bisnis", jumlah: 10000000, tenor: 12, status: "Lunas", tanggal: "2023-06-01" },
-  { id: 2, idAnggota: 3, nama: "Ahmad Wijaya", jenis: "Umum", jumlah: 5000000, tenor: 6, status: "Lunas", tanggal: "2023-08-15" },
-  { id: 3, idAnggota: 2, nama: "Siti Rahayu", jenis: "Pendidikan", jumlah: 3000000, tenor: 12, status: "Menunggu", tanggal: "2024-02-01" },
-  { id: 4, idAnggota: 4, nama: "Dewi Lestari", jenis: "Umum", jumlah: 2000000, tenor: 6, status: "Menunggu", tanggal: "2024-02-10" },
-];
+const mockPinjaman: { id: number; idAnggota: number; nama: string; jenis: string; jumlah: number; tenor: number; status: string; tanggal: string }[] = [];
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -32,11 +15,11 @@ const formatRupiah = (value: number) => {
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
   
-  const totalAnggota = mockAnggota.length;
-  const anggotaAktif = mockAnggota.filter(a => a.status === "Aktif").length;
-  const totalSimpanan = mockSimpanan.reduce((acc, s) => acc + s.jumlah, 0);
-  const totalPinjamanDisetujui = mockPinjaman.filter(p => p.status === "Lunas").reduce((acc, p) => acc + p.jumlah, 0);
-  const totalPinjamanMenunggu = mockPinjaman.filter(p => p.status === "Menunggu").reduce((acc, p) => acc + p.jumlah, 0);
+  const totalAnggota = 0;
+  const anggotaAktif = 0;
+  const totalSimpanan = 0;
+  const totalPinjamanDisetujui = 0;
+  const totalPinjamanMenunggu = 0;
 
   const renderContent = () => {
     switch (activeTab) {
