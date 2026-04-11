@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function PinjamanPage() {
@@ -7,9 +7,11 @@ export default function PinjamanPage() {
     nama: "",
     nomorAnggota: "",
     tanggal: "",
+    sistem: "",
     jenisPinjaman: "",
     jumlah: "",
     tenor: "",
+    bunga: "",
     tujuan: "",
     jaminan: "",
     metodePembayaran: "",
@@ -17,15 +19,60 @@ export default function PinjamanPage() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [preview, setPreview] = useState<{ totalBunga: number; angsuranPerBulan: number; totalPembayaran: number } | null>(null);
+
+  const sistemOptions = [
+    { value: "musiman", label: "Musiman (Saldo Menurun)", bunga: 2.5, tenorMax: 6, deskripsi: "Bunga 2,5% per bulan" },
+    { value: "flat", label: "Flat (Angsuran Tetap)", bunga: 1.5, tenorMax: 36, deskripsi: "Bunga 1,5% - 2% per bulan" },
+  ];
+
+  const currentOption = sistemOptions.find(o => o.value === formData.sistem);
+
+  useEffect(() => {
+    if (formData.sistem && formData.jumlah && formData.tenor) {
+      const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
+      const tenor = parseInt(formData.tenor);
+      const bunga = currentOption?.bunga || 0;
+
+      if (jumlah > 0 && tenor > 0) {
+        let totalBunga: number;
+        let angsuranPerBulan: number;
+
+        if (formData.sistem === "musiman") {
+          const rate = bunga / 100;
+          totalBunga = jumlah * rate * (tenor + 1) / 2;
+          angsuranPerBulan = jumlah / tenor;
+          setPreview({
+            totalBunga,
+            angsuranPerBulan: angsuranPerBulan + (totalBunga / tenor),
+            totalPembayaran: jumlah + totalBunga
+          });
+        } else {
+          totalBunga = jumlah * (bunga / 100) * tenor;
+          angsuranPerBulan = (jumlah / tenor) + (totalBunga / tenor);
+          setPreview({
+            totalBunga,
+            angsuranPerBulan,
+            totalPembayaran: jumlah + totalBunga
+          });
+        }
+      } else {
+        setPreview(null);
+      }
+    } else {
+      setPreview(null);
+    }
+  }, [formData.sistem, formData.jumlah, formData.tenor, currentOption]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!formData.nama.trim()) errors.nama = "Nama wajib diisi";
     if (!formData.nomorAnggota.trim()) errors.nomorAnggota = "Nomor anggota wajib diisi";
     if (!formData.tanggal) errors.tanggal = "Tanggal wajib diisi";
+    if (!formData.sistem) errors.sistem = "Sistem perhitungan wajib dipilih";
     if (!formData.jenisPinjaman) errors.jenisPinjaman = "Jenis pinjaman wajib dipilih";
     if (!formData.jumlah) errors.jumlah = "Jumlah wajib diisi";
-    if (!formData.tenor) errors.tenor = "Tenor wajib diisi";
+    if (!formData.tenor) errors.tenor = "Jangka waktu wajib dipilih";
     if (!formData.tujuan.trim()) errors.tujuan = "Tujuan wajib diisi";
     if (!formData.metodePembayaran) errors.metodePembayaran = "Metode pembayaran wajib dipilih";
     setFormErrors(errors);
@@ -42,14 +89,17 @@ export default function PinjamanPage() {
           nama: "",
           nomorAnggota: "",
           tanggal: "",
+          sistem: "",
           jenisPinjaman: "",
           jumlah: "",
           tenor: "",
+          bunga: "",
           tujuan: "",
           jaminan: "",
           metodePembayaran: "",
           catatan: "",
         });
+        setPreview(null);
       }, 3000);
     }
   };
@@ -59,9 +109,12 @@ export default function PinjamanPage() {
     return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
+  const formatRupiahNum = (num: number) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+  };
+
   return (
     <main style={{ minHeight: "100vh", background: "var(--color-background)" }}>
-      {/* Header */}
       <header style={{ background: "var(--color-surface)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
         <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 80 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
@@ -80,34 +133,30 @@ export default function PinjamanPage() {
         </div>
       </header>
 
-      {/* Content */}
       <div className="container" style={{ padding: "120px 24px 64px" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏦</div>
             <h1 style={{ fontSize: 36, fontFamily: "var(--font-heading)", marginBottom: 12, color: "var(--color-text-primary)" }}>
-              Input Pinjaman
+              Pengajuan Pinjaman
             </h1>
             <p style={{ fontSize: 16, color: "var(--color-text-secondary)" }}>
-              Formulir pengajuan pinjaman anggota
+              Formulir pengajuan pinjaman anggota dengan kalkulasi bunga otomatis
             </p>
           </div>
 
           {submitted && (
-            <div style={{ 
-              background: "#d4edda", 
-              color: "#155724", 
-              padding: 16, 
-              borderRadius: 8, 
-              marginBottom: 24,
-              textAlign: "center"
-            }}>
-              ✓ Data pinjaman berhasil disimpan! Tim kami akan memproses dalam 1-3 hari kerja.
+            <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+              ✓ Pengajuan pinjaman berhasil! Tim kami akan memproses dalam 1-3 hari kerja.
             </div>
           )}
 
           <div className="card" style={{ padding: 40 }}>
             <form onSubmit={handleSubmit}>
+              <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
+                Data Peminjaman
+              </h3>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
                 <div>
                   <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Nama Lengkap *</label>
@@ -115,14 +164,7 @@ export default function PinjamanPage() {
                     type="text"
                     value={formData.nama}
                     onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.nama ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.nama ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
                     placeholder="Masukkan nama lengkap"
                   />
                   {formErrors.nama && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.nama}</div>}
@@ -134,14 +176,7 @@ export default function PinjamanPage() {
                     type="text"
                     value={formData.nomorAnggota}
                     onChange={(e) => setFormData({ ...formData, nomorAnggota: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.nomorAnggota ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.nomorAnggota ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
                     placeholder="Contoh: AG-001"
                   />
                   {formErrors.nomorAnggota && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.nomorAnggota}</div>}
@@ -155,32 +190,34 @@ export default function PinjamanPage() {
                     type="date"
                     value={formData.tanggal}
                     onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.tanggal ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tanggal ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
                   />
                   {formErrors.tanggal && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tanggal}</div>}
                 </div>
 
                 <div>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Sistem Perhitungan *</label>
+                  <select
+                    value={formData.sistem}
+                    onChange={(e) => setFormData({ ...formData, sistem: e.target.value, tenor: "", bunga: "" })}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.sistem ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                  >
+                    <option value="">Pilih sistem</option>
+                    {sistemOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label} - {opt.deskripsi}</option>
+                    ))}
+                  </select>
+                  {formErrors.sistem && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.sistem}</div>}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                <div>
                   <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jenis Pinjaman *</label>
                   <select
                     value={formData.jenisPinjaman}
                     onChange={(e) => setFormData({ ...formData, jenisPinjaman: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none",
-                      background: "white"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jenisPinjaman ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
                   >
                     <option value="">Pilih jenis pinjaman</option>
                     <option value="umum">Pinjaman Umum</option>
@@ -191,52 +228,85 @@ export default function PinjamanPage() {
                   </select>
                   {formErrors.jenisPinjaman && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jenisPinjaman}</div>}
                 </div>
-              </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jumlah (Rp) *</label>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jumlah Pinjaman (Rp) *</label>
                   <input
                     type="text"
                     value={formData.jumlah}
                     onChange={(e) => setFormData({ ...formData, jumlah: formatRupiah(e.target.value) })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.jumlah ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
                     placeholder="Rp 0"
                   />
                   {formErrors.jumlah && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.jumlah}</div>}
                 </div>
+              </div>
 
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tenor *</label>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Jangka Waktu *</label>
                   <select
                     value={formData.tenor}
                     onChange={(e) => setFormData({ ...formData, tenor: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none",
-                      background: "white"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tenor ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
+                    disabled={!formData.sistem}
                   >
-                    <option value="">Pilih tenor</option>
-                    <option value="3">3 Bulan</option>
-                    <option value="6">6 Bulan</option>
-                    <option value="12">12 Bulan</option>
-                    <option value="18">18 Bulan</option>
-                    <option value="24">24 Bulan</option>
-                    <option value="36">36 Bulan</option>
+                    <option value="">Pilih jangka waktu</option>
+                    {formData.sistem === "musiman" ? (
+                      [1, 2, 3, 4, 5, 6].map(bulan => (
+                        <option key={bulan} value={bulan}>{bulan} Bulan</option>
+                      ))
+                    ) : (
+                      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36].map(bulan => (
+                        <option key={bulan} value={bulan}>{bulan} Bulan</option>
+                      ))
+                    )}
                   </select>
                   {formErrors.tenor && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tenor}</div>}
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Bunga (%)</label>
+                  <input
+                    type="text"
+                    value={currentOption ? `${currentOption.bunga}% per bulan` : "-"}
+                    readOnly
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, background: "#f9f9f9", color: "#666" }}
+                  />
+                </div>
+              </div>
+
+              {preview && (
+                <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)", borderRadius: 12, padding: 24, marginBottom: 24, color: "white" }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>Kalkulasi Pinjaman</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, textAlign: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 12, opacity: 0.8 }}>Bunga Total</div>
+                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.totalBunga)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, opacity: 0.8 }}>Angsuran/Bulan</div>
+                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.angsuranPerBulan)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 12, opacity: 0.8 }}>Total Pembayaran</div>
+                      <div style={{ fontSize: 20, fontWeight: 700 }}>{formatRupiahNum(preview.totalPembayaran)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
+                <div>
+                  <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan Penggunaan *</label>
+                  <input
+                    type="text"
+                    value={formData.tujuan}
+                    onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.tujuan ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none" }}
+                    placeholder="Contoh: Modal usaha, beli kendaraan"
+                  />
+                  {formErrors.tujuan && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tujuan}</div>}
                 </div>
 
                 <div>
@@ -244,15 +314,7 @@ export default function PinjamanPage() {
                   <select
                     value={formData.jaminan}
                     onChange={(e) => setFormData({ ...formData, jaminan: e.target.value })}
-                    style={{ 
-                      width: "100%", 
-                      padding: "14px 16px", 
-                      borderRadius: 8, 
-                      border: "2px solid #eee",
-                      fontSize: 16,
-                      outline: "none",
-                      background: "white"
-                    }}
+                    style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
                   >
                     <option value="">Pilih jaminan</option>
                     <option value="tanpa-jaminan">Tanpa Jaminan</option>
@@ -263,39 +325,12 @@ export default function PinjamanPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Tujuan Penggunaan *</label>
-                <input
-                  type="text"
-                  value={formData.tujuan}
-                  onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
-                  style={{ 
-                    width: "100%", 
-                    padding: "14px 16px", 
-                    borderRadius: 8, 
-                    border: formErrors.tujuan ? "2px solid #e74c3c" : "2px solid #eee",
-                    fontSize: 16,
-                    outline: "none"
-                  }}
-                  placeholder="Contoh: Modal usaha, beli kendaraan, dll"
-                />
-                {formErrors.tujuan && <div style={{ color: "#e74c3c", fontSize: 13, marginTop: 6 }}>{formErrors.tujuan}</div>}
-              </div>
-
               <div style={{ marginBottom: 32 }}>
                 <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Metode Pembayaran Angsuran *</label>
                 <select
                   value={formData.metodePembayaran}
                   onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })}
-                  style={{ 
-                    width: "100%", 
-                    padding: "14px 16px", 
-                    borderRadius: 8, 
-                    border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #eee",
-                    fontSize: 16,
-                    outline: "none",
-                    background: "white"
-                  }}
+                  style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #eee", fontSize: 16, outline: "none", background: "white" }}
                 >
                   <option value="">Pilih metode</option>
                   <option value="tunai">Tunai</option>
@@ -311,16 +346,7 @@ export default function PinjamanPage() {
                   value={formData.catatan}
                   onChange={(e) => setFormData({ ...formData, catatan: e.target.value })}
                   rows={3}
-                  style={{ 
-                    width: "100%", 
-                    padding: "14px 16px", 
-                    borderRadius: 8, 
-                    border: "2px solid #eee",
-                    fontSize: 16,
-                    outline: "none",
-                    resize: "vertical",
-                    fontFamily: "inherit"
-                  }}
+                  style={{ width: "100%", padding: "14px 16px", borderRadius: 8, border: "2px solid #eee", fontSize: 16, outline: "none", resize: "vertical", fontFamily: "inherit" }}
                   placeholder="Catatan tambahan (opsional)"
                 />
               </div>
