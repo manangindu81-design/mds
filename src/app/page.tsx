@@ -104,14 +104,15 @@ export default function Home() {
             Pilih menu untuk mulai input data
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {menuItems.map((item, index) => (
               <Link
                 key={index}
                 href={item.href}
                 style={{
-                  display: "block",
-                  padding: 24,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "20px 24px",
                   borderRadius: 12,
                   background: item.color,
                   textDecoration: "none",
@@ -119,17 +120,20 @@ export default function Home() {
                   transition: "transform 0.2s, box-shadow 0.2s",
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.transform = "translateX(4px)";
                   e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.transform = "translateX(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <div style={{ fontSize: 32, marginBottom: 12 }}>{item.icon}</div>
-                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{item.title}</div>
-                <div style={{ fontSize: 14, opacity: 0.8 }}>{item.description}</div>
+                <div style={{ fontSize: 28, marginRight: 16 }}>{item.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}>{item.title}</div>
+                  <div style={{ fontSize: 13, opacity: 0.85 }}>{item.description}</div>
+                </div>
+                <div style={{ fontSize: 20, opacity: 0.7 }}>→</div>
               </Link>
             ))}
           </div>
