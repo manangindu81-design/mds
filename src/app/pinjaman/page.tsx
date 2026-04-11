@@ -371,6 +371,62 @@ export default function PinjamanPage() {
             </form>
           </div>
 
+          {pinjaman.length > 0 && (
+            <div className="card" style={{ padding: 40, marginTop: 32 }}>
+              <h3 style={{ fontSize: 18, marginBottom: 24, borderBottom: "2px solid var(--color-primary)", paddingBottom: 12 }}>
+                Daftar Anggota Peminjam
+              </h3>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <thead>
+                  <tr style={{ background: "var(--color-background)" }}>
+                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No</th>
+                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>No. Anggota</th>
+                    <th style={{ padding: "12px 8px", textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
+                    <th style={{ padding: "12px 8px", textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
+                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Tenor</th>
+                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Bunga</th>
+                    <th style={{ padding: "12px 8px", textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pinjaman.map((p, idx) => (
+                    <tr key={p.id} style={{ borderBottom: "1px solid #eee" }}>
+                      <td style={{ padding: "12px 8px" }}>{idx + 1}</td>
+                      <td style={{ padding: "12px 8px", fontWeight: 500 }}>{p.nama}</td>
+                      <td style={{ padding: "12px 8px" }}>{p.nomorAnggota}</td>
+                      <td style={{ padding: "12px 8px" }}>{p.jenisPinjaman}</td>
+                      <td style={{ padding: "12px 8px", textAlign: "right" }}>{formatRupiahNum(p.jumlah)}</td>
+                      <td style={{ padding: "12px 8px", textAlign: "center" }}>{p.tenor} bln</td>
+                      <td style={{ padding: "12px 8px", textAlign: "center" }}>{p.bunga}%</td>
+                      <td style={{ padding: "12px 8px", textAlign: "center" }}>
+                        <span style={{ 
+                          padding: "4px 12px", 
+                          borderRadius: 16, 
+                          fontSize: 12,
+                          background: p.status === "Disetujui" ? "#d4edda" : p.status === "Menunggu" ? "#fff3cd" : "#f8d7da",
+                          color: p.status === "Disetujui" ? "#155724" : p.status === "Menunggu" ? "#856404" : "#721c24"
+                        }}>
+                          {p.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div style={{ marginTop: 24, padding: 16, background: "var(--color-background)", borderRadius: 8, display: "flex", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Peminjam</div>
+                  <div style={{ fontSize: 24, fontWeight: 700 }}>{pinjaman.length} Anggota</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Total Pinjaman Aktif</div>
+                  <div style={{ fontSize: 24, fontWeight: 700 }}>{formatRupiahNum(pinjaman.reduce((sum, p) => sum + p.jumlah, 0))}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div style={{ marginTop: 24, textAlign: "center" }}>
             <Link href="/" style={{ color: "var(--color-primary)", textDecoration: "none", fontWeight: 500 }}>
               ← Kembali ke Beranda
