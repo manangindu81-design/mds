@@ -132,19 +132,19 @@ export default function Home() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
           <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Anggota</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#1B4D3E" }}>5</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#1B4D3E" }}>0</div>
           </div>
           <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Simpanan</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#22c55e" }}>Rp 19.500.000</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#22c55e" }}>Rp 0</div>
           </div>
           <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Pinjaman</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#ef4444" }}>Rp 13.000.000</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#ef4444" }}>Rp 0</div>
           </div>
           <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Transaksi Hari Ini</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#373151" }}>3</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#373151" }}>0</div>
           </div>
         </div>
       </main>
