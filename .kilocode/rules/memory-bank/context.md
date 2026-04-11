@@ -1,87 +1,50 @@
-# Active Context: Next.js Starter Template
+# Context: KSP Mulia Dana Sejahtera
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**Project Status**: ✅ Aplikasi KSP Siap Pakai
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, simpanan, pinjaman, dan transaksi harian.
 
-## Recently Completed
+##Recently Completed
 
-- [x] Base Next.js 16 setup with App Router
-- [x] TypeScript configuration with strict mode
-- [x] Tailwind CSS 4 integration
-- [x] ESLint configuration
-- [x] Memory bank documentation
-- [x] Recipe system for common features
+- [x] Landing page KSP Mulia Dana Sejahtera
+- [x] Halaman input simpanan (/simpanan)
+- [x] Halaman input pinjaman dengan sistem Flat & Musiman (/pinjaman)
+- [x] Halaman pendataan anggota (/anggota)
+- [x] Dashboard dengan statistik (/dashboard)
+- [x] Transaksi harian dengan jurnal (/transaksi)
+- [x] Data anggota lengkap (/data-anggota)
+- [x] Sistem pinjaman: Flat (1,5-2%, 1-36 bln) & Musiman (2,5%, 1-6 bln)
 
-## Current Structure
+## Struktur Aplikasi
 
-| File/Directory | Purpose | Status |
-|----------------|---------|--------|
-| `src/app/page.tsx` | Home page | ✅ Ready |
-| `src/app/layout.tsx` | Root layout | ✅ Ready |
-| `src/app/globals.css` | Global styles | ✅ Ready |
-| `.kilocode/` | AI context & recipes | ✅ Ready |
+| Menu | URL | Fitur |
+|------|-----|-------|
+| Beranda | / | Landing page |
+| Simpanan | /simpanan | Input setoran |
+| Pinjaman | /pinjaman | Input pinjaman + kalkulasi |
+| Anggota | /anggota | Pendaftaran |
+| Dashboard | /dashboard | Stats & tabel data |
+| Transaksi | /transaksi | Kas masuk/keluar + jurnal |
+| Data Anggota | /data-anggota | Daftar lengkap |
 
-## Current Focus
+## Teknik
 
-The template is ready. Next steps depend on user requirements:
+- Next.js 16 (App Router)
+- React 19
+- Tailwind CSS 4
+- TypeScript
+- Bun package manager
 
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
+## Focus Sekarang
 
-## Quick Start Guide
+- Optimasi form input
+- Fitur hitung bunga otomatis
+- Sistem jurnal akuntansi
 
-### To add a new page:
+## Riwayat Perubahan
 
-Create a file at `src/app/[route]/page.tsx`:
-```tsx
-export default function NewPage() {
-  return <div>New page content</div>;
-}
-```
-
-### To add components:
-
-Create `src/components/` directory and add components:
-```tsx
-// src/components/ui/Button.tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button className="px-4 py-2 bg-blue-600 text-white rounded">{children}</button>;
-}
-```
-
-### To add a database:
-
-Follow `.kilocode/recipes/add-database.md`
-
-### To add API routes:
-
-Create `src/app/api/[route]/route.ts`:
-```tsx
-import { NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ message: "Hello" });
-}
-```
-
-## Available Recipes
-
-| Recipe | File | Use Case |
-|--------|------|----------|
-| Add Database | `.kilocode/recipes/add-database.md` | Data persistence with Drizzle + SQLite |
-
-## Pending Improvements
-
-- [ ] Add more recipes (auth, email, etc.)
-- [ ] Add example components
-- [ ] Add testing setup recipe
-
-## Session History
-
-| Date | Changes |
-|------|---------|
-| Initial | Template created with base setup |
+| Tanggal | Perubahan |
+|--------|-----------|
+| 2024 | Aplikasi KSP selesai |
