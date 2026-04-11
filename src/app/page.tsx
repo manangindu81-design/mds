@@ -44,6 +44,13 @@ const menuItems = [
     icon: "📊",
     color: "#2D7A5F" 
   },
+  { 
+    title: "Laporan", 
+    description: "Laporan keuangan", 
+    href: "/laporan", 
+    icon: "📑",
+    color: "#0A2E25" 
+  },
 ];
 
 export default function Home() {
