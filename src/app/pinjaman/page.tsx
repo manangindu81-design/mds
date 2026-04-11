@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
 
@@ -21,7 +21,6 @@ export default function PinjamanPage() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [preview, setPreview] = useState<{ totalBunga: number; angsuranPerBulan: number; totalPembayaran: number } | null>(null);
 
   const sistemOptions = [
     { value: "musiman", label: "Musiman (Saldo Menurun)", bunga: 2.5, tenorMax: 6, deskripsi: "Bunga 2,5% per bulan" },
@@ -30,41 +29,38 @@ export default function PinjamanPage() {
 
   const currentOption = sistemOptions.find(o => o.value === formData.sistem);
 
-  useEffect(() => {
-    if (formData.sistem && formData.jumlah && formData.tenor) {
-      const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
-      const tenor = parseInt(formData.tenor);
-      const bunga = currentOption?.bunga || 0;
+  const calculatePreview = () => {
+    if (!formData.sistem || !formData.jumlah || !formData.tenor) return null;
+    const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
+    const tenor = parseInt(formData.tenor);
+    const bunga = currentOption?.bunga || 0;
 
-      if (jumlah > 0 && tenor > 0) {
-        let totalBunga: number;
-        let angsuranPerBulan: number;
+    if (jumlah <= 0 || tenor <= 0) return null;
 
-        if (formData.sistem === "musiman") {
-          const rate = bunga / 100;
-          totalBunga = jumlah * rate * (tenor + 1) / 2;
-          angsuranPerBulan = jumlah / tenor;
-          setPreview({
-            totalBunga,
-            angsuranPerBulan: angsuranPerBulan + (totalBunga / tenor),
-            totalPembayaran: jumlah + totalBunga
-          });
-        } else {
-          totalBunga = jumlah * (bunga / 100) * tenor;
-          angsuranPerBulan = (jumlah / tenor) + (totalBunga / tenor);
-          setPreview({
-            totalBunga,
-            angsuranPerBulan,
-            totalPembayaran: jumlah + totalBunga
-          });
-        }
-      } else {
-        setPreview(null);
-      }
+    let totalBunga: number;
+    let angsuranPerBulan: number;
+
+    if (formData.sistem === "musiman") {
+      const rate = bunga / 100;
+      totalBunga = jumlah * rate * (tenor + 1) / 2;
+      angsuranPerBulan = jumlah / tenor;
+      return {
+        totalBunga,
+        angsuranPerBulan: angsuranPerBulan + (totalBunga / tenor),
+        totalPembayaran: jumlah + totalBunga
+      };
     } else {
-      setPreview(null);
+      totalBunga = jumlah * (bunga / 100) * tenor;
+      angsuranPerBulan = (jumlah / tenor) + (totalBunga / tenor);
+      return {
+        totalBunga,
+        angsuranPerBulan,
+        totalPembayaran: jumlah + totalBunga
+      };
     }
-  }, [formData.sistem, formData.jumlah, formData.tenor, currentOption]);
+  };
+
+  const preview = calculatePreview();
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -118,7 +114,6 @@ export default function PinjamanPage() {
           metodePembayaran: "",
           catatan: "",
         });
-        setPreview(null);
       }, 3000);
     }
   };
