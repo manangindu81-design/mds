@@ -106,12 +106,14 @@ export default function PinjamanPage() {
     const jumlah = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
     const tenor = parseInt(formData.tenor) || 1;
     const hasAgunan = formData.agunan === "ada";
+    const isPendiri = formData.agunan === "pendiri";
+    const isSimpanan = formData.agunan === "simpanan";
     const bpjstkAmount = formData.bpjstk ? tenor * 20000 : 0;
     
     const biayaAdmin = Math.round(jumlah * 0.02);
     const danaRisiko = Math.round(jumlah * 0.01);
     const danaSosial = Math.round(jumlah * 0.01);
-    const insentif = !hasAgunan ? Math.round(jumlah * 0.01) : 0;
+    const insentif = (isPendiri || isSimpanan) ? Math.round(jumlah * 0.01) : 0;
     const legalisasi = hasAgunan ? 400000 : 0;
     const feeNotaris = 100000;
     const materai = 24000;
