@@ -16,6 +16,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - [x] Transaksi harian dengan jurnal (/transaksi)
 - [x] Data anggota lengkap (/data-anggota)
 - [x] Sistem pinjaman: Flat (1,5-2%, 1-36 bln) & Musiman (2,5%, 1-6 bln)
+- [x] Fix lint error - remove setPreview reference di pinjaman/page.tsx
 
 ## Struktur Aplikasi
 
