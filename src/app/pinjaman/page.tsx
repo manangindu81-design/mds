@@ -433,7 +433,26 @@ export default function PinjamanPage() {
                   <div><label>Pokok (Rp) *</label><input type="text" value={formAngsuran.angsuranPokok} onChange={e=>setFormAngsuran({...formAngsuran,angsuranPokok:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                   <div><label>Bunga (Rp) *</label><input type="text" value={formAngsuran.angsuranBunga} onChange={e=>setFormAngsuran({...formAngsuran,angsuranBunga:formatRupiah(e.target.value)})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}}/></div>
                 </div>
-                <div style={{marginBottom:24}}><label>Hari Terlambat</label><input type="number" value={formAngsuran.hariTerlambat} onChange={e=>setFormAngsuran({...formAngsuran,hariTerlambat:e.target.value})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}} placeholder="0"/><small style={{color:"#666"}}>(3% per bulan x hari / 30 = nominal denda)</small></div>
+                <div style={{marginBottom:24}}><label>Hari Terlambat</label><input type="number" value={formAngsuran.hariTerlambat} onChange={e=>setFormAngsuran({...formAngsuran,hariTerlambat:e.target.value})} style={{width:"100%",padding:14,borderRadius:8,border:"2px solid #eee"}} placeholder="0"/><small style={{color:"#666"}}> (3% x hari / 30)</small>
+                {(formAngsuran.idPinjaman && parseInt(formAngsuran.hariTerlambat) > 0) && (() => {
+                  const selected =pinjaman.find(p => p.id.toString() === formAngsuran.idPinjaman);
+                  if (!selected) return null;
+                  const denda = Math.floor(selected.jumlah * 0.03 / 30 * parseInt(formAngsuran.hariTerlambat));
+                  return <div style={{marginTop:8, color: "#e74c3c", fontWeight: 600}}>Denda: {formatRupiahNum(denda)}</div>;
+                })()}
+                </div>
+                {formAngsuran.angsuranPokok && formAngsuran.angsuranBunga && (
+                  <div style={{ background: "#e8f5e9", padding: 16, borderRadius: 8, marginBottom: 24 }}>
+                    <div style={{fontSize:14,marginBottom:8}}>Total Pembayaran:</div>
+                    <div style={{fontSize:24,fontWeight:700,color:"#27ae60"}}>
+                      {formatRupiahNum(
+                        (parseInt(formAngsuran.angsuranPokok.replace(/\D/g,""))||0) + 
+                        (parseInt(formAngsuran.angsuranBunga.replace(/\D/g,""))||0) + 
+                        ((formAngsuran.idPinjaman && parseInt(formAngsuran.hariTerlambat) > 0) ? Math.floor((pinjaman.find(p=>p.id.toString()===formAngsuran.idPinjaman)?.jumlah||0) * 0.03 / 30 * parseInt(formAngsuran.hariTerlambat)) : 0)
+                      )}
+                    </div>
+                  </div>
+                )}
                 <button type="submit" className="btn btn-primary" style={{width:"100%"}}>💳 Simpan</button>
               </form>
             </div>
