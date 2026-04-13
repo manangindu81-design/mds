@@ -16,6 +16,63 @@ export default function AnggotaPage() {
   const noNBA = `NBA-${String(anggota.length + 1).padStart(3, "0")}`;
   const tanggalMasuk = formatDate(new Date().toISOString().split("T")[0]);
   
+  const optionsHubungan = [
+    { value: "", label: "Pilih" },
+    { value: "kaka", label: "Kakak" },
+    { value: "adik", label: "Adik" },
+    { value: "ayah", label: "Ayah" },
+    { value: "ibu", label: "Ibu" },
+    { value: "paman", label: "Paman" },
+    { value: "bibi", label: "Bibik" },
+    { value: "keponakan", label: "Keponakan" },
+    { value: "menantu", label: "Menantu" },
+    { value: "lain", label: "Lainnya" },
+  ];
+  
+  const optionsPekerjaan = [
+    { value: "", label: "Pilih" },
+    { value: "pegawai-negeri", label: "Pegawai Negeri" },
+    { value: "pegawai-swasta", label: "Pegawai Swasta" },
+    { value: "wiraswasta", label: "Wiraswasta" },
+    { value: "tani", label: "Petani/Nelayan" },
+    { value: "ojek", label: "Ojek/Driver" },
+    { value: "pedagang", label: "Pedagang" },
+    { value: "tukang", label: "Tukang Bangunan" },
+    { value: "ibu-rumah-tangga", label: "Ibu Rumah Tangga" },
+    { value: "pelajar", label: "Pelajar/Mahasiswa" },
+    { value: "lain", label: "Lainnya" },
+  ];
+  
+  const optionsPenghasilan = [
+    { value: "", label: "Pilih" },
+    { value: "<500rb", label: "Kurang dari 500 Ribu" },
+    { value: "500rb-1jt", label: "500 Ribu - 1 Juta" },
+    { value: "1jt-2jt", label: "1 Juta - 2 Juta" },
+    { value: "2jt-3jt", label: "2 Juta - 3 Juta" },
+    { value: "3jt-5jt", label: "3 Juta - 5 Juta" },
+    { value: "5jt-10jt", label: "5 Juta - 10 Juta" },
+    { value: ">10jt", label: "Lebih dari 10 Juta" },
+  ];
+  
+  const optionsStatusPekerjaan = [
+    { value: "", label: "Pilih" },
+    { value: "tetap", label: "Karyawan Tetap" },
+    { value: "kontrak", label: "Karyawan Kontrak" },
+    { value: "daily", label: "Harian/Lepas" },
+    { value: "magang", label: "Magang" },
+    { value: "training", label: "Training" },
+  ];
+  
+  const optionsLamaBekerja = [
+    { value: "", label: "Pilih" },
+    { value: "<6bln", label: "Kurang dari 6 Bulan" },
+    { value: "6-12bln", label: "6 Bulan - 1 Tahun" },
+    { value: "1-2thn", label: "1 Tahun - 2 Tahun" },
+    { value: "2-3thn", label: "2 Tahun - 3 Tahun" },
+    { value: "3-5thn", label: "3 Tahun - 5 Tahun" },
+    { value: ">5thn", label: "Lebih dari 5 Tahun" },
+  ];
+  
   const [formData, setFormData] = useState({
     nik: "",
     nama: "",
@@ -23,6 +80,16 @@ export default function AnggotaPage() {
     tanggalLahir: "",
     jkelamin: "",
     status: "",
+    namaPasangan: "",
+    jumlahAnak: "",
+    namaIbuKandung: "",
+    namaSaudara: "",
+    telpSaudara: "",
+    hubungan: "",
+    pekerjaan: "",
+    besarPenghasilan: "",
+    statusPekerjaan: "",
+    lamaBekerja: "",
     alamat: "",
     rt: "",
     rw: "",
@@ -31,7 +98,6 @@ export default function AnggotaPage() {
     kota: "",
     telepon: "",
     email: "",
-    pekerjaan: "",
     tempatKerja: "",
     pendapatan: "",
   });
@@ -87,7 +153,7 @@ export default function AnggotaPage() {
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", pekerjaan: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", statusPekerjaan: "", lamaBekerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
       }, 3000);
     }
   };
@@ -122,24 +188,31 @@ export default function AnggotaPage() {
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Tanggal Lahir *</label><input type="date" value={formData.tanggalLahir} onChange={e => setFormData({ ...formData, tanggalLahir: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.tanggalLahir ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.tanggalLahir && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.tanggalLahir}</div>}</div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Jenis Kelamin *</label><select value={formData.jkelamin} onChange={e => setFormData({ ...formData, jkelamin: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.jkelamin ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}><option value="">Pilih</option><option value="laki">Laki-laki</option><option value="perempuan">Perempuan</option></select>{formErrors.jkelamin && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jkelamin}</div>}</div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status *</label><select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.status ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}><option value="">Pilih</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select>{formErrors.status && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.status}</div>}</div>
+              {formData.status === "kawin" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Pasangan</label><input type="text" value={formData.namaPasangan} onChange={e => setFormData({ ...formData, namaPasangan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Jumlah Anak</label><select value={formData.jumlahAnak} onChange={e => setFormData({ ...formData, jumlahAnak: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}><option value="">Pilih</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5+</option></select></div>
+                </div>
+              )}
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Ibu Kandung</label><input type="text" value={formData.namaIbuKandung} onChange={e => setFormData({ ...formData, namaIbuKandung: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Telepon *</label><input type="tel" value={formData.telepon} onChange={e => setFormData({ ...formData, telepon: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.telepon ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.telepon && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.telepon}</div>}</div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Email</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
             </div>
 
-            <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Alamat</h3>
-            <div style={{ marginBottom: 20 }}><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Alamat *</label><input type="text" value={formData.alamat} onChange={e => setFormData({ ...formData, alamat: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.alamat ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.alamat && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.alamat}</div>}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>RT</label><input type="text" value={formData.rt} onChange={e => setFormData({ ...formData, rt: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>RW</label><input type="text" value={formData.rw} onChange={e => setFormData({ ...formData, rw: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Kelurahan *</label><input type="text" value={formData.kel} onChange={e => setFormData({ ...formData, kel: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.kel ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.kel && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.kel}</div>}</div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Kecamatan *</label><input type="text" value={formData.kec} onChange={e => setFormData({ ...formData, kec: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.kec ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.kec && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.kec}</div>}</div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Kota/Kab *</label><input type="text" value={formData.kota} onChange={e => setFormData({ ...formData, kota: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.kota ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.kota && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.kota}</div>}</div>
+            <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Keluarga Tidak Serumah</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama</label><input type="text" value={formData.namaSaudara} onChange={e => setFormData({ ...formData, namaSaudara: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>No. Telepon</label><input type="tel" value={formData.telpSaudara} onChange={e => setFormData({ ...formData, telpSaudara: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Hubungan</label><select value={formData.hubungan} onChange={e => setFormData({ ...formData, hubungan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsHubungan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
             </div>
 
             <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Pekerjaan</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Pekerjaan *</label><input type="text" value={formData.pekerjaan} onChange={e => setFormData({ ...formData, pekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.pekerjaan ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} />{formErrors.pekerjaan && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.pekerjaan}</div>}</div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Pekerjaan</label><select value={formData.pekerjaan} onChange={e => setFormData({ ...formData, pekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Besar Penghasilan</label><select value={formData.besarPenghasilan} onChange={e => setFormData({ ...formData, besarPenghasilan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsPenghasilan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsStatusPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Lama Bekerja</label><select value={formData.lamaBekerja} onChange={e => setFormData({ ...formData, lamaBekerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsLamaBekerja.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
             </div>
 
             <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>📝 Daftar Anggota</button>
