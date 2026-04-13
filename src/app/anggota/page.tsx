@@ -7,6 +7,9 @@ export default function AnggotaPage() {
   const { anggota, addAnggota } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data">("data");
   
+  const noNBA = `NBA-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(new Date().getDate()).padStart(2, "0")}-${String(anggota.length + 1).padStart(3, "0")}`;
+  const tanggalMasuk = new Date().toISOString().split("T")[0];
+  
   const [formData, setFormData] = useState({
     nik: "",
     nama: "",
@@ -53,6 +56,7 @@ export default function AnggotaPage() {
     if (validateForm()) {
       const newAnggota: AnggotaType = {
         id: anggota.length + 1,
+        nomorNBA: noNBA,
         nik: formData.nik,
         nama: formData.nama,
         tempatLahir: formData.tempatLahir,
@@ -70,7 +74,7 @@ export default function AnggotaPage() {
         pekerjaan: formData.pekerjaan,
         tempatKerja: formData.tempatKerja,
         pendapatan: formData.pendapatan,
-        tanggalJoin: new Date().toISOString().split("T")[0],
+        tanggalJoin: tanggalMasuk,
         statusKeanggotaan: "Aktif",
       };
       addAnggota(newAnggota);
@@ -99,6 +103,11 @@ export default function AnggotaPage() {
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           {submitted && <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>✓ Pendaftaran berhasil!</div>}
           <form onSubmit={handleSubmit}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20, padding: 16, background: "#f0fdf4", borderRadius: 10 }}>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6, fontSize: 13, color: "#166534" }}>No. NBA</label><input type="text" value={noNBA} readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "white", fontWeight: 600, color: "#1B4D3E" }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6, fontSize: 13, color: "#166534" }}>Tanggal Masuk</label><input type="text" value={tanggalMasuk} readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "white", fontWeight: 600, color: "#1B4D3E" }} /></div>
+            </div>
+
             <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Data Diri</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>NIK (KTP) *</label><input type="text" value={formData.nik} onChange={e => setFormData({ ...formData, nik: e.target.value.replace(/\D/g, "").slice(0, 16) })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.nik ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14 }} placeholder="16 digit" maxLength={16} />{formErrors.nik && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.nik}</div>}</div>
@@ -139,16 +148,16 @@ export default function AnggotaPage() {
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada anggota. Silakan tambah anggota baru.</div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-              <thead><tr style={{ background: "#f9fafb" }}><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Telepon</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th><th style={{ padding: 12, textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th></tr></thead>
+              <thead><tr style={{ background: "#f9fafb" }}><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th><th style={{ padding: 12, textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th></tr></thead>
               <tbody>
                 {anggota.map((a, i) => (
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 12 }}>{i + 1}</td>
-                    <td style={{ fontFamily: "monospace", fontSize: 13 }}>{a.nik}</td>
-                    <td style={{ fontWeight: 500 }}>{a.nama}</td>
-                    <td>{a.telepon}</td>
-                    <td>{a.pekerjaan}</td>
-                    <td style={{ textAlign: "center" }}><span style={{ padding: "4px 12px", borderRadius: 12, fontSize: 12, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
+                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>{(a as any).nomorNBA || "-"}</td>
+                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>{a.nik}</td>
+                    <td style={{ fontWeight: 500, fontSize: 13 }}>{a.nama}</td>
+                    <td style={{ fontSize: 12 }}>{a.tanggalJoin}</td>
+                    <td style={{ textAlign: "center" }}><span style={{ padding: "4px 12px", borderRadius: 12, fontSize: 11, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
                   </tr>
                 ))}
               </tbody>

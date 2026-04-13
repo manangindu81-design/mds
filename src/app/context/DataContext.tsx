@@ -3,6 +3,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 
 export interface Anggota {
   id: number;
+  nomorNBA: string;
   nik: string;
   nama: string;
   tempatLahir: string;
