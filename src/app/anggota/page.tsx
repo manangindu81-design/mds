@@ -91,6 +91,7 @@ export default function AnggotaPage() {
     statusPekerjaan: "",
     lamaBekerja: "",
     alamatTempatKerja: "",
+    jenisTransaksi: "",
     alamat: "",
     rt: "",
     rw: "",
@@ -119,7 +120,8 @@ export default function AnggotaPage() {
     if (!formData.kec.trim()) errors.kec = "Kecamatan wajib";
     if (!formData.kota.trim()) errors.kota = "Kota wajib";
     if (!formData.telepon.trim()) errors.telepon = "Telepon wajib";
-    if (!formData.pekerjaan.trim()) errors.pekerjaan = "Pekerjaan wajib";
+    if (!formData.pekerjaan) errors.pekerjaan = "Pekerjaan wajib";
+    if (!formData.jenisTransaksi) errors.jenisTransaksi = "Jenis transaksi wajib dipilih";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -164,7 +166,7 @@ export default function AnggotaPage() {
         tanggal: today,
         jenisSimpanan: "pokok",
         jumlah: 100000,
-        metode: "tunai",
+        metode: formData.jenisTransaksi,
         bunga: 0,
       });
       
@@ -176,7 +178,7 @@ export default function AnggotaPage() {
         tanggal: today,
         jenisSimpanan: "wajib",
         jumlah: 25000,
-        metode: "tunai",
+        metode: formData.jenisTransaksi,
         bunga: 0,
       });
       
@@ -188,7 +190,7 @@ export default function AnggotaPage() {
         tanggal: today,
         jenisSimpanan: "buku",
         jumlah: 25000,
-        metode: "tunai",
+        metode: formData.jenisTransaksi,
         bunga: 0,
       });
       
@@ -237,7 +239,7 @@ export default function AnggotaPage() {
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", jenisTransaksi: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
       }, 3000);
     }
   };
@@ -305,6 +307,16 @@ export default function AnggotaPage() {
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Pokok</label><input type="text" value="100.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Wajib</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Uang Buku</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Jenis Transaksi *</label>
+              <select value={formData.jenisTransaksi} onChange={e => setFormData({ ...formData, jenisTransaksi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.jenisTransaksi ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
+                <option value="">Pilih</option>
+                <option value="tunai">Tunai</option>
+                <option value="bri-tigabinanga">BRI Cab. Tigabinanga</option>
+                <option value="bri-berastagi">BRI Cab. Berastagi</option>
+              </select>
+              {formErrors.jenisTransaksi && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jenisTransaksi}</div>}
             </div>
 
             <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>📝 Daftar Anggota</button>
