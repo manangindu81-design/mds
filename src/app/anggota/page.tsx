@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useData, Anggota as AnggotaType } from "../context/DataContext";
 
 export default function AnggotaPage() {
-  const { anggota, addAnggota } = useData();
+  const { anggota, addAnggota, addSimpanan, addTransaksi } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data">("data");
   
   const formatDate = (date: string) => {
@@ -151,6 +151,89 @@ export default function AnggotaPage() {
         statusKeanggotaan: "Aktif",
       };
       addAnggota(newAnggota);
+      
+      const idAnggota = anggota.length + 1;
+      const today = new Date().toISOString().split("T")[0];
+      const noanggota = noNBA;
+      
+      addSimpanan({
+        id: 0,
+        idAnggota,
+        nama: formData.nama,
+        nomorAnggota: noanggota,
+        tanggal: today,
+        jenisSimpanan: "pokok",
+        jumlah: 100000,
+        metode: "tunai",
+        bunga: 0,
+      });
+      
+      addSimpanan({
+        id: 0,
+        idAnggota,
+        nama: formData.nama,
+        nomorAnggota: noanggota,
+        tanggal: today,
+        jenisSimpanan: "wajib",
+        jumlah: 25000,
+        metode: "tunai",
+        bunga: 0,
+      });
+      
+      addSimpanan({
+        id: 0,
+        idAnggota,
+        nama: formData.nama,
+        nomorAnggota: noanggota,
+        tanggal: today,
+        jenisSimpanan: "buku",
+        jumlah: 25000,
+        metode: "tunai",
+        bunga: 0,
+      });
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `BK-${today.replace(/-/g, "")}-001`,
+        tanggal: today,
+        jam: new Date().toTimeString().slice(0, 5),
+        akun: "Kas",
+        kategori: "Setoran Anggota",
+        uraian: `Simpanan Pokok ${formData.nama}`,
+        debet: 100000,
+        kredit: 0,
+        saldo: 0,
+        operator: "Admin",
+      });
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `BK-${today.replace(/-/g, "")}-002`,
+        tanggal: today,
+        jam: new Date().toTimeString().slice(0, 5),
+        akun: "Kas",
+        kategori: "Setoran Anggota",
+        uraian: `Simpanan Wajib ${formData.nama}`,
+        debet: 25000,
+        kredit: 0,
+        saldo: 0,
+        operator: "Admin",
+      });
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `BK-${today.replace(/-/g, "")}-003`,
+        tanggal: today,
+        jam: new Date().toTimeString().slice(0, 5),
+        akun: "Kas",
+        kategori: "Setoran Anggota",
+        uraian: `Uang Buku ${formData.nama}`,
+        debet: 25000,
+        kredit: 0,
+        saldo: 0,
+        operator: "Admin",
+      });
+      
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
