@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useData } from "../context/DataContext";
 
 const kategoriAkun = [
   { kode: "1101", nama: "Kas", jenis: "Aset" },
@@ -22,20 +23,17 @@ const kategoriAkun = [
   { kode: "4202", nama: "Beban Operasional", jenis: "Beban" },
 ];
 
-const mockTransaksi: { id: number; noBukti: string; tanggal: string; jam: string; akun: string; kategori: string; jenisTransaksi: string; uraian: string; debet?: number; kredit?: number; saldo?: number; operator: string }[] = [];
-
-const mockAnggota: { id: number; nama: string; nomor: string; saldoSimpanan: number; saldoPinjaman: number }[] = [];
-
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
 };
 
 export default function TransaksiPage() {
+  const { anggota, simpanan, pinjaman, transaksi, addTransaksi } = useData();
   const [activeTab, setActiveTab] = useState("kas-masuk");
   const [showModal, setShowModal] = useState(false);
   const [showJurnal, setShowJurnal] = useState(false);
   const [filterTanggal, setFilterTanggal] = useState("");
-  const [selectedTransaksi, setSelectedTransaksi] = useState<typeof mockTransaksi[0] | null>(null);
+  const [selectedTransaksi, setSelectedTransaksi] = useState<typeof transaksi[0] | null>(null);
   
   const [formData, setFormData] = useState({
     noBukti: "",
@@ -49,9 +47,10 @@ export default function TransaksiPage() {
     referensi: "",
   });
   
-  const totalMasuk = 0;
-  const totalKeluar = 0;
-  const saldoKas = 0;
+  const allTransaksi = [...transaksi];
+  const totalMasuk = allTransaksi.filter(t => (t.debet || 0) > 0).reduce((sum, t) => sum + (t.debet || 0), 0);
+  const totalKeluar = allTransaksi.filter(t => (t.kredit || 0) > 0).reduce((sum, t) => sum + (t.kredit || 0), 0);
+  const saldoKas = totalMasuk - totalKeluar;
 
   const formatRupiahInput = (value: string) => {
     const num = value.replace(/\D/g, "");
@@ -60,7 +59,7 @@ export default function TransaksiPage() {
 
   const generateNoBukti = (prefix: string) => {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const num = String(mockTransaksi.length + 1).padStart(3, "0");
+    const num = String(allTransaksi.length + 1).padStart(3, "0");
     return `${prefix}-${date}-${num}`;
   };
 
@@ -157,7 +156,7 @@ export default function TransaksiPage() {
           </div>
           <div style={{ background: "white", borderRadius: 12, padding: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Transaksi Hari Ini</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#373151" }}>{mockTransaksi.filter(t => t.tanggal === "2024-04-11").length}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#373151" }}>{allTransaksi.filter(t => t.tanggal === "2024-04-11").length}</div>
           </div>
         </div>
 
@@ -189,7 +188,7 @@ export default function TransaksiPage() {
               </tr>
             </thead>
             <tbody>
-              {mockTransaksi.map((t, i) => (
+              {allTransaksi.map((t, i) => (
                 <tr 
                   key={i} 
                   onClick={() => setSelectedTransaksi(t)}
@@ -322,7 +321,7 @@ export default function TransaksiPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockTransaksi.flatMap((t, i) => [
+                    {allTransaksi.flatMap((t, i) => [
                       { ...t, isDebet: true },
                       { ...t, isDebet: false }
                     ]).map((t, i) => (

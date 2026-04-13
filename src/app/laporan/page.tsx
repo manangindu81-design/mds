@@ -55,7 +55,7 @@ const formatRupiah = (value: number) => {
 export default function LaporanPage() {
   const [activeReport, setActiveReport] = useState("neraca");
   const [periode, setPeriode] = useState("2024");
-  const { anggota, simpanan, pinjaman, transaksi } = useData();
+  const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
   
   const totalSimpanan = simpanan.reduce((acc, s) => acc + s.jumlah, 0);
   const totalPinjaman = pinjaman.reduce((acc, p) => acc + p.jumlah, 0);
