@@ -90,6 +90,7 @@ export default function AnggotaPage() {
     besarPenghasilan: "",
     statusPekerjaan: "",
     lamaBekerja: "",
+    alamatTempatKerja: "",
     alamat: "",
     rt: "",
     rw: "",
@@ -153,7 +154,7 @@ export default function AnggotaPage() {
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", statusPekerjaan: "", lamaBekerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
       }, 3000);
     }
   };
@@ -213,6 +214,14 @@ export default function AnggotaPage() {
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsStatusPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Lama Bekerja</label><select value={formData.lamaBekerja} onChange={e => setFormData({ ...formData, lamaBekerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsLamaBekerja.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Alamat Tempat Kerja</label><input type="text" value={formData.alamatTempatKerja || ""} onChange={e => setFormData({ ...formData, alamatTempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
+            </div>
+
+            <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Setoran Awal</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Pokok</label><input type="text" value="100.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Wajib</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
+              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Uang Buku</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
             </div>
 
             <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>📝 Daftar Anggota</button>
