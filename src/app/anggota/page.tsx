@@ -7,8 +7,14 @@ export default function AnggotaPage() {
   const { anggota, addAnggota } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data">("data");
   
-  const noNBA = `NBA-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}${String(new Date().getDate()).padStart(2, "0")}-${String(anggota.length + 1).padStart(3, "0")}`;
-  const tanggalMasuk = new Date().toISOString().split("T")[0];
+  const formatDate = (date: string) => {
+    if (!date) return "";
+    const d = new Date(date);
+    return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
+  };
+  
+  const noNBA = `NBA-${String(anggota.length + 1).padStart(3, "0")}`;
+  const tanggalMasuk = formatDate(new Date().toISOString().split("T")[0]);
   
   const [formData, setFormData] = useState({
     nik: "",
@@ -156,7 +162,7 @@ export default function AnggotaPage() {
                     <td style={{ fontFamily: "monospace", fontSize: 12 }}>{(a as any).nomorNBA || "-"}</td>
                     <td style={{ fontFamily: "monospace", fontSize: 12 }}>{a.nik}</td>
                     <td style={{ fontWeight: 500, fontSize: 13 }}>{a.nama}</td>
-                    <td style={{ fontSize: 12 }}>{a.tanggalJoin}</td>
+                    <td style={{ fontSize: 12 }}>{formatDate(a.tanggalJoin)}</td>
                     <td style={{ textAlign: "center" }}><span style={{ padding: "4px 12px", borderRadius: 12, fontSize: 11, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
                   </tr>
                 ))}
