@@ -617,10 +617,31 @@ export default function AnggotaPage() {
               </tbody>
             </table>
           )}
+          
           {anggota.length > 0 && (
-            <div style={{ marginTop: 24, padding: 16, background: "#f9fafb", borderRadius: 8 }}>
-              <div style={{ fontSize: 12, color: "#6b7280" }}>Total Anggota</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#1B4D3E" }}>{anggota.length} Orang</div>
+            <div style={{ marginTop: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+                <div style={{ padding: 16, background: "#d4edda", borderRadius: 10, textAlign: "center" }}>
+                  <div style={{ fontSize: 12, color: "#155724", marginBottom: 4 }}>Total Anggota</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#155724" }}>{anggota.length} Orang</div>
+                </div>
+                <div style={{ padding: 16, background: "#cce5ff", borderRadius: 10, textAlign: "center" }}>
+                  <div style={{ fontSize: 12, color: "#004085", marginBottom: 4 }}>Simpanan Pokok</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#004085" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 100000)}</div>
+                </div>
+                <div style={{ padding: 16, background: "#fff3cd", borderRadius: 10, textAlign: "center" }}>
+                  <div style={{ fontSize: 12, color: "#856404", marginBottom: 4 }}>Simpanan Wajib</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#856404" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 25000)}</div>
+                </div>
+                <div style={{ padding: 16, background: "#f8d7da", borderRadius: 10, textAlign: "center" }}>
+                  <div style={{ fontSize: 12, color: "#721c24", marginBottom: 4 }}>Uang Buku</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#721c24" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 25000)}</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 16, padding: 16, background: "#1B4D3E", borderRadius: 10, textAlign: "center" }}>
+                <div style={{ fontSize: 14, color: "white", marginBottom: 4 }}>Total Pendapatan Awal</div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "#D4AF37" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 150000)}</div>
+              </div>
             </div>
           )}
         </div>
