@@ -1,17 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-  if (typeof window === "undefined") return defaultValue;
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : defaultValue;
-};
-
-const saveToStorage = <T,>(key: string, value: T) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(value));
-};
-
 export interface Anggota {
   id: number;
   nomorNBA: string;
@@ -122,48 +111,54 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+const getLocalStorage = (key: string): any[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalStorage = (key: string, value: any) => {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error("Save error:", e);
+  }
+};
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [anggota, setAnggota] = useState<Anggota[]>([]);
-  const [simpanan, setSimpanan] = useState<Simpanan[]>([]);
-  const [pinjaman, setPinjaman] = useState<Pinjaman[]>([]);
-  const [angsuran, setAngsuran] = useState<Angsuran[]>([]);
-  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [anggota, setAnggota] = useState<Anggota[]>(() => getLocalStorage("ksp_anggota"));
+  const [simpanan, setSimpanan] = useState<Simpanan[]>(() => getLocalStorage("ksp_simpanan"));
+  const [pinjaman, setPinjaman] = useState<Pinjaman[]>(() => getLocalStorage("ksp_pinjaman"));
+  const [angsuran, setAngsuran] = useState<Angsuran[]>(() => getLocalStorage("ksp_angsuran"));
+  const [transaksi, setTransaksi] = useState<Transaksi[]>(() => getLocalStorage("ksp_transaksi"));
 
   useEffect(() => {
-    setAnggota(loadFromStorage("ksp_anggota", []));
-    setSimpanan(loadFromStorage("ksp_simpanan", []));
-    setPinjaman(loadFromStorage("ksp_pinjaman", []));
-    setAngsuran(loadFromStorage("ksp_angsuran", []));
-    setTransaksi(loadFromStorage("ksp_transaksi", []));
-    setIsLoaded(true);
-  }, []);
+    saveLocalStorage("ksp_anggota", anggota);
+  }, [anggota]);
 
   useEffect(() => {
-    if (isLoaded) saveToStorage("ksp_anggota", anggota);
-  }, [anggota, isLoaded]);
+    saveLocalStorage("ksp_simpanan", simpanan);
+  }, [simpanan]);
 
   useEffect(() => {
-    if (isLoaded) saveToStorage("ksp_simpanan", simpanan);
-  }, [simpanan, isLoaded]);
+    saveLocalStorage("ksp_pinjaman", pinjaman);
+  }, [pinjaman]);
 
   useEffect(() => {
-    if (isLoaded) saveToStorage("ksp_pinjaman", pinjaman);
-  }, [pinjaman, isLoaded]);
+    saveLocalStorage("ksp_angsuran", angsuran);
+  }, [angsuran]);
 
   useEffect(() => {
-    if (isLoaded) saveToStorage("ksp_angsuran", angsuran);
-  }, [angsuran, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) saveToStorage("ksp_transaksi", transaksi);
-  }, [transaksi, isLoaded]);
+    saveLocalStorage("ksp_transaksi", transaksi);
+  }, [transaksi]);
 
   const addAnggota = (data: Anggota) => {
-    setAnggota(prev => {
-      const newData = [...prev, { ...data, id: prev.length + 1 }];
-      return newData;
-    });
+    setAnggota(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
 
   const addSimpanan = (data: Simpanan) => {
