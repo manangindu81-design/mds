@@ -657,13 +657,20 @@ export default function AnggotaPage() {
                     <td style={{ padding: 10 }}>{a.telepon}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan}</td>
 <td style={{ padding: 10, textAlign: "center" }}>
-                      <button 
-                        onClick={() => {
-                          if (editingId === a.id) {
+                      {editingId === a.id ? (
+                        <button 
+                          onClick={() => {
                             updateAnggota(a.id, editForm);
                             setEditingId(null);
                             setEditForm({});
-                          } else {
+                          }}
+                          style={{ padding: "6px 12px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                        >
+                          💾
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
                             setEditingId(a.id);
                             setEditForm({
                               nama: a.nama,
@@ -684,19 +691,19 @@ export default function AnggotaPage() {
                               tempatKerja: a.tempatKerja,
                               pendapatan: a.pendapatan,
                             });
-                          }
-                        }}
-                        style={{ padding: "6px 12px", background: editingId === a.id ? "#22c55e" : "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginRight: 4 }}
-                      >
-                        {editingId === a.id ? "💾" : "✏️"}
-                      </button>
+                          }}
+                          style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                        >
+                          ✏️
+                        </button>
+                      )}
                       {editingId === a.id && (
                         <button 
                           onClick={() => {
                             setEditingId(null);
                             setEditForm({});
                           }}
-                          style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                          style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
                         >
                           ✕
                         </button>
