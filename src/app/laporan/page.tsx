@@ -75,6 +75,12 @@ export default function LaporanPage() {
   const kasMasuk = transaksi.filter(t => t.kategori === "Setoran Anggota" || t.kategori === "Pembayaran Pinjaman").reduce((acc, t) => acc + (t.debet || 0), 0);
   const kasKeluar = transaksi.filter(t => t.kategori === "Pencairan Pinjaman" || t.kategori === "Penarikan").reduce((acc, t) => acc + (t.kredit || 0), 0);
   const saldoKas = kasMasuk - kasKeluar;
+  
+  // Kas dan Bank berdasarkan akun transaksi
+  const kasTunai = transaksi.filter(t => t.akun === "Kas" && t.kategori === "Setoran Anggota").reduce((acc, t) => acc + (t.debet || 0), 0);
+  const bankBRITigabinanga = transaksi.filter(t => t.akun === "Bank BRI Cab. Tigabinanga").reduce((acc, t) => acc + (t.debet || 0), 0);
+  const bankBRIBerastagi = transaksi.filter(t => t.akun === "Bank BRI Cab. Berastagi").reduce((acc, t) => acc + (t.debet || 0), 0);
+  const bankBPRLogoAsri = transaksi.filter(t => t.akun === "Bank BPR Logo Asri").reduce((acc, t) => acc + (t.debet || 0), 0);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
@@ -453,11 +459,11 @@ export default function LaporanPage() {
               <div style={{ marginBottom: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>3. KAS DAN SETARA KAS</h3>
                 <table style={{ width: "100%", marginLeft: 16 }}>
-                  <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BPR Logo Asri</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>{formatRupiah(kasTunai)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRITigabinanga)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRIBerastagi)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Bank BPR Logo Asri</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBPRLogoAsri)}</td></tr>
+                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>{formatRupiah(kasTunai + bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri)}</td></tr>
                 </table>
               </div>
 
