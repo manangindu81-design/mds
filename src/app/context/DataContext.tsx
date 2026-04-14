@@ -1,5 +1,16 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+
+const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
+  if (typeof window === "undefined") return defaultValue;
+  const stored = localStorage.getItem(key);
+  return stored ? JSON.parse(stored) : defaultValue;
+};
+
+const saveToStorage = <T,>(key: string, value: T) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(key, JSON.stringify(value));
+};
 
 export interface Anggota {
   id: number;
@@ -117,9 +128,42 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [pinjaman, setPinjaman] = useState<Pinjaman[]>([]);
   const [angsuran, setAngsuran] = useState<Angsuran[]>([]);
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setAnggota(loadFromStorage("ksp_anggota", []));
+    setSimpanan(loadFromStorage("ksp_simpanan", []));
+    setPinjaman(loadFromStorage("ksp_pinjaman", []));
+    setAngsuran(loadFromStorage("ksp_angsuran", []));
+    setTransaksi(loadFromStorage("ksp_transaksi", []));
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) saveToStorage("ksp_anggota", anggota);
+  }, [anggota, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) saveToStorage("ksp_simpanan", simpanan);
+  }, [simpanan, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) saveToStorage("ksp_pinjaman", pinjaman);
+  }, [pinjaman, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) saveToStorage("ksp_angsuran", angsuran);
+  }, [angsuran, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) saveToStorage("ksp_transaksi", transaksi);
+  }, [transaksi, isLoaded]);
 
   const addAnggota = (data: Anggota) => {
-    setAnggota(prev => [...prev, { ...data, id: prev.length + 1 }]);
+    setAnggota(prev => {
+      const newData = [...prev, { ...data, id: prev.length + 1 }];
+      return newData;
+    });
   };
 
   const addSimpanan = (data: Simpanan) => {
