@@ -440,8 +440,8 @@ export default function LaporanPage() {
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>3. KAS DAN SETARA KAS</h3>
                 <table style={{ width: "100%", marginLeft: 16 }}>
                   <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BCA</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BRI</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>BRI Cab. Berastagi Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
                 </table>
               </div>
