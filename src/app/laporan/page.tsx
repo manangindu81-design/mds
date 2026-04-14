@@ -455,7 +455,8 @@ export default function LaporanPage() {
                 <table style={{ width: "100%", marginLeft: 16 }}>
                   <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Bank BPR Logo Asri</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
                 </table>
               </div>

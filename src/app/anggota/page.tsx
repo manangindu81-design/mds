@@ -247,6 +247,15 @@ export default function AnggotaPage() {
       const noanggota = noNBA;
       const tglMasuk = tanggalMasuk;
       
+      const getAkun = (metode: string) => {
+        if (metode === "tunai") return "Kas";
+        if (metode === "bri-tigabinanga") return "Bank BRI Cab. Tigabinanga";
+        if (metode === "bri-berastagi") return "Bank BRI Cab. Berastagi";
+        if (metode === "bpr-logo-asri") return "Bank BPR Logo Asri";
+        return "Kas";
+      };
+      const akun = getAkun(formData.jenisTransaksi);
+      
       addSimpanan({
         id: 0,
         idAnggota,
@@ -288,7 +297,7 @@ export default function AnggotaPage() {
         noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
         tanggal: tglMasuk,
         jam: "09:00",
-        akun: "Kas",
+        akun: akun,
         kategori: "Setoran Anggota",
         uraian: `Simpanan Pokok ${formData.nama}`,
         debet: 100000,
@@ -302,7 +311,7 @@ export default function AnggotaPage() {
         noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
         tanggal: tglMasuk,
         jam: "09:01",
-        akun: "Kas",
+        akun: akun,
         kategori: "Setoran Anggota",
         uraian: `Simpanan Wajib ${formData.nama}`,
         debet: 25000,
@@ -316,7 +325,7 @@ export default function AnggotaPage() {
         noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
         tanggal: tglMasuk,
         jam: "09:02",
-        akun: "Kas",
+        akun: akun,
         kategori: "Setoran Anggota",
         uraian: `Uang Buku ${formData.nama}`,
         debet: 25000,
@@ -402,8 +411,16 @@ export default function AnggotaPage() {
           };
           addAnggota(newAnggota);
           
-          const metode = row["Metode Pembayaran"] === "Tunai" ? "tunai" : row["Metode Pembayaran"]?.includes("BRI") ? "transfer" : "tunai";
+          const metode = row["Metode Pembayaran"] === "Tunai" ? "tunai" : row["Metode Pembayaran"]?.includes("BRI") ? "bri" : row["Metode Pembayaran"]?.includes("BPR") ? "bpr" : "tunai";
           const tglMasuk = parseExcelDate(row["Tanggal Masuk"]) || today;
+          
+          const getAkun = () => {
+            if (metode === "tunai") return "Kas";
+            if (metode === "bri") return "Bank BRI Cab. Tigabinanga";
+            if (metode === "bpr") return "Bank BPR Logo Asri";
+            return "Kas";
+          };
+          const akun = getAkun();
           
           if (row["Simpanan Pokok"]) {
             addSimpanan({
@@ -451,7 +468,7 @@ export default function AnggotaPage() {
               noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
               tanggal: tglMasuk,
               jam: "09:02",
-              akun: "Kas",
+              akun: akun,
               kategori: "Setoran Anggota",
               uraian: `Uang Buku ${newAnggota.nama}`,
               debet: parseInt(String(row["Uang Buku"]).replace(/\.0$/, "")) || 25000,
@@ -468,7 +485,7 @@ export default function AnggotaPage() {
               noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
               tanggal: tglMasuk,
               jam: "09:00",
-              akun: metode === "tunai" ? "Kas" : "Bank BRI",
+              akun: akun,
               kategori: "Setoran Anggota",
               uraian: `Simpanan Pokok ${newAnggota.nama}`,
               debet: parseInt(String(row["Simpanan Pokok"]).replace(/\.0$/, "")) || 100000,
@@ -485,7 +502,7 @@ export default function AnggotaPage() {
               noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
               tanggal: tglMasuk,
               jam: "09:01",
-              akun: metode === "tunai" ? "Kas" : "Bank BRI",
+              akun: akun,
               kategori: "Setoran Anggota",
               uraian: `Simpanan Wajib ${newAnggota.nama}`,
               debet: parseInt(String(row["Simpanan Wajib"]).replace(/\.0$/, "")) || 25000,
@@ -660,8 +677,9 @@ export default function AnggotaPage() {
               <select value={formData.jenisTransaksi} onChange={e => setFormData({ ...formData, jenisTransaksi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.jenisTransaksi ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
                 <option value="">Pilih</option>
                 <option value="tunai">Tunai</option>
-                <option value="bri-tigabinanga">BRI Cab. Tigabinanga</option>
-                <option value="bri-berastagi">BRI Cab. Berastagi</option>
+                <option value="bri-tigabinanga">Bank BRI Cab. Tigabinanga</option>
+                <option value="bri-berastagi">Bank BRI Cab. Berastagi</option>
+                <option value="bpr-logo-asri">Bank BPR Logo Asri</option>
               </select>
               {formErrors.jenisTransaksi && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jenisTransaksi}</div>}
             </div>
