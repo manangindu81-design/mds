@@ -73,7 +73,19 @@ export default function AnggotaPage() {
     { value: ">5thn", label: "Lebih dari 5 Tahun" },
   ];
   
-  const optionsPosisi = [
+  const optionsPosisiPNS = [
+    { value: "", label: "Pilih" },
+    { value: "eselon-i", label: "Eselon I (Dirjen/Sekjen)" },
+    { value: "eselon-ii", label: "Eselon II (Kabiro/Kabag)" },
+    { value: "eselon-iii", label: "Eselon III (Kasubag)" },
+    { value: "eselon-iv", label: "Eselon IV (Staf)" },
+    { value: "pejabat", label: "Pejabat Negara" },
+    { value: "pns", label: "PNS" },
+    { value: "honorer", label: "Honorer" },
+    { value: "lain", label: "Lainnya" },
+  ];
+  
+  const optionsPosisiSwasta = [
     { value: "", label: "Pilih" },
     { value: "direktur", label: "Direktur" },
     { value: "manager", label: "Manager" },
@@ -86,6 +98,12 @@ export default function AnggotaPage() {
     { value: "driver", label: "Driver" },
     { value: "lain", label: "Lainnya" },
   ];
+  
+  const getPosisiOptions = () => {
+    if (formData.pekerjaan === "pegawai-negeri") return optionsPosisiPNS;
+    if (formData.pekerjaan === "pegawai-swasta") return optionsPosisiSwasta;
+    return [];
+  };
   
   const [formData, setFormData] = useState({
     nik: "",
@@ -313,7 +331,7 @@ export default function AnggotaPage() {
               <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Pendapatan Perbulan</label><select value={formData.besarPenghasilan} onChange={e => setFormData({ ...formData, besarPenghasilan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsPenghasilan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
               {(formData.pekerjaan === "pegawai-negeri" || formData.pekerjaan === "pegawai-swasta") && (
                 <>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Posisi/Jabatan</label><select value={formData.posisi} onChange={e => setFormData({ ...formData, posisi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsPosisi.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Posisi/Jabatan</label><select value={formData.posisi} onChange={e => setFormData({ ...formData, posisi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{getPosisiOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsStatusPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Lama Bekerja</label><select value={formData.lamaBekerja} onChange={e => setFormData({ ...formData, lamaBekerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsLamaBekerja.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
