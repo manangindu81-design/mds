@@ -5,9 +5,11 @@ import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
 
 export default function AnggotaPage() {
-  const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData } = useData();
+  const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("data");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<Partial<AnggotaType>>({});
   
   const formatDate = (date: string) => {
     if (!date) return "";
@@ -626,7 +628,8 @@ export default function AnggotaPage() {
           {anggota.length === 0 ? (
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada anggota. Silakan tambah anggota baru.</div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>
                 <tr style={{ background: "#f9fafb" }}>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
@@ -635,36 +638,87 @@ export default function AnggotaPage() {
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>JK</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tempat Lahir</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. HP</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
-                  <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th>
+                  <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {anggota.map((a, i) => (
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 10 }}>{i + 1}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{formatDate(a.tanggalJoin)}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
                     <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
                     <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "L" : "P"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.tempatLahir}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalLahir}</td>
                     <td style={{ padding: 10 }}>{a.telepon}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.alamat}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan}</td>
-                    <td style={{ padding: 10, textAlign: "center" }}><span style={{ padding: "4px 8px", borderRadius: 8, fontSize: 10, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
+<td style={{ padding: 10, textAlign: "center" }}>
+                      <button 
+                        onClick={() => {
+                          if (editingId === a.id) {
+                            updateAnggota(a.id, editForm);
+                            setEditingId(null);
+                            setEditForm({});
+                          } else {
+                            setEditingId(a.id);
+                            setEditForm({
+                              nama: a.nama,
+                              nik: a.nik,
+                              tempatLahir: a.tempatLahir,
+                              tanggalLahir: a.tanggalLahir,
+                              jkelamin: a.jkelamin,
+                              status: a.status,
+                              alamat: a.alamat,
+                              telepon: a.telepon,
+                              pekerjaan: a.pekerjaan,
+                              tempatKerja: a.tempatKerja,
+                              pendapatan: a.pendapatan,
+                            });
+                          }
+                        }}
+                        style={{ padding: "6px 12px", background: editingId === a.id ? "#22c55e" : "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginRight: 4 }}
+                      >
+                        {editingId === a.id ? "💾" : "✏️"}
+                      </button>
+                      {editingId === a.id && (
+                        <button 
+                          onClick={() => {
+                            setEditingId(null);
+                            setEditForm({});
+                          }}
+                          style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          )}
-          
-          {anggota.length > 0 && (
+
+            {editingId && (
+              <div style={{ marginTop: 16, padding: 16, background: "#fef3c7", borderRadius: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 12 }}>✏️ Edit Data Anggota</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                  <input placeholder="Nama" value={editForm.nama || ""} onChange={e => setEditForm({...editForm, nama: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <input placeholder="NIK" value={editForm.nik || ""} onChange={e => setEditForm({...editForm, nik: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <input placeholder="Tempat Lahir" value={editForm.tempatLahir || ""} onChange={e => setEditForm({...editForm, tempatLahir: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <input placeholder="Tanggal Lahir" value={editForm.tanggalLahir || ""} onChange={e => setEditForm({...editForm, tanggalLahir: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <select value={editForm.jkelamin || ""} onChange={e => setEditForm({...editForm, jkelamin: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }}><option value="">JK</option><option value="laki">Laki</option><option value="perempuan">Perempuan</option></select>
+                  <select value={editForm.status || ""} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }}><option value="">Status</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select>
+                  <input placeholder="No. HP" value={editForm.telepon || ""} onChange={e => setEditForm({...editForm, telepon: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <input placeholder="Pekerjaan" value={editForm.pekerjaan || ""} onChange={e => setEditForm({...editForm, pekerjaan: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
+                  <input placeholder="Alamat" value={editForm.alamat || ""} onChange={e => setEditForm({...editForm, alamat: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11, gridColumn: "span 2" }} />
+                </div>
+              </div>
+            )}
+
+            {anggota.length > 0 && (
             <div style={{ marginTop: 24 }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
                 <div style={{ padding: 16, background: "#d4edda", borderRadius: 10, textAlign: "center" }}>
@@ -689,6 +743,8 @@ export default function AnggotaPage() {
                 <div style={{ fontSize: 28, fontWeight: 700, color: "#D4AF37" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 150000)}</div>
               </div>
             </div>
+            )}
+            </>
           )}
         </div>
       )}

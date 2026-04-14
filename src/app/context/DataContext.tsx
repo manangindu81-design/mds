@@ -107,6 +107,8 @@ interface DataContextType {
   addAngsuran: (data: Angsuran) => void;
   updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
+  updateAnggota: (id: number, data: Partial<Anggota>) => void;
+  deleteAnggota: (id: number) => void;
   clearAllData: () => void;
 }
 
@@ -184,6 +186,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setTransaksi(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
 
+  const updateAnggota = (id: number, data: Partial<Anggota>) => {
+    setAnggota(prev => prev.map(a => a.id === id ? { ...a, ...data } : a));
+  };
+
+  const deleteAnggota = (id: number) => {
+    setAnggota(prev => prev.filter(a => a.id !== id));
+  };
+
   const clearAllData = () => {
     setAnggota([]);
     setSimpanan([]);
@@ -212,6 +222,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addAngsuran,
       updatePinjaman,
       addTransaksi,
+      updateAnggota,
+      deleteAnggota,
       clearAllData,
     }}>
       {children}

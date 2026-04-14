@@ -6,7 +6,7 @@
 
 Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, simpanan, pinjaman, dan transaksi harian.
 
-##Recently Completed
+## Recently Completed
 
 - [x] Landing page KSP Mulia Dana Sejahtera
 - [x] Halaman input simpanan (/simpanan)
@@ -20,6 +20,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - [x] Add daftar anggota peminjam list di halaman pinjaman
 - [x] Complete loan management: Pencairan, Daftar Peminjam (Plafon/Sudah Dibayar/Outstanding), Angsuran
 - [x] Auto jurnal: Piutang, Kas, Pendapatan(Bunga, Admin, Denda)
+- [x] Fix JSX syntax error di anggota/page.tsx - edit functionality works now
 
 ## Struktur Aplikasi
 
