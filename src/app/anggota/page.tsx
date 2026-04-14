@@ -340,20 +340,19 @@ export default function AnggotaPage() {
       if (typeof value === "number") {
         const excelEpoch = new Date(1899, 11, 30);
         const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
-        return date.toISOString().split("T")[0];
+        return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
       }
       
       if (typeof value === "string") {
         const str = value.trim();
         const parts = str.split(/[-/]/);
         if (parts.length === 3) {
-          if (str.includes("-")) {
-            const [d, m, y] = parts;
-            if (y.length === 4) return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          const [p1, p2, p3] = parts;
+          if (str.includes("-") && p3.length === 4) {
+            return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
           }
-          if (str.includes("/")) {
-            const [d, m, y] = parts;
-            if (y.length === 4) return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          if (str.includes("/") && p3.length === 4) {
+            return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
           }
         }
         return str;
