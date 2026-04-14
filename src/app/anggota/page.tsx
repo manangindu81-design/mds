@@ -334,6 +334,34 @@ export default function AnggotaPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    const parseExcelDate = (value: any): string => {
+      if (!value) return "";
+      
+      if (typeof value === "number") {
+        const excelEpoch = new Date(1899, 11, 30);
+        const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+        return date.toISOString().split("T")[0];
+      }
+      
+      if (typeof value === "string") {
+        const str = value.trim();
+        const parts = str.split(/[-/]/);
+        if (parts.length === 3) {
+          if (str.includes("-")) {
+            const [d, m, y] = parts;
+            if (y.length === 4) return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          }
+          if (str.includes("/")) {
+            const [d, m, y] = parts;
+            if (y.length === 4) return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+          }
+        }
+        return str;
+      }
+      
+      return "";
+    };
+    
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -350,10 +378,10 @@ export default function AnggotaPage() {
           const newAnggota: AnggotaType = {
             id: anggota.length + index + 1,
             nomorNBA: row["No. NBA"] || noNBA,
-            nik: row["Nomor Identitas (KTP)"] || "",
+            nik: String(row["Nomor Identitas (KTP)"] || "").replace(/\.0$/, ""),
             nama: row["Nama Anggota"] || "",
             tempatLahir: row["Tempat Lahir"] || "",
-            tanggalLahir: row["Tanggal Lahir"] || "",
+            tanggalLahir: parseExcelDate(row["Tanggal Lahir"]),
             jkelamin: row["Jenis Kelamin"] === "Laki-laki" ? "laki" : "perempuan",
             status: row["Status Perkawinan"] === "Kawin" ? "kawin" : row["Status Perkawinan"] === "Belum Kawin" ? "belum" : "cerai",
             alamat: row["Alamat KTP"] || "",
@@ -362,17 +390,18 @@ export default function AnggotaPage() {
             kel: "",
             kec: "",
             kota: "",
-            telepon: row["No HP"] || "",
+            telepon: String(row["No HP"] || "").replace(/\.0$/, ""),
             email: "",
             pekerjaan: row["Pekerjaan"] || "",
             tempatKerja: "",
             pendapatan: row["Pendapatan Perbulan"] || "",
-            tanggalJoin: row["Tanggal Masuk"] || today,
+            tanggalJoin: parseExcelDate(row["Tanggal Masuk"]) || today,
             statusKeanggotaan: "Aktif",
           };
           addAnggota(newAnggota);
           
           const metode = row["Metode Pembayaran"] === "Tunai" ? "tunai" : row["Metode Pembayaran"]?.includes("BRI") ? "transfer" : "tunai";
+          const tglMasuk = parseExcelDate(row["Tanggal Masuk"]) || today;
           
           if (row["Simpanan Pokok"]) {
             addSimpanan({
@@ -380,9 +409,9 @@ export default function AnggotaPage() {
               idAnggota: newAnggota.id,
               nama: newAnggota.nama,
               nomorAnggota: newAnggota.nomorNBA,
-              tanggal: row["Tanggal Masuk"] || today,
+              tanggal: tglMasuk,
               jenisSimpanan: "pokok",
-              jumlah: parseInt(row["Simpanan Pokok"]) || 100000,
+              jumlah: parseInt(String(row["Simpanan Pokok"]).replace(/\.0$/, "")) || 100000,
               metode,
               bunga: 0,
             });
@@ -394,9 +423,9 @@ export default function AnggotaPage() {
               idAnggota: newAnggota.id,
               nama: newAnggota.nama,
               nomorAnggota: newAnggota.nomorNBA,
-              tanggal: row["Tanggal Masuk"] || today,
+              tanggal: tglMasuk,
               jenisSimpanan: "wajib",
-              jumlah: parseInt(row["Simpanan Wajib"]) || 25000,
+              jumlah: parseInt(String(row["Simpanan Wajib"]).replace(/\.0$/, "")) || 25000,
               metode,
               bunga: 0,
             });
@@ -408,9 +437,9 @@ export default function AnggotaPage() {
               idAnggota: newAnggota.id,
               nama: newAnggota.nama,
               nomorAnggota: newAnggota.nomorNBA,
-              tanggal: row["Tanggal Masuk"] || today,
+              tanggal: tglMasuk,
               jenisSimpanan: "buku",
-              jumlah: parseInt(row["Uang Buku"]) || 25000,
+              jumlah: parseInt(String(row["Uang Buku"]).replace(/\.0$/, "")) || 25000,
               metode,
               bunga: 0,
             });
