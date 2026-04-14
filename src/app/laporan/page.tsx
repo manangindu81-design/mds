@@ -83,9 +83,9 @@ export default function LaporanPage() {
   const bankBPRLogoAsri = transaksi.filter(t => t.akun === "Bank BPR Logo Asri").reduce((acc, t) => acc + (t.debet || 0), 0);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }} className="no-print">
       {/* Sidebar */}
-      <aside style={{ width: 260, background: "#1B4D3E", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }}>
+      <aside style={{ width: 260, background: "#1B4D3E", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }} className="no-print">
         <div style={{ padding: "0 24px", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "white" }}>
             <span style={{ fontSize: 28 }}>🏛️</span>
@@ -134,7 +134,7 @@ export default function LaporanPage() {
       {/* Main Content */}
       <main style={{ flex: 1, marginLeft: 260, padding: 24 }}>
         {/* Header */}
-        <div style={{ background: "white", borderRadius: 12, padding: "20px 24px", marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ background: "white", borderRadius: 12, padding: "20px 24px", marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center" }} className="no-print">
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 600, color: "#1a1a1a" }}>
               {laporanTypes.find(l => l.id === activeReport)?.title}

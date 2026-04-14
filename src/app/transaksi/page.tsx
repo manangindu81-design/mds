@@ -67,7 +67,7 @@ export default function TransaksiPage() {
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
       {/* Sidebar */}
-      <aside style={{ width: 260, background: "var(--color-primary)", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }}>
+      <aside style={{ width: 260, background: "var(--color-primary)", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }} className="no-print">
         <div style={{ padding: "0 24px", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "white" }}>
             <span style={{ fontSize: 28 }}>🏛️</span>
@@ -120,7 +120,7 @@ export default function TransaksiPage() {
       {/* Main Content */}
       <main style={{ flex: 1, marginLeft: 260, padding: 24 }}>
         {/* Header */}
-        <div style={{ background: "white", borderRadius: 12, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+        <div style={{ background: "white", borderRadius: 12, padding: "20px 24px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }} className="no-print">
           <div>
             <h1 style={{ fontSize: 24, fontFamily: "var(--font-heading)", color: "#1a1a1a" }}>
               {activeTab === "kas-masuk" && "Kas Masuk (Penerimaan)"}

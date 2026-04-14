@@ -119,6 +119,65 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   .section-title {
+    fontSize: 32px;
+    line-height: 40px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  /* Hide sidebar, header, and navigation */
+  aside, 
+  nav, 
+  .no-print,
+  button,
+  select,
+  input[type="search"] {
+    display: none !important;
+  }
+  
+  /* Reset layout for print */
+  body {
+    background: white !important;
+    font-size: 12px;
+  }
+  
+  /* Main content takes full width */
+  div[style*="display: flex"] > div:last-child {
+    margin: 0 !important;
+    padding: 20px !important;
+    width: 100% !important;
+    box-shadow: none !important;
+  }
+  
+  /* Remove background colors for print */
+  div[style*="background:"] {
+    background: white !important;
+  }
+  
+  /* Show only the active report content */
+  .report-content {
+    display: block !important;
+  }
+  
+  /* Table styles for print */
+  table {
+    font-size: 10px;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 4px !important;
+  }
+  
+  /* Hide elements with hide-on-print class */
+  .hide-on-print {
+    display: none !important;
+  }
+}
+  
+  .section-title {
     font-size: 32px;
     line-height: 40px;
   }
