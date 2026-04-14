@@ -54,7 +54,9 @@ const formatRupiah = (value: number) => {
 
 export default function LaporanPage() {
   const [activeReport, setActiveReport] = useState("neraca");
-  const [periode, setPeriode] = useState("2024");
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: currentYear - 2023 + 1 }, (_, i) => 2023 + i);
+  const [periode, setPeriode] = useState(String(currentYear));
   const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
   
   // Calculations
@@ -141,9 +143,9 @@ export default function LaporanPage() {
               onChange={(e) => setPeriode(e.target.value)}
               style={{ padding: "10px 16px", borderRadius: 8, border: "2px solid #e5e7eb", fontSize: 14, background: "white" }}
             >
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
+              {yearOptions.map(year => (
+                <option key={year} value={String(year)}>{year}</option>
+              ))}
             </select>
             <button style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
               Cetak
