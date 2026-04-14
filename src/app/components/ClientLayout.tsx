@@ -51,7 +51,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           
           <nav style={{ display: "flex", gap: 4 }}>
             {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+              const isActive = pathname === item.href || (item.href !== "/" && (pathname || "").startsWith(item.href));
               return (
                 <Link
                   key={item.href}
@@ -87,7 +87,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <h1 style={{ fontSize: 28, fontWeight: 700, color: "white", marginBottom: 4 }}>
-                {navItems.find(n => n.href === pathname)?.label || "Dashboard"}
+                {navItems.find(n => n.href === (pathname || "/"))?.label || "Dashboard"}
               </h1>
               <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>KSP Mulia Dana Sejahtera</p>
             </div>
