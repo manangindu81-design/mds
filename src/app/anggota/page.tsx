@@ -5,7 +5,7 @@ import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
 
 export default function AnggotaPage() {
-  const { anggota, addAnggota, addSimpanan, addTransaksi } = useData();
+  const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("data");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -520,6 +520,24 @@ export default function AnggotaPage() {
                 </tr>
               </tbody>
             </table>
+          </div>
+          
+          <div style={{ marginTop: 24, padding: 16, background: "#fff3cd", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#856404" }}>⚠️ Hapus Semua Data</div>
+              <div style={{ fontSize: 12, color: "#856404" }}>Jika Anda ingin import ulang, hapus dulu data lama</div>
+            </div>
+            <button 
+              onClick={() => {
+                if (confirm("Apakah Anda yakin ingin menghapus semua data? Data tidak bisa dikembalikan.")) {
+                  clearAllData();
+                  alert("Semua data berhasil dihapus!");
+                }
+              }}
+              style={{ padding: "10px 20px", background: "#dc3545", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+            >
+              🗑️ Hapus Semua
+            </button>
           </div>
         </div>
       )}

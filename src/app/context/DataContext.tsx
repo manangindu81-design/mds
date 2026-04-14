@@ -107,6 +107,7 @@ interface DataContextType {
   addAngsuran: (data: Angsuran) => void;
   updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
+  clearAllData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -183,6 +184,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setTransaksi(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
 
+  const clearAllData = () => {
+    setAnggota([]);
+    setSimpanan([]);
+    setPinjaman([]);
+    setAngsuran([]);
+    setTransaksi([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("ksp_anggota");
+      localStorage.removeItem("ksp_simpanan");
+      localStorage.removeItem("ksp_pinjaman");
+      localStorage.removeItem("ksp_angsuran");
+      localStorage.removeItem("ksp_transaksi");
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       anggota,
@@ -196,6 +212,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addAngsuran,
       updatePinjaman,
       addTransaksi,
+      clearAllData,
     }}>
       {children}
     </DataContext.Provider>
