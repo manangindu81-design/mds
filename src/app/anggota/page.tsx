@@ -85,6 +85,42 @@ export default function AnggotaPage() {
     { value: "lain", label: "Lainnya" },
   ];
   
+  const optionsPangkat = [
+    { value: "", label: "Pilih" },
+    { value: "Ia", label: "Ia (Juru)" },
+    { value: "Ib", label: "Ib (Juru Tk. I)" },
+    { value: "IIa", label: "IIa (Pengatur)" },
+    { value: "IIb", label: "IIb (Pengatur Tk. I)" },
+    { value: "IIIa", label: "IIIa (Penata)" },
+    { value: "IIIb", label: "IIIb (Penata Tk. I)" },
+    { value: "IVa", label: "IVa (Pembina)" },
+    { value: "IVb", label: "IVb (Pembina Tk. I)" },
+    { value: "IVc", label: "IVc (Pembina Utama)" },
+    { value: "IVd", label: "IVd (Pembina Utama Madya)" },
+    { value: "IVe", label: "IVe (Pembina Utama)" },
+  ];
+  
+  const optionsGolongan = [
+    { value: "", label: "Pilih" },
+    { value: "1a", label: "Golongan 1a" },
+    { value: "1b", label: "Golongan 1b" },
+    { value: "1c", label: "Golongan 1c" },
+    { value: "1d", label: "Golongan 1d" },
+    { value: "2a", label: "Golongan 2a" },
+    { value: "2b", label: "Golongan 2b" },
+    { value: "2c", label: "Golongan 2c" },
+    { value: "2d", label: "Golongan 2d" },
+    { value: "3a", label: "Golongan 3a" },
+    { value: "3b", label: "Golongan 3b" },
+    { value: "3c", label: "Golongan 3c" },
+    { value: "3d", label: "Golongan 3d" },
+    { value: "4a", label: "Golongan 4a" },
+    { value: "4b", label: "Golongan 4b" },
+    { value: "4c", label: "Golongan 4c" },
+    { value: "4d", label: "Golongan 4d" },
+    { value: "4e", label: "Golongan 4e" },
+  ];
+  
   const optionsPosisiSwasta = [
     { value: "", label: "Pilih" },
     { value: "direktur", label: "Direktur" },
@@ -121,6 +157,8 @@ export default function AnggotaPage() {
     pekerjaan: "",
     besarPenghasilan: "",
     posisi: "",
+    pangkat: "",
+    Golongan: "",
     statusPekerjaan: "",
     lamaBekerja: "",
     alamatTempatKerja: "",
@@ -272,7 +310,7 @@ export default function AnggotaPage() {
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", posisi: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", jenisTransaksi: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", posisi: "", pangkat: "", Golongan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", jenisTransaksi: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
       }, 3000);
     }
   };
@@ -332,6 +370,12 @@ export default function AnggotaPage() {
               {(formData.pekerjaan === "pegawai-negeri" || formData.pekerjaan === "pegawai-swasta") && (
                 <>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Posisi/Jabatan</label><select value={formData.posisi} onChange={e => setFormData({ ...formData, posisi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{getPosisiOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                  {formData.pekerjaan === "pegawai-negeri" && (
+                    <>
+                      <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Pangkat</label><select value={formData.pangkat} onChange={e => setFormData({ ...formData, pangkat: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsPangkat.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                      <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Golongan</label><select value={formData.Golongan} onChange={e => setFormData({ ...formData, Golongan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsGolongan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                    </>
+                  )}
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsStatusPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Lama Bekerja</label><select value={formData.lamaBekerja} onChange={e => setFormData({ ...formData, lamaBekerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsLamaBekerja.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
