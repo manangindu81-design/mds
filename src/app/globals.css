@@ -166,12 +166,11 @@ h1, h2, h3, h4, h5, h6 {
     border-collapse: collapse;
   }
   
-  th, td {
+th, td {
     border: 1px solid #000 !important;
     padding: 4px !important;
   }
   
-  /* Hide elements with hide-on-print class */
   .hide-on-print {
     display: none !important;
   }
