@@ -153,7 +153,7 @@ export default function LaporanPage() {
                 <option key={year} value={String(year)}>{year}</option>
               ))}
             </select>
-            <button style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
+            <button onClick={() => window.print()} style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
               Cetak
             </button>
           </div>

@@ -5,7 +5,7 @@ import { useData, Simpanan as SimpananType } from "../context/DataContext";
 const formatRupiah = (value: string) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 export default function SimpananPage() {
-  const { simpanan, addSimpanan } = useData();
+  const { simpanan, addSimpanan, addTransaksi } = useData();
   const [formData, setFormData] = useState({
     nama: "",
     nomorAnggota: "",
@@ -46,6 +46,29 @@ export default function SimpananPage() {
         bunga: 0,
       };
       addSimpanan(newSimpanan);
+      
+      const getAkun = (metode: string) => {
+        if (metode === "tunai") return "Kas";
+        if (metode === "bri-tigabinanga") return "Bank BRI Cab. Tigabinanga";
+        if (metode === "bri-berastagi") return "Bank BRI Cab. Berastagi";
+        if (metode === "bpr-logo-asri") return "Bank BPR Logo Asri";
+        return "Kas";
+      };
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `SM-${formData.tanggal.replace(/-/g, "")}-${String(simpanan.length + 1).padStart(3, "0")}`,
+        tanggal: formData.tanggal,
+        jam: "10:00",
+        akun: getAkun(formData.metodePembayaran),
+        kategori: "Setoran Anggota",
+        uraian: `${formData.jenisSimpanan} - ${formData.nama}`,
+        debet: jumlahNum,
+        kredit: 0,
+        saldo: 0,
+        operator: "Admin",
+      });
+      
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
@@ -112,7 +135,9 @@ export default function SimpananPage() {
               <select value={formData.metodePembayaran} onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
                 <option value="">Pilih metode</option>
                 <option value="tunai">Tunai</option>
-                <option value="transfer">Transfer</option>
+                <option value="bri-tigabinanga">Bank BRI Cab. Tigabinanga</option>
+                <option value="bri-berastagi">Bank BRI Cab. Berastagi</option>
+                <option value="bpr-logo-asri">Bank BPR Logo Asri</option>
               </select>
               {formErrors.metodePembayaran && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.metodePembayaran}</div>}
             </div>

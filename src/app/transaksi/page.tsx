@@ -5,8 +5,9 @@ import { useData } from "../context/DataContext";
 
 const kategoriAkun = [
   { kode: "1101", nama: "Kas", jenis: "Aset" },
-  { kode: "1102", nama: "Bank BCA", jenis: "Aset" },
-  { kode: "1103", nama: "Bank BRI", jenis: "Aset" },
+  { kode: "1102", nama: "Bank BRI Cab. Tigabinanga", jenis: "Aset" },
+  { kode: "1103", nama: "Bank BRI Cab. Berastagi", jenis: "Aset" },
+  { kode: "1104", nama: "Bank BPR Logo Asri", jenis: "Aset" },
   { kode: "1201", nama: "Piutang Anggota", jenis: "Aset" },
   { kode: "1202", nama: "Piutang Bukan Anggota", jenis: "Aset" },
   { kode: "2101", nama: "Simpanan Pokok", jenis: "Kewajiban" },
@@ -168,8 +169,8 @@ export default function TransaksiPage() {
               <input type="text" placeholder="Cari..." style={{ padding: "8px 12px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, width: 200 }} />
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Export Excel</button>
-              <button style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Cetak</button>
+              <button onClick={() => alert("Export Excel: Mengunduh data transaksi...")} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Export Excel</button>
+              <button onClick={() => window.print()} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Cetak</button>
             </div>
           </div>
 
@@ -292,7 +293,26 @@ export default function TransaksiPage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <button onClick={() => setShowModal(false)} style={{ padding: "12px", background: "#f3f4f6", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 500, color: "#374151" }}>Batal</button>
-                  <button onClick={() => { alert("Transaksi berhasil disimpan!"); setShowModal(false); }} style={{ padding: "12px", background: "var(--color-primary)", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 500, color: "white" }}>Simpan Transaksi</button>
+                  <button onClick={() => {
+                    const jumlah = parseInt(formData.jumlah) || 0;
+                    const akun = formData.akunDebet || formData.akunKredit || "Kas";
+                    addTransaksi({
+                      id: 0,
+                      noBukti: formData.noBukti || `TRX-${Date.now()}`,
+                      tanggal: formData.tanggal,
+                      jam: formData.jam,
+                      akun: akun,
+                      kategori: formData.metode || "Lainnya",
+                      uraian: formData.uraian,
+                      debet: activeTab === "kas-masuk" ? jumlah : 0,
+                      kredit: activeTab === "kas-keluar" ? jumlah : 0,
+                      saldo: 0,
+                      operator: "Admin",
+                    });
+                    alert("Transaksi berhasil disimpan!");
+                    setShowModal(false);
+                    setFormData({ noBukti: "", tanggal: new Date().toISOString().split("T")[0], jam: new Date().toTimeString().slice(0, 5), akunDebet: "", akunKredit: "", uraian: "", jumlah: "", metode: "", referensi: "" });
+                  }} style={{ padding: "12px", background: "var(--color-primary)", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 500, color: "white" }}>Simpan Transaksi</button>
                 </div>
               </div>
             </div>
