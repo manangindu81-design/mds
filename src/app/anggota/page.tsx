@@ -1,11 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useData, Anggota as AnggotaType } from "../context/DataContext";
+import * as XLSX from "xlsx";
 
 export default function AnggotaPage() {
   const { anggota, addAnggota, addSimpanan, addTransaksi } = useData();
-  const [activeTab, setActiveTab] = useState<"daftar" | "data">("data");
+  const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("data");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const formatDate = (date: string) => {
     if (!date) return "";
@@ -327,6 +329,102 @@ export default function AnggotaPage() {
       }, 3000);
     }
   };
+  
+  const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = event.target?.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        
+        jsonData.forEach((row: any, index: number) => {
+          const noNBA = `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
+          const today = new Date().toISOString().split("T")[0];
+          
+          const newAnggota: AnggotaType = {
+            id: anggota.length + index + 1,
+            nomorNBA: row["No. NBA"] || noNBA,
+            nik: row["Nomor Identitas (KTP)"] || "",
+            nama: row["Nama Anggota"] || "",
+            tempatLahir: row["Tempat Lahir"] || "",
+            tanggalLahir: row["Tanggal Lahir"] || "",
+            jkelamin: row["Jenis Kelamin"] === "Laki-laki" ? "laki" : "perempuan",
+            status: row["Status Perkawinan"] === "Kawin" ? "kawin" : row["Status Perkawinan"] === "Belum Kawin" ? "belum" : "cerai",
+            alamat: row["Alamat KTP"] || "",
+            rt: "",
+            rw: "",
+            kel: "",
+            kec: "",
+            kota: "",
+            telepon: row["No HP"] || "",
+            email: "",
+            pekerjaan: row["Pekerjaan"] || "",
+            tempatKerja: "",
+            pendapatan: row["Pendapatan Perbulan"] || "",
+            tanggalJoin: row["Tanggal Masuk"] || today,
+            statusKeanggotaan: "Aktif",
+          };
+          addAnggota(newAnggota);
+          
+          const metode = row["Metode Pembayaran"] === "Tunai" ? "tunai" : row["Metode Pembayaran"]?.includes("BRI") ? "transfer" : "tunai";
+          
+          if (row["Simpanan Pokok"]) {
+            addSimpanan({
+              id: 0,
+              idAnggota: newAnggota.id,
+              nama: newAnggota.nama,
+              nomorAnggota: newAnggota.nomorNBA,
+              tanggal: row["Tanggal Masuk"] || today,
+              jenisSimpanan: "pokok",
+              jumlah: parseInt(row["Simpanan Pokok"]) || 100000,
+              metode,
+              bunga: 0,
+            });
+          }
+          
+          if (row["Simpanan Wajib"]) {
+            addSimpanan({
+              id: 0,
+              idAnggota: newAnggota.id,
+              nama: newAnggota.nama,
+              nomorAnggota: newAnggota.nomorNBA,
+              tanggal: row["Tanggal Masuk"] || today,
+              jenisSimpanan: "wajib",
+              jumlah: parseInt(row["Simpanan Wajib"]) || 25000,
+              metode,
+              bunga: 0,
+            });
+          }
+          
+          if (row["Uang Buku"]) {
+            addSimpanan({
+              id: 0,
+              idAnggota: newAnggota.id,
+              nama: newAnggota.nama,
+              nomorAnggota: newAnggota.nomorNBA,
+              tanggal: row["Tanggal Masuk"] || today,
+              jenisSimpanan: "buku",
+              jumlah: parseInt(row["Uang Buku"]) || 25000,
+              metode,
+              bunga: 0,
+            });
+          }
+        });
+        
+        alert(`Berhasil import ${jsonData.length} data anggota!`);
+      } catch (error) {
+        alert("Gagal import data. Pastikan format Excel benar.");
+      }
+    };
+    reader.readAsBinaryString(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   return (
     <div>
@@ -339,7 +437,64 @@ export default function AnggotaPage() {
       <div style={{ display: "flex", gap: 8, marginBottom: 24, background: "white", padding: 8, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
         <button onClick={() => setActiveTab("data")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📝 Pendaftaran</button>
         <button onClick={() => setActiveTab("daftar")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "#1B4D3E" : "transparent", color: activeTab === "daftar" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📋 Data Anggota ({anggota.length})</button>
+        <button onClick={() => setActiveTab("import")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📥 Import Excel</button>
       </div>
+
+      {activeTab === "import" && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota dari Excel</h3>
+          <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
+            Upload file Excel dengan format kolom:<br/>
+            Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, No HP, Alamat KTP, Alamat Domisili, Status Perkawinan, Nama Pasangan, Jumlah Anak, Nama Ibu Kandung, Nama Saudara Tidak Serumah, No HP Saudara, Pekerjaan, Pendapatan Perbulan, Status Rumah, Nama Referensi, Simpanan Pokok, Simpanan Wajib, Uang Buku, Metode Pembayaran
+          </p>
+          
+          <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center", marginBottom: 20 }}>
+            <input
+              type="file"
+              accept=".xlsx, .xls, .csv"
+              ref={fileInputRef}
+              onChange={handleImportExcel}
+              style={{ display: "none" }}
+              id="excel-upload"
+            />
+            <label htmlFor="excel-upload" style={{ cursor: "pointer" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>📁</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "#1B4D3E" }}>Klik untuk upload file Excel</div>
+              <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
+            </label>
+          </div>
+          
+          <div style={{ padding: 16, background: "#f0f9ff", borderRadius: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Contoh Format Excel:</div>
+            <table style={{ fontSize: 12, width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>Tanggal Masuk</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>No. NBA</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>Nama Anggota</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>No. KTP</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>Jenis Kelamin</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>No. HP</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>Simpanan Pokok</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, textAlign: "left" }}>Metode</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>2023-01-15</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>NBA-001</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Budi Santoso</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>1234567890123456</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Laki-laki</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>081234567890</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>100000</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Tunai</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {activeTab === "data" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
