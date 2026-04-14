@@ -717,8 +717,10 @@ export default function AnggotaPage() {
             </table>
 
             {editingId && (
-              <div style={{ marginTop: 16, padding: 20, background: "#fffbeb", borderRadius: 12, border: "2px solid #f59e0b" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "#92400e" }}>✏️ Edit Data Anggota</div>
+              <div style={{ marginTop: 16, padding: 20, background: "#fffbeb", borderRadius: 12, border: "3px solid #f59e0b", minHeight: 200 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "#92400e" }}>
+                  ✏️ Edit Data Anggota (ID: {editingId})
+                </div>
                 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16, padding: 12, background: "#fef3c7", borderRadius: 8 }}>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 12, color: "#92400e" }}>No. NBA</label><input type="text" value={(anggota.find(a => a.id === editingId) as any)?.nomorNBA || ""} disabled style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d97706", fontSize: 12, background: "#fef3c7", color: "#92400e" }} /></div>
