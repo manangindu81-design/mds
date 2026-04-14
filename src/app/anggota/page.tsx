@@ -580,17 +580,38 @@ export default function AnggotaPage() {
           {anggota.length === 0 ? (
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada anggota. Silakan tambah anggota baru.</div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-              <thead><tr style={{ background: "#f9fafb" }}><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th><th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th><th style={{ padding: 12, textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th></tr></thead>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#f9fafb" }}>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>JK</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tempat Lahir</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. HP</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
+                  <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Status</th>
+                </tr>
+              </thead>
               <tbody>
                 {anggota.map((a, i) => (
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: 12 }}>{i + 1}</td>
-                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>{(a as any).nomorNBA || "-"}</td>
-                    <td style={{ fontFamily: "monospace", fontSize: 12 }}>{a.nik}</td>
-                    <td style={{ fontWeight: 500, fontSize: 13 }}>{a.nama}</td>
-                    <td style={{ fontSize: 12 }}>{formatDate(a.tanggalJoin)}</td>
-                    <td style={{ textAlign: "center" }}><span style={{ padding: "4px 12px", borderRadius: 12, fontSize: 11, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
+                    <td style={{ padding: 10 }}>{i + 1}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{formatDate(a.tanggalJoin)}</td>
+                    <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
+                    <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
+                    <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
+                    <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "L" : "P"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.tempatLahir}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalLahir}</td>
+                    <td style={{ padding: 10 }}>{a.telepon}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.alamat}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan}</td>
+                    <td style={{ padding: 10, textAlign: "center" }}><span style={{ padding: "4px 8px", borderRadius: 8, fontSize: 10, background: "#d4edda", color: "#155724" }}>{a.statusKeanggotaan || "Aktif"}</span></td>
                   </tr>
                 ))}
               </tbody>
