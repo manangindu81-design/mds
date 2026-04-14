@@ -63,6 +63,19 @@ export default function AnggotaPage() {
     { value: "training", label: "Training" },
   ];
   
+  const optionsStatusPekerjaanPNS = [
+    { value: "", label: "Pilih" },
+    { value: "pns-tetap", label: "PNS Tetap" },
+    { value: "pns-honorer", label: "PNS Honorer" },
+    { value: "pns-kontrak", label: "PNS Kontrak" },
+    { value: "pns-kompetensi", label: "PNS Kompetensi" },
+  ];
+  
+  const getStatusPekerjaanOptions = () => {
+    if (formData.pekerjaan === "pegawai-negeri") return optionsStatusPekerjaanPNS;
+    return optionsStatusPekerjaan;
+  };
+  
   const optionsLamaBekerja = [
     { value: "", label: "Pilih" },
     { value: "<6bln", label: "Kurang dari 6 Bulan" },
@@ -376,7 +389,7 @@ export default function AnggotaPage() {
                       <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Golongan</label><select value={formData.Golongan} onChange={e => setFormData({ ...formData, Golongan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsGolongan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                     </>
                   )}
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsStatusPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Status Pekerjaan</label><select value={formData.statusPekerjaan} onChange={e => setFormData({ ...formData, statusPekerjaan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{getStatusPekerjaanOptions().map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Lama Bekerja</label><select value={formData.lamaBekerja} onChange={e => setFormData({ ...formData, lamaBekerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}>{optionsLamaBekerja.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Tempat Kerja</label><input type="text" value={formData.tempatKerja} onChange={e => setFormData({ ...formData, tempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Alamat Tempat Kerja</label><input type="text" value={formData.alamatTempatKerja || ""} onChange={e => setFormData({ ...formData, alamatTempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
