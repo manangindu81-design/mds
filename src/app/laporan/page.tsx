@@ -153,9 +153,14 @@ export default function LaporanPage() {
                 <option key={year} value={String(year)}>{year}</option>
               ))}
             </select>
-            <button onClick={() => window.print()} style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
-              Cetak
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => window.print()} style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
+                🖨️ Cetak Langsung
+              </button>
+              <button onClick={() => alert("Untuk Export PDF: Gunakan fiturCetak (Ctrl+P) lalu pilih 'Simpan sebagai PDF' pada browser.")} style={{ padding: "10px 20px", background: "#6b7280", color: "white", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 500 }}>
+                📄 Export PDF
+              </button>
+            </div>
           </div>
         </div>
 

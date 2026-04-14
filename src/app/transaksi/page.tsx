@@ -169,8 +169,9 @@ export default function TransaksiPage() {
               <input type="text" placeholder="Cari..." style={{ padding: "8px 12px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, width: 200 }} />
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => alert("Export Excel: Mengunduh data transaksi...")} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Export Excel</button>
-              <button onClick={() => window.print()} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>Cetak</button>
+              <button onClick={() => alert("Export Excel: Mengunduh data transaksi...")} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>📊 Export Excel</button>
+              <button onClick={() => window.print()} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>🖨️ Cetak Langsung</button>
+              <button onClick={() => alert("Untuk Export PDF: Gunakan fitur Cetak (Ctrl+P) lalu pilih 'Simpan sebagai PDF'.")} style={{ padding: "8px 16px", background: "white", border: "2px solid #e5e7eb", borderRadius: 8, cursor: "pointer", fontSize: 13, color: "#374151" }}>📄 Export PDF</button>
             </div>
           </div>
 
