@@ -464,10 +464,10 @@ export default function AnggotaPage() {
         <p style={{ fontSize: 14, color: "#6b7280" }}>Pendaftaran & Data Anggota KSP</p>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 24, background: "white", padding: 8, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}>
-        <button onClick={() => setActiveTab("data")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📝 Pendaftaran</button>
-        <button onClick={() => setActiveTab("daftar")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "#1B4D3E" : "transparent", color: activeTab === "daftar" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📋 Data Anggota ({anggota.length})</button>
-        <button onClick={() => setActiveTab("import")} style={{ flex: 1, padding: "14px 24px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, cursor: "pointer" }}>📥 Import Excel</button>
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "white", padding: 6, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)", overflowX: "auto" }}>
+        <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Daftar</button>
+        <button onClick={() => setActiveTab("daftar")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "#1B4D3E" : "transparent", color: activeTab === "daftar" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({anggota.length})</button>
+        <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
       </div>
 
       {activeTab === "import" && (
