@@ -9,7 +9,7 @@ export default function AnggotaPage() {
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("data");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<Partial<AnggotaType>>({});
+  const [editForm, setEditForm] = useState<any>({});
   
   const formatDate = (date: string) => {
     if (!date) return "";
@@ -673,7 +673,13 @@ export default function AnggotaPage() {
                               jkelamin: a.jkelamin,
                               status: a.status,
                               alamat: a.alamat,
+                              rt: a.rt,
+                              rw: a.rw,
+                              kel: a.kel,
+                              kec: a.kec,
+                              kota: a.kota,
                               telepon: a.telepon,
+                              email: a.email,
                               pekerjaan: a.pekerjaan,
                               tempatKerja: a.tempatKerja,
                               pendapatan: a.pendapatan,
@@ -702,18 +708,44 @@ export default function AnggotaPage() {
             </table>
 
             {editingId && (
-              <div style={{ marginTop: 16, padding: 16, background: "#fef3c7", borderRadius: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 12 }}>✏️ Edit Data Anggota</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
-                  <input placeholder="Nama" value={editForm.nama || ""} onChange={e => setEditForm({...editForm, nama: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <input placeholder="NIK" value={editForm.nik || ""} onChange={e => setEditForm({...editForm, nik: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <input placeholder="Tempat Lahir" value={editForm.tempatLahir || ""} onChange={e => setEditForm({...editForm, tempatLahir: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <input placeholder="Tanggal Lahir" value={editForm.tanggalLahir || ""} onChange={e => setEditForm({...editForm, tanggalLahir: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <select value={editForm.jkelamin || ""} onChange={e => setEditForm({...editForm, jkelamin: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }}><option value="">JK</option><option value="laki">Laki</option><option value="perempuan">Perempuan</option></select>
-                  <select value={editForm.status || ""} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }}><option value="">Status</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select>
-                  <input placeholder="No. HP" value={editForm.telepon || ""} onChange={e => setEditForm({...editForm, telepon: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <input placeholder="Pekerjaan" value={editForm.pekerjaan || ""} onChange={e => setEditForm({...editForm, pekerjaan: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11 }} />
-                  <input placeholder="Alamat" value={editForm.alamat || ""} onChange={e => setEditForm({...editForm, alamat: e.target.value})} style={{ padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 11, gridColumn: "span 2" }} />
+              <div style={{ marginTop: 16, padding: 20, background: "#fffbeb", borderRadius: 12, border: "2px solid #f59e0b" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "#92400e" }}>✏️ Edit Data Anggota</div>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16, padding: 12, background: "#fef3c7", borderRadius: 8 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 12, color: "#92400e" }}>No. NBA</label><input type="text" value={(anggota.find(a => a.id === editingId) as any)?.nomorNBA || ""} disabled style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d97706", fontSize: 12, background: "#fef3c7", color: "#92400e" }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 12, color: "#92400e" }}>Tanggal Masuk</label><input type="text" value={(anggota.find(a => a.id === editingId) as any)?.tanggalJoin || ""} disabled style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #d97706", fontSize: 12, background: "#fef3c7", color: "#92400e" }} /></div>
+                </div>
+
+                <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Data Diri</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>NIK (KTP)</label><input type="text" value={editForm.nik || ""} onChange={e => setEditForm({...editForm, nik: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Lengkap</label><input type="text" value={editForm.nama || ""} onChange={e => setEditForm({...editForm, nama: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tempat Lahir</label><input type="text" value={editForm.tempatLahir || ""} onChange={e => setEditForm({...editForm, tempatLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tanggal Lahir</label><input type="date" value={editForm.tanggalLahir || ""} onChange={e => setEditForm({...editForm, tanggalLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Jenis Kelamin</label><select value={editForm.jkelamin || ""} onChange={e => setEditForm({...editForm, jkelamin: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="laki">Laki-laki</option><option value="perempuan">Perempuan</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Status</label><select value={editForm.status || ""} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Ibu Kandung</label><input type="text" value={editForm.namaIbuKandung || ""} onChange={e => setEditForm({...editForm, namaIbuKandung: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Telepon</label><input type="tel" value={editForm.telepon || ""} onChange={e => setEditForm({...editForm, telepon: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Email</label><input type="email" value={editForm.email || ""} onChange={e => setEditForm({...editForm, email: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                </div>
+
+                <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Alamat</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div style={{ gridColumn: "span 2" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Alamat</label><input type="text" value={editForm.alamat || ""} onChange={e => setEditForm({...editForm, alamat: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Kelurahan</label><input type="text" value={editForm.kel || ""} onChange={e => setEditForm({...editForm, kel: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Kecamatan</label><input type="text" value={editForm.kec || ""} onChange={e => setEditForm({...editForm, kec: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Kota/Kabupaten</label><input type="text" value={editForm.kota || ""} onChange={e => setEditForm({...editForm, kota: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                </div>
+
+                <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Pekerjaan</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Pekerjaan</label><select value={editForm.pekerjaan || ""} onChange={e => setEditForm({...editForm, pekerjaan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}>{optionsPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tempat Kerja</label><input type="text" value={editForm.tempatKerja || ""} onChange={e => setEditForm({...editForm, tempatKerja: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button onClick={() => { updateAnggota(editingId, editForm); setEditingId(null); setEditForm({}); }} style={{ flex: 1, padding: "10px 16px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>💾 Simpan</button>
+                  <button onClick={() => { setEditingId(null); setEditForm({}); }} style={{ padding: "10px 16px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>✕ Batal</button>
                 </div>
               </div>
             )}
