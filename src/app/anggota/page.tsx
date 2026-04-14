@@ -660,6 +660,7 @@ export default function AnggotaPage() {
                       {editingId === a.id ? (
                         <button 
                           onClick={() => {
+                            console.log("Saving:", editForm);
                             updateAnggota(a.id, editForm);
                             setEditingId(null);
                             setEditForm({});
@@ -671,6 +672,7 @@ export default function AnggotaPage() {
                       ) : (
                         <button 
                           onClick={() => {
+                            console.log("Editing member:", a.id, a.nama);
                             setEditingId(a.id);
                             setEditForm({
                               nama: a.nama,
