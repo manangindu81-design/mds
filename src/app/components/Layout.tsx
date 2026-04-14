@@ -56,7 +56,7 @@ export default function Layout({ children, title, subtitle }: LayoutProps) {
           
           <nav style={{ display: "flex", gap: 4 }}>
             {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+              const isActive = pathname === item.href || (item.href !== "/" && (pathname || "").startsWith(item.href));
               return (
                 <Link
                   key={item.href}
