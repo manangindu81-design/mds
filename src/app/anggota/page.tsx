@@ -672,9 +672,7 @@ export default function AnggotaPage() {
                       ) : (
                         <button 
                           onClick={() => {
-                            console.log("Editing member:", a.id, a.nama);
-                            setEditingId(a.id);
-                            setEditForm({
+                            const formData = {
                               nama: a.nama,
                               nik: a.nik,
                               tempatLahir: a.tempatLahir,
@@ -692,7 +690,11 @@ export default function AnggotaPage() {
                               pekerjaan: a.pekerjaan,
                               tempatKerja: a.tempatKerja,
                               pendapatan: a.pendapatan,
-                            });
+                            };
+                            console.log("Setting editForm:", formData);
+                            setEditForm(formData);
+                            console.log("Setting editingId to:", a.id);
+                            setEditingId(a.id);
                           }}
                           style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
                         >
