@@ -445,6 +445,54 @@ export default function AnggotaPage() {
               metode,
               bunga: 0,
             });
+            
+            addTransaksi({
+              id: 0,
+              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
+              tanggal: tglMasuk,
+              jam: "09:02",
+              akun: "Kas",
+              kategori: "Setoran Anggota",
+              uraian: `Uang Buku ${newAnggota.nama}`,
+              debet: parseInt(String(row["Uang Buku"]).replace(/\.0$/, "")) || 25000,
+              kredit: 0,
+              saldo: 0,
+              operator: "Admin",
+            });
+          }
+          
+          // Create transactions for Simpanan Pokok
+          if (row["Simpanan Pokok"]) {
+            addTransaksi({
+              id: 0,
+              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
+              tanggal: tglMasuk,
+              jam: "09:00",
+              akun: metode === "tunai" ? "Kas" : "Bank BRI",
+              kategori: "Setoran Anggota",
+              uraian: `Simpanan Pokok ${newAnggota.nama}`,
+              debet: parseInt(String(row["Simpanan Pokok"]).replace(/\.0$/, "")) || 100000,
+              kredit: 0,
+              saldo: 0,
+              operator: "Admin",
+            });
+          }
+          
+          // Create transactions for Simpanan Wajib
+          if (row["Simpanan Wajib"]) {
+            addTransaksi({
+              id: 0,
+              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
+              tanggal: tglMasuk,
+              jam: "09:01",
+              akun: metode === "tunai" ? "Kas" : "Bank BRI",
+              kategori: "Setoran Anggota",
+              uraian: `Simpanan Wajib ${newAnggota.nama}`,
+              debet: parseInt(String(row["Simpanan Wajib"]).replace(/\.0$/, "")) || 25000,
+              kredit: 0,
+              saldo: 0,
+              operator: "Admin",
+            });
           }
         });
         
