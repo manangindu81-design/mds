@@ -245,13 +245,14 @@ export default function AnggotaPage() {
       const idAnggota = anggota.length + 1;
       const today = new Date().toISOString().split("T")[0];
       const noanggota = noNBA;
+      const tglMasuk = tanggalMasuk;
       
       addSimpanan({
         id: 0,
         idAnggota,
         nama: formData.nama,
         nomorAnggota: noanggota,
-        tanggal: today,
+        tanggal: tglMasuk,
         jenisSimpanan: "pokok",
         jumlah: 100000,
         metode: formData.jenisTransaksi,
@@ -263,7 +264,7 @@ export default function AnggotaPage() {
         idAnggota,
         nama: formData.nama,
         nomorAnggota: noanggota,
-        tanggal: today,
+        tanggal: tglMasuk,
         jenisSimpanan: "wajib",
         jumlah: 25000,
         metode: formData.jenisTransaksi,
@@ -275,7 +276,7 @@ export default function AnggotaPage() {
         idAnggota,
         nama: formData.nama,
         nomorAnggota: noanggota,
-        tanggal: today,
+        tanggal: tglMasuk,
         jenisSimpanan: "buku",
         jumlah: 25000,
         metode: formData.jenisTransaksi,
@@ -284,9 +285,9 @@ export default function AnggotaPage() {
       
       addTransaksi({
         id: 0,
-        noBukti: `BK-${today.replace(/-/g, "")}-001`,
-        tanggal: today,
-        jam: new Date().toTimeString().slice(0, 5),
+        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
+        tanggal: tglMasuk,
+        jam: "09:00",
         akun: "Kas",
         kategori: "Setoran Anggota",
         uraian: `Simpanan Pokok ${formData.nama}`,
@@ -298,9 +299,9 @@ export default function AnggotaPage() {
       
       addTransaksi({
         id: 0,
-        noBukti: `BK-${today.replace(/-/g, "")}-002`,
-        tanggal: today,
-        jam: new Date().toTimeString().slice(0, 5),
+        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
+        tanggal: tglMasuk,
+        jam: "09:01",
         akun: "Kas",
         kategori: "Setoran Anggota",
         uraian: `Simpanan Wajib ${formData.nama}`,
@@ -312,9 +313,9 @@ export default function AnggotaPage() {
       
       addTransaksi({
         id: 0,
-        noBukti: `BK-${today.replace(/-/g, "")}-003`,
-        tanggal: today,
-        jam: new Date().toTimeString().slice(0, 5),
+        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
+        tanggal: tglMasuk,
+        jam: "09:02",
         akun: "Kas",
         kategori: "Setoran Anggota",
         uraian: `Uang Buku ${formData.nama}`,
