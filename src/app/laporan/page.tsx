@@ -57,10 +57,22 @@ export default function LaporanPage() {
   const [periode, setPeriode] = useState("2024");
   const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
   
+  // Calculations
+  const simpananPokok = simpanan.filter(s => s.jenisSimpanan === "pokok").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananWajib = simpanan.filter(s => s.jenisSimpanan === "wajib").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananSukarela = simpanan.filter(s => s.jenisSimpanan === "sukarela").reduce((acc, s) => acc + s.jumlah, 0);
   const totalSimpanan = simpanan.reduce((acc, s) => acc + s.jumlah, 0);
+  
   const totalPinjaman = pinjaman.reduce((acc, p) => acc + p.jumlah, 0);
-  const totalTransaksiMasuk = transaksi.filter(t => (t.debet || 0) > 0).reduce((acc, t) => acc + (t.debet || 0), 0);
-  const totalTransaksiKeluar = transaksi.filter(t => (t.kredit || 0) > 0).reduce((acc, t) => acc + (t.kredit || 0), 0);
+  const totalPinjamanBerjalan = totalPinjaman - angsuran.reduce((acc, a) => acc + a.totalBayar, 0);
+  
+  const totalAngsuran = angsuran.reduce((acc, a) => acc + a.totalBayar, 0);
+  const totalBunga = angsuran.reduce((acc, a) => acc + a.angsuranBunga, 0);
+  const totalDenda = angsuran.reduce((acc, a) => acc + a.denda, 0);
+  
+  const kasMasuk = transaksi.filter(t => t.kategori === "Setoran Anggota" || t.kategori === "Pembayaran Pinjaman").reduce((acc, t) => acc + (t.debet || 0), 0);
+  const kasKeluar = transaksi.filter(t => t.kategori === "Pencairan Pinjaman" || t.kategori === "Penarikan").reduce((acc, t) => acc + (t.kredit || 0), 0);
+  const saldoKas = kasMasuk - kasKeluar;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
@@ -159,7 +171,7 @@ export default function LaporanPage() {
                 </thead>
                 <tbody>
                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>ASET LANCAR</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalTransaksiMasuk)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(saldoKas)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(0)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPinjaman)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
@@ -170,7 +182,7 @@ export default function LaporanPage() {
                   <tfoot>
                     <tr style={{ background: "#f9fafb", fontWeight: 700, borderTop: "2px solid #374151" }}>
                       <td style={{ padding: 12 }}>TOTAL ASET</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(saldoKas + totalPinjaman)}</td>
                     </tr>
                   </tfoot>
                 </tbody>
@@ -179,15 +191,15 @@ export default function LaporanPage() {
               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 32 }}>
                 <tbody>
                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>KEWAJIBAN</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Pokok</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Wajib</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Sukarela</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Pokok</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananPokok)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Wajib</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananWajib)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Sukarela</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSukarela)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Pinjaman Diterima</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Hutang Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tfoot>
                     <tr style={{ background: "#f9fafb", fontWeight: 700 }}>
                       <td style={{ padding: 12 }}>TOTAL KEWAJIBAN</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalSimpanan)}</td>
                     </tr>
                   </tfoot>
                 </tbody>
@@ -196,18 +208,18 @@ export default function LaporanPage() {
               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 32 }}>
                 <tbody>
                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>EKUITAS</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Modal Utama</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Modal Disclosure</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Modal Utama</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananPokok)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Modal Disclosure</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalSimpanan)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Cadangan Laba</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Laba/Rugi Tahun Berjalan</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Laba/Rugi Tahun Berjalan</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalBunga)}</td></tr>
                   <tfoot>
                     <tr style={{ background: "#f9fafb", fontWeight: 700 }}>
                       <td style={{ padding: 12 }}>TOTAL EKUITAS</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalSimpanan + totalBunga)}</td>
                     </tr>
                     <tr style={{ background: "#374151", color: "white", fontWeight: 700 }}>
                       <td style={{ padding: 12 }}>TOTAL KEWAJIBAN + EKUITAS</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalSimpanan + totalPinjaman + totalBunga)}</td>
                     </tr>
                   </tfoot>
                 </tbody>
@@ -228,7 +240,7 @@ export default function LaporanPage() {
                   <tr><td colSpan={4} style={{ padding: "12px 0", fontWeight: 600 }}>PENDAPATAN USAHA</td></tr>
                   <tr>
                     <td style={{ padding: "8px 12px 8px 24px" }}>Pendapatan Bunga Pinjaman</td>
-                    <td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td>
+                    <td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalBunga)}</td>
                     <td rowSpan={4} style={{ width: 100 }}></td>
                     <td rowSpan={4}></td>
                   </tr>
@@ -236,7 +248,7 @@ export default function LaporanPage() {
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Pendapatan Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr style={{ background: "#f9fafb", fontWeight: 600, borderTop: "1px solid #374151" }}>
                     <td style={{ padding: 12 }}>JUMLAH PENDAPATAN</td>
-                    <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                    <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalBunga)}</td>
                   </tr>
 
                   <tr><td colSpan={4} style={{ padding: "12px 0", fontWeight: 600 }}>BEBAN USAHA</td></tr>
@@ -251,7 +263,7 @@ export default function LaporanPage() {
 
                   <tr style={{ background: "#d4edda", fontWeight: 700, borderTop: "2px solid #374151" }}>
                     <td style={{ padding: 12 }}>SHU SEBELUM PAJAK</td>
-                    <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                    <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalBunga)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: "8px 12px 8px 24px" }}>Beban Pajak</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td>
