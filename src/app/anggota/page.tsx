@@ -360,11 +360,17 @@ export default function AnggotaPage() {
         const parts = str.split(/[-/]/);
         if (parts.length === 3) {
           const [p1, p2, p3] = parts;
-          if (str.includes("-") && p3.length === 4) {
+          // Format DD-MM-YYYY -> DD-MM-YYYY
+          if (str.includes("-") && p1.length <= 2 && p3.length === 4) {
             return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
           }
-          if (str.includes("/") && p3.length === 4) {
-            return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
+          // Format YYYY-MM-DD -> DD-MM-YYYY
+          if (str.includes("-") && p1.length === 4 && p3.length <= 2) {
+            return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
+          }
+          // Format YYYY/MM/DD -> DD-MM-YYYY
+          if (str.includes("/") && p1.length === 4) {
+            return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
           }
         }
         return str;
@@ -577,12 +583,12 @@ export default function AnggotaPage() {
             <button 
               onClick={() => {
                 const templateData = [{
-                  "Tanggal Masuk": "2023-01-15",
+                  "Tanggal Masuk": "15-01-2023",
                   "No. NBA": "NBA-001",
                   "Nama Anggota": "Budi Santoso",
                   "Nomor Identitas (KTP)": "1234567890123456",
                   "Tempat Lahir": "Jakarta",
-                  "Tanggal Lahir": "1990-05-20",
+                  "Tanggal Lahir": "20-05-1990",
                   "Jenis Kelamin": "Laki-laki",
                   "Status Perkawinan": "Kawin",
                   "Nama Pasangan": "Siti Aminah",

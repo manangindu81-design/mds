@@ -59,3 +59,6 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-15 | Fix TypeScript errors di laporan/page.tsx - replace totalBunga with totalBungaPinjaman |
 | 2026-04-15 | Enhance edit anggota - populate all fields including family & work info |
 | 2026-04-15 | Add Status, Alamat, Pendapatan columns to anggota table to match Excel import |
+| 2026-04-15 | Enhance anggota import - support all fields including family, work, PNS data |
+| 2026-04-15 | Add download template Excel button for anggota import |
+| 2026-04-15 | Fix date format in template to Indonesian format (DD-MM-YYYY) and parse multiple formats |
