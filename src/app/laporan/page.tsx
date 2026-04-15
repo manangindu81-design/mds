@@ -62,7 +62,11 @@ export default function LaporanPage() {
   // Calculations
   const simpananPokok = simpanan.filter(s => s.jenisSimpanan === "pokok").reduce((acc, s) => acc + s.jumlah, 0);
   const simpananWajib = simpanan.filter(s => s.jenisSimpanan === "wajib").reduce((acc, s) => acc + s.jumlah, 0);
-  const simpananSukarela = simpanan.filter(s => s.jenisSimpanan === "sukarela").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananSibuhar = simpanan.filter(s => s.jenisSimpanan === "sibuhar").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananSimapan = simpanan.filter(s => s.jenisSimpanan === "simapan").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananSihat = simpanan.filter(s => s.jenisSimpanan === "sihat").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananSihar = simpanan.filter(s => s.jenisSimpanan === "sihar").reduce((acc, s) => acc + s.jumlah, 0);
+  const simpananBerjangka = simpanan.filter(s => s.jenisSimpanan === "berjangka").reduce((acc, s) => acc + s.jumlah, 0);
   const totalSimpanan = simpanan.reduce((acc, s) => acc + s.jumlah, 0);
   
   const totalPinjaman = pinjaman.reduce((acc, p) => acc + p.jumlah, 0);
@@ -206,7 +210,11 @@ export default function LaporanPage() {
                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>KEWAJIBAN</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Pokok</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananPokok)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Wajib</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananWajib)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Sukarela</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSukarela)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sibuhar (Bunga Harian 3%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSibuhar)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simapan (Masa Depan 5%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSimapan)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihat (Hari Tua 6%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihat)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihar (Hari Raya 4%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihar)}</td></tr>
+                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Berjangka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananBerjangka)}</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Pinjaman Diterima</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Hutang Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tfoot>
@@ -485,11 +493,14 @@ export default function LaporanPage() {
               <div style={{ marginBottom: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>5. SIMPANAN ANGGOTA</h3>
                 <table style={{ width: "100%", marginLeft: 16 }}>
-                  <tr><td style={{ padding: "8px 0" }}>Simpanan Pokok</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Simpanan Wajib</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Simpanan Sukarela</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Simpanan Berjangka</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Simpanan Pokok</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananPokok)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Simpanan Wajib</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananWajib)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Sibuhar (Bunga Harian 3%)</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananSibuhar)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Simapan (Masa Depan 5%)</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananSimapan)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Sihat (Hari Tua 6%)</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananSihat)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Sihar (Hari Raya 4%)</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananSihar)}</td></tr>
+                  <tr><td style={{ padding: "8px 0" }}>Simpanan Berjangka</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananBerjangka)}</td></tr>
+                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>{formatRupiah(totalSimpanan)}</td></tr>
                 </table>
               </div>
 
