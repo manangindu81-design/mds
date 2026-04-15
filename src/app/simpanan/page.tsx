@@ -4,6 +4,20 @@ import { useData, Simpanan as SimpananType } from "../context/DataContext";
 
 const formatRupiah = (value: string) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
+const getJenisLabel = (jenis: string) => {
+  const labels: Record<string, string> = {
+    pokok: "Simpanan Pokok",
+    wajib: "Simpanan Wajib",
+    sukarela: "Simpanan Sukarela",
+    sibuhar: "Sibuhar (3%/th)",
+    simapan: "Simapan (5%/th)",
+    sihat: "Sihat (6%/th)",
+    sihar: "Sihar (4%/th)",
+    berjangka: "Simpanan Berjangka",
+  };
+  return labels[jenis] || jenis;
+};
+
 export default function SimpananPage() {
   const { simpanan, addSimpanan, addTransaksi } = useData();
   const [activeTab, setActiveTab] = useState<"input" | "data" | "import">("input");
@@ -126,7 +140,11 @@ export default function SimpananPage() {
               <select value={formData.jenisSimpanan} onChange={(e) => setFormData({ ...formData, jenisSimpanan: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.jenisSimpanan ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
                 <option value="">Pilih jenis</option>
                 <option value="pokok">Simpanan Pokok</option>
-                <option value="sukarela">Simpanan Sukarela</option>
+                <option value="wajib">Simpanan Wajib</option>
+                <option value="sibuhar">Sibuhar (Bunga Harian 3%/th)</option>
+                <option value="simapan">Simapan (Masa Depan 5%/th, 100rb-1JT/bln, 1-10 thn)</option>
+                <option value="sihat">Sihat (Hari Tua 6%/th, 100rb-1JT/bln, 1-15 thn)</option>
+                <option value="sihar">Sihar (Hari Raya 4%/th, 100rb-500rb/bln, 12 bln)</option>
                 <option value="berjangka">Simpanan Berjangka</option>
               </select>
               {formErrors.jenisSimpanan && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jenisSimpanan}</div>}
@@ -185,7 +203,7 @@ export default function SimpananPage() {
                     <td style={{ padding: 10 }}>{i + 1}</td>
                     <td style={{ padding: 10 }}>{s.tanggal}</td>
                     <td style={{ padding: 10 }}>{s.nama}</td>
-                    <td style={{ padding: 10 }}>{s.jenisSimpanan}</td>
+                    <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                     <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
                     <td style={{ padding: 10 }}>{s.metode}</td>
                   </tr>
