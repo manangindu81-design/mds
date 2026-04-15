@@ -47,6 +47,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Aplikasi KSP sudah production-ready
 - Semua error sudah diperbaiki (typecheck ✅, lint ✅, build ✅)
 - Edit anggota berfungsi dengan baik
+- Fix TypeScript errors di laporan/page.tsx - totalBunga variable
 
 ## Riwayat Perubahan
 
@@ -55,3 +56,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2024 | Aplikasi KSP selesai |
 | 2026-04-14 | Fix JSX syntax error - edit anggota berfungsi |
 | 2026-04-14 | Fix font optimization - Next.js font/google |
+| 2026-04-15 | Fix TypeScript errors di laporan/page.tsx - replace totalBunga with totalBungaPinjaman |
