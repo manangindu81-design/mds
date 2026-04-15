@@ -10,6 +10,12 @@ export interface Anggota {
   tanggalLahir: string;
   jkelamin: string;
   status: string;
+  namaPasangan?: string;
+  jumlahAnak?: string;
+  namaIbuKandung?: string;
+  namaSaudara?: string;
+  telpSaudara?: string;
+  hubungan?: string;
   alamat: string;
   rt: string;
   rw: string;
@@ -19,6 +25,13 @@ export interface Anggota {
   telepon: string;
   email: string;
   pekerjaan: string;
+  besarPenghasilan?: string;
+  posisi?: string;
+  pangkat?: string;
+  Golongan?: string;
+  statusPekerjaan?: string;
+  lamaBekerja?: string;
+  alamatTempatKerja?: string;
   tempatKerja: string;
   pendapatan: string;
   tanggalJoin: string;

@@ -775,27 +775,38 @@ export default function AnggotaPage() {
                         <button 
                           onClick={() => {
                             const formData = {
-                              nama: a.nama,
                               nik: a.nik,
+                              nama: a.nama,
                               tempatLahir: a.tempatLahir,
                               tanggalLahir: a.tanggalLahir,
                               jkelamin: a.jkelamin,
                               status: a.status,
+                              namaPasangan: a.namaPasangan || "",
+                              jumlahAnak: a.jumlahAnak || "",
+                              namaIbuKandung: a.namaIbuKandung || "",
+                              namaSaudara: a.namaSaudara || "",
+                              telpSaudara: a.telpSaudara || "",
+                              hubungan: a.hubungan || "",
+                              pekerjaan: a.pekerjaan,
+                              besarPenghasilan: a.besarPenghasilan || "",
+                              posisi: a.posisi || "",
+                              pangkat: a.pangkat || "",
+                              Golongan: a.Golongan || "",
+                              statusPekerjaan: a.statusPekerjaan || "",
+                              lamaBekerja: a.lamaBekerja || "",
+                              alamatTempatKerja: a.alamatTempatKerja || "",
                               alamat: a.alamat,
-                              rt: a.rt,
-                              rw: a.rw,
+                              rt: a.rt || "",
+                              rw: a.rw || "",
                               kel: a.kel,
                               kec: a.kec,
                               kota: a.kota,
                               telepon: a.telepon,
-                              email: a.email,
-                              pekerjaan: a.pekerjaan,
-                              tempatKerja: a.tempatKerja,
-                              pendapatan: a.pendapatan,
+                              email: a.email || "",
+                              tempatKerja: a.tempatKerja || "",
+                              pendapatan: a.pendapatan || "",
                             };
-                            console.log("Setting editForm:", formData);
                             setEditForm(formData);
-                            console.log("Setting editingId to:", a.id);
                             setEditingId(a.id);
                           }}
                           style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}

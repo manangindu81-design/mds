@@ -57,3 +57,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-14 | Fix JSX syntax error - edit anggota berfungsi |
 | 2026-04-14 | Fix font optimization - Next.js font/google |
 | 2026-04-15 | Fix TypeScript errors di laporan/page.tsx - replace totalBunga with totalBungaPinjaman |
+| 2026-04-15 | Enhance edit anggota - populate all fields including family & work info |
