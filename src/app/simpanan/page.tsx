@@ -6,6 +6,7 @@ const formatRupiah = (value: string) => value.replace(/\B(?=(\d{3})+(?!\d))/g, "
 
 export default function SimpananPage() {
   const { simpanan, addSimpanan, addTransaksi } = useData();
+  const [activeTab, setActiveTab] = useState<"input" | "data" | "import">("input");
   const [formData, setFormData] = useState({
     nama: "",
     nomorAnggota: "",
@@ -85,7 +86,15 @@ export default function SimpananPage() {
         <p style={{ fontSize: 14, color: "#6b7280" }}>Formulir pencatatan simpanan anggota</p>
       </div>
 
-      {submitted && (
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "white", padding: 6, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)", overflowX: "auto" }}>
+        <button onClick={() => setActiveTab("input")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "input" ? "#1B4D3E" : "transparent", color: activeTab === "input" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Input</button>
+        <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({simpanan.length})</button>
+        <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
+      </div>
+
+      {activeTab === "input" && (
+        <div>
+        {submitted && (
         <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
           ✓ Data simpanan berhasil disimpan!
         </div>
@@ -150,7 +159,48 @@ export default function SimpananPage() {
 
           <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>Simpan Data</button>
         </form>
-      </div>
+        </div>
+        </div>
+        )}
+
+        {activeTab === "data" && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          {simpanan.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada data simpanan.</div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#f9fafb" }}>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tanggal</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
+                  <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Metode</th>
+                </tr>
+              </thead>
+              <tbody>
+                {simpanan.map((s, i) => (
+                  <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: 10 }}>{i + 1}</td>
+                    <td style={{ padding: 10 }}>{s.tanggal}</td>
+                    <td style={{ padding: 10 }}>{s.nama}</td>
+                    <td style={{ padding: 10 }}>{s.jenisSimpanan}</td>
+                    <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
+                    <td style={{ padding: 10 }}>{s.metode}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === "import" && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <p style={{ color: "#6b7280", textAlign: "center" }}>Fitur import simpanan dalam pengembangan.</p>
+        </div>
+      )}
     </div>
   );
 }
