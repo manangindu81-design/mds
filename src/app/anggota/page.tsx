@@ -645,12 +645,12 @@ export default function AnggotaPage() {
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>2023-01-15</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>15-01-2023</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>NBA-001</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Budi Santoso</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>1234567890123456</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Jakarta</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>1990-05-20</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>20-05-1990</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Laki-laki</td>
                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Kawin</td>
                 </tr>
