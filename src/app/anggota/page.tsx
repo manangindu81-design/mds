@@ -742,7 +742,9 @@ export default function AnggotaPage() {
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>JK</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. HP</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pendapatan</th>
                   <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
                 </tr>
               </thead>
@@ -758,6 +760,9 @@ export default function AnggotaPage() {
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalLahir}</td>
                     <td style={{ padding: 10 }}>{a.telepon}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{(a as any).alamat || "-"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
 <td style={{ padding: 10, textAlign: "center" }}>
                       {editingId === a.id ? (
                         <button 
