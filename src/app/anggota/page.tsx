@@ -8,7 +8,7 @@ export default function AnggotaPage() {
   const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("import");
   
-  // Helper function to get value from row with multiple possible column names
+// Helper function to get value from row with multiple possible column names
   const getRowValue = (row: any, ...keys: string[]): string => {
     for (const key of keys) {
       if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
@@ -16,6 +16,56 @@ export default function AnggotaPage() {
       }
     }
     return "";
+  };
+  
+  // Helper function to get numeric value (for Excel date serials)
+  const getRowNumber = (row: any, ...keys: string[]): number | undefined => {
+    for (const key of keys) {
+      if (row[key] !== undefined && row[key] !== null) {
+        const val = Number(row[key]);
+        if (!isNaN(val)) return val;
+      }
+    }
+    return undefined;
+  };
+  
+  // Parse Excel date serial or string to DD-MM-YYYY
+  const parseExcelDate = (value: any, defaultDate?: string): string => {
+    if (value === undefined || value === null || value === "") {
+      return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+    }
+    
+    // Handle Excel serial number
+    if (typeof value === "number") {
+      const excelEpoch = new Date(1899, 11, 30);
+      const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+      return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
+    }
+    
+    if (typeof value === "string") {
+      const str = value.trim();
+      if (!str) return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+      
+      const parts = str.split(/[-/]/);
+      if (parts.length === 3) {
+        const [p1, p2, p3] = parts;
+        // Format DD-MM-YYYY -> DD-MM-YYYY
+        if (str.includes("-") && p1.length <= 2 && p3.length === 4) {
+          return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
+        }
+        // Format YYYY-MM-DD -> DD-MM-YYYY
+        if (str.includes("-") && p1.length === 4 && p3.length <= 2) {
+          return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
+        }
+        // Format YYYY/MM/DD -> DD-MM-YYYY
+        if (str.includes("/") && p1.length === 4) {
+          return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
+        }
+      }
+      return str;
+    }
+    
+    return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -403,19 +453,30 @@ export default function AnggotaPage() {
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
         jsonData.forEach((row: any, index: number) => {
-          const noNBA = getRowValue(row, "No. NBA", "No NBA", "NBA", "Nomor NBA") || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
-          const today = new Date().toISOString().split("T")[0];
+          // Get raw values for debugging/logging
+          const keys = Object.keys(row);
+          const firstRow = index === 0 ? keys : [];
           
-          const jk = getRowValue(row, "Jenis Kelamin", "Jenis Kelamin ", "JK", "Gender", "Jkelamin");
-          const statusKawin = getRowValue(row, "Status Perkawinan", "Status Kawin", "Status", "Marital");
+          // Try to get date serial numbers first (for Excel date columns)
+          const tglMasukSerial = getRowNumber(row, "Tanggal Masuk", "Tgl Masuk", "Tgl Join", "Tanggal Join");
+          const tglLahirSerial = getRowNumber(row, "Tanggal Lahir", "Tgl Lahir", "Tanggal Kelahiran");
+          
+          // Parse dates (use serial if available, otherwise try string)
+          const tglMasuk = tglMasukSerial !== undefined ? parseExcelDate(tglMasukSerial) : parseExcelDate(getRowValue(row, "Tanggal Masuk", "Tgl Masuk", "Tgl Join", "Tanggal Join"));
+          const tglLahir = tglLahirSerial !== undefined ? parseExcelDate(tglLahirSerial) : parseExcelDate(getRowValue(row, "Tanggal Lahir", "Tgl Lahir", "Tanggal Kelahiran"));
+          
+          const noNBA = getRowValue(row, "No. NBA", "No NBA", "NBA", "Nomor NBA", "No. Anggota", "Nomor Anggota") || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
+          
+          const jk = getRowValue(row, "Jenis Kelamin", "Jenis Kelamin ", "JK", "Gender", "Jkelamin", "Sex");
+          const statusKawin = getRowValue(row, "Status Perkawinan", "Status Kawin", "Status", "Marital", "Status Perkawinan ");
           
           const newAnggota: AnggotaType = {
             id: anggota.length + index + 1,
             nomorNBA: noNBA,
-            nik: String(getRowValue(row, "Nomor Identitas (KTP)", "No. KTP", "KTP", "NIK", "Nomor KTP", "No Identitas") || "").replace(/\.0$/, ""),
-            nama: getRowValue(row, "Nama Anggota", "Nama", "Nama Lengkap", "Nama Lengkap ") || "",
-            tempatLahir: getRowValue(row, "Tempat Lahir", "Tempat Lahir ") || "",
-            tanggalLahir: parseExcelDate(getRowValue(row, "Tanggal Lahir", "Tgl Lahir", "Tanggal Kelahiran")),
+            nik: String(getRowValue(row, "Nomor Identitas (KTP)", "No. KTP", "KTP", "NIK", "Nomor KTP", "No Identitas", "Nomor Identitas") || "").replace(/\.0$/, ""),
+            nama: getRowValue(row, "Nama Anggota", "Nama", "Nama Lengkap", "Nama Lengkap ", "Nama Lengkap") || "",
+            tempatLahir: getRowValue(row, "Tempat Lahir", "Tempat Lahir ", "Tempat ") || "",
+            tanggalLahir: tglLahir,
             jkelamin: jk.toLowerCase().includes("laki") ? "laki" : jk.toLowerCase().includes("peremp") ? "perempuan" : "",
             status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : statusKawin.toLowerCase().includes("cerai") ? "cerai" : "",
             namaPasangan: getRowValue(row, "Nama Pasangan", "Pasangan") || "",
@@ -449,7 +510,6 @@ export default function AnggotaPage() {
           
           const metode = getRowValue(row, "Metode Pembayaran", "Metode", "Cara Pembayaran", "Pembayaran");
           const metodeVal = metode.toLowerCase().includes("tunai") ? "tunai" : metode.toLowerCase().includes("bri") ? "bri" : metode.toLowerCase().includes("bpr") ? "bpr" : "tunai";
-          const tglMasuk = parseExcelDate(getRowValue(row, "Tanggal Masuk", "Tgl Masuk", "Tanggal Join"));
           
           const getAkun = () => {
             if (metodeVal === "tunai") return "Kas";
@@ -457,7 +517,7 @@ export default function AnggotaPage() {
             if (metodeVal === "bpr") return "Bank BPR Logo Asri";
             return "Kas";
           };
-const akun = getAkun();
+          const akun = getAkun();
           
           const simpananPokok = getRowValue(row, "Simpanan Pokok", "Simpanan Pokok ", "Setoran Pokok", "Pokok");
           if (simpananPokok) {
