@@ -390,7 +390,12 @@ export default function AnggotaPage() {
         const workbook = XLSX.read(data, { type: "binary" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
+        
+        // Debug: log first row column names
+        if (jsonData.length > 0) {
+          console.log("Kolom Excel yang terdeteksi:", Object.keys(jsonData[0]));
+        }
         
         jsonData.forEach((row: any, index: number) => {
           const noNBA = `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
