@@ -994,7 +994,7 @@ export default function AnggotaPage() {
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>JK</th>
+                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis Kelamin</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. HP</th>
                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status</th>
@@ -1011,7 +1011,7 @@ export default function AnggotaPage() {
                     <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
-                    <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "L" : "P"}</td>
+                    <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalLahir}</td>
                     <td style={{ padding: 10 }}>{a.telepon}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan}</td>
