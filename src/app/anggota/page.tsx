@@ -572,6 +572,55 @@ export default function AnggotaPage() {
               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
             </label>
           </div>
+
+          <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
+            <button 
+              onClick={() => {
+                const templateData = [{
+                  "Tanggal Masuk": "2023-01-15",
+                  "No. NBA": "NBA-001",
+                  "Nama Anggota": "Budi Santoso",
+                  "Nomor Identitas (KTP)": "1234567890123456",
+                  "Tempat Lahir": "Jakarta",
+                  "Tanggal Lahir": "1990-05-20",
+                  "Jenis Kelamin": "Laki-laki",
+                  "Status Perkawinan": "Kawin",
+                  "Nama Pasangan": "Siti Aminah",
+                  "Jumlah Anak": "2",
+                  "Nama Ibu Kandung": "Hj. Mariam",
+                  "Nama Saudara Tidak Serumah": "Ahmad",
+                  "No HP Saudara": "081234567891",
+                  "Hubungan Saudara": "Adik",
+                  "Alamat KTP": "Jl. Merdeka No. 10",
+                  "Kelurahan": "Cempaka Putih",
+                  "Kecamatan": "Cempaka Putih",
+                  "Kota": "Jakarta Pusat",
+                  "No HP": "081234567890",
+                  "Email": "budi@email.com",
+                  "Pekerjaan": "PNS",
+                  "Tempat Kerja": "Kantor Wilayah",
+                  "Alamat Tempat Kerja": "Jl. Sudirman No. 50",
+                  "Status Pekerjaan": "Tetap",
+                  "Lama Bekerja": "5 Tahun",
+                  "Posisi/Jabatan": "Staff",
+                  "Pangkat": "Penata",
+                  "Golongan": "III/a",
+                  "Pendapatan Perbulan": "5000000",
+                  "Simpanan Pokok": "100000",
+                  "Simpanan Wajib": "25000",
+                  "Buku Tabungan": "25000",
+                  "Metode Pembayaran": "Tunai"
+                }];
+                const ws = XLSX.utils.json_to_sheet(templateData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Template");
+                XLSX.writeFile(wb, "template_import_anggota_ksp.xlsx");
+              }}
+              style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+            >
+              📥 Download Template Excel
+            </button>
+          </div>
           
           <div style={{ padding: 16, background: "#f0f9ff", borderRadius: 8 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Format Import Excel - Kolom Wajib:</div>
