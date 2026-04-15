@@ -7,6 +7,8 @@ import * as XLSX from "xlsx";
 export default function AnggotaPage() {
   const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("import");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   
 // Helper function to get value from row with multiple possible column names
   const getRowValue = (row: any, ...keys: string[]): string => {
@@ -1002,9 +1004,9 @@ export default function AnggotaPage() {
                 </tr>
               </thead>
               <tbody>
-                {anggota.map((a, i) => (
+                {anggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: 10 }}>{i + 1}</td>
+                    <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
                     <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
@@ -1088,6 +1090,28 @@ export default function AnggotaPage() {
                 ))}
               </tbody>
             </table>
+
+            {anggota.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{ padding: "8px 16px", background: currentPage === 1 ? "#ddd" : "#1B4D3E", color: currentPage === 1 ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: 13 }}
+                >
+                  ← Prev
+                </button>
+                <span style={{ fontSize: 13, color: "#6b7280" }}>
+                  Halaman {currentPage} dari {Math.ceil(anggota.length / itemsPerPage)}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(anggota.length / itemsPerPage), p + 1))}
+                  disabled={currentPage >= Math.ceil(anggota.length / itemsPerPage)}
+                  style={{ padding: "8px 16px", background: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
 
             {editingId && (
               <div style={{ marginTop: 16, padding: 20, background: "#fffbeb", borderRadius: 12, border: "3px solid #f59e0b", minHeight: 200 }}>
