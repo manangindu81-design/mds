@@ -16,16 +16,27 @@ export default function AnggotaPage() {
       return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
     }
     
-    // Handle Excel serial number
-    if (typeof value === "number") {
+    // Check if it's a number (Excel serial date)
+    const numValue = Number(value);
+    if (!isNaN(numValue) && typeof value !== "boolean") {
+      // Handle Excel serial number (starting from Dec 30, 1899)
       const excelEpoch = new Date(1899, 11, 30);
-      const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+      const date = new Date(excelEpoch.getTime() + numValue * 24 * 60 * 60 * 1000);
       return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
     }
     
+    // Handle string dates
     if (typeof value === "string") {
       const str = value.trim();
       if (!str) return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+      
+      // Check if it's a numeric string (like "45272")
+      const numericStr = Number(str);
+      if (!isNaN(numericStr)) {
+        const excelEpoch = new Date(1899, 11, 30);
+        const date = new Date(excelEpoch.getTime() + numericStr * 24 * 60 * 60 * 1000);
+        return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
+      }
       
       const parts = str.split(/[-/]/);
       if (parts.length === 3) {
@@ -434,13 +445,13 @@ export default function AnggotaPage() {
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
         jsonData.forEach((row: any, index: number) => {
-          // Get date serial numbers
-          const tglMasukSerial = row["Tanggal Masuk"];
-          const tglLahirSerial = row["Tanggal Lahir"];
+          // Get raw value from Excel
+          const tglMasukRaw = row["Tanggal Masuk"];
+          const tglLahirRaw = row["Tanggal Lahir"];
           
-          // Parse dates - support both serial numbers and string dates
-          const tglMasuk = typeof tglMasukSerial === "number" ? parseExcelDate(tglMasukSerial) : parseExcelDate(tglMasukSerial || "");
-          const tglLahir = typeof tglLahirSerial === "number" ? parseExcelDate(tglLahirSerial) : parseExcelDate(tglLahirSerial || "");
+          // Always try to convert to number and parse as Excel date serial
+          const tglMasuk = parseExcelDate(tglMasukRaw);
+          const tglLahir = parseExcelDate(tglLahirRaw);
           
           const noNBA = row["No. NBA"] || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
           const jk = row["Jenis Kelamin"] || "";
