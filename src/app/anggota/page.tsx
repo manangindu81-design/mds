@@ -606,6 +606,41 @@ export default function AnggotaPage() {
             >
               🗑️ Hapus Semua
             </button>
+            
+            <button 
+              onClick={() => {
+                if (anggota.length === 0) {
+                  alert("Tidak ada data untuk diexport.");
+                  return;
+                }
+                const exportData = anggota.map(a => ({
+                  "Tanggal Masuk": a.tanggalJoin,
+                  "No. NBA": (a as any).nomorNBA || "",
+                  "Nama Anggota": a.nama,
+                  "Nomor Identitas (KTP)": a.nik,
+                  "Jenis Kelamin": a.jkelamin === "laki" ? "Laki-laki" : "Perempuan",
+                  "Tempat Lahir": a.tempatLahir,
+                  "Tanggal Lahir": a.tanggalLahir,
+                  "Status Perkawinan": a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum Kawin" : "Cerai",
+                  "Alamat KTP": a.alamat,
+                  "No HP": a.telepon,
+                  "Pekerjaan": a.pekerjaan,
+                  "Pendapatan Perbulan": a.pendapatan,
+                  "Metode Pembayaran": "Tunai",
+                  "Simpanan Pokok": 100000,
+                  "Simpanan Wajib": 25000,
+                  "Uang Buku": 25000
+                }));
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Anggota");
+                XLSX.writeFile(wb, `data_anggota_ksp_${new Date().toISOString().split('T')[0]}.xlsx`);
+                alert(`Berhasil export ${exportData.length} data anggota!`);
+              }}
+              style={{ padding: "10px 20px", background: "#22c55e", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+            >
+              📤 Export Data
+            </button>
           </div>
         </div>
       )}
