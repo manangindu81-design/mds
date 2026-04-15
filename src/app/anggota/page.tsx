@@ -395,16 +395,29 @@ export default function AnggotaPage() {
             tanggalLahir: parseExcelDate(row["Tanggal Lahir"]),
             jkelamin: row["Jenis Kelamin"] === "Laki-laki" ? "laki" : "perempuan",
             status: row["Status Perkawinan"] === "Kawin" ? "kawin" : row["Status Perkawinan"] === "Belum Kawin" ? "belum" : "cerai",
+            namaPasangan: row["Nama Pasangan"] || "",
+            jumlahAnak: row["Jumlah Anak"] || "",
+            namaIbuKandung: row["Nama Ibu Kandung"] || "",
+            namaSaudara: row["Nama Saudara Tidak Serumah"] || "",
+            telpSaudara: row["No HP Saudara"] || "",
+            hubungan: row["Hubungan Saudara"] || "",
             alamat: row["Alamat KTP"] || "",
             rt: "",
             rw: "",
-            kel: "",
-            kec: "",
-            kota: "",
+            kel: row["Kelurahan"] || "",
+            kec: row["Kecamatan"] || "",
+            kota: row["Kota"] || "",
             telepon: String(row["No HP"] || "").replace(/\.0$/, ""),
-            email: "",
+            email: row["Email"] || "",
             pekerjaan: row["Pekerjaan"] || "",
-            tempatKerja: "",
+            besarPenghasilan: row["Pendapatan Perbulan"] || "",
+            posisi: row["Posisi/Jabatan"] || "",
+            pangkat: row["Pangkat"] || "",
+            Golongan: row["Golongan"] || "",
+            statusPekerjaan: row["Status Pekerjaan"] || "",
+            lamaBekerja: row["Lama Bekerja"] || "",
+            alamatTempatKerja: row["Alamat Tempat Kerja"] || "",
+            tempatKerja: row["Tempat Kerja"] || "",
             pendapatan: row["Pendapatan Perbulan"] || "",
             tanggalJoin: parseExcelDate(row["Tanggal Masuk"]) || today,
             statusKeanggotaan: "Aktif",
@@ -561,58 +574,140 @@ export default function AnggotaPage() {
           </div>
           
           <div style={{ padding: 16, background: "#f0f9ff", borderRadius: 8 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Contoh Format Excel (Kolom Wajib):</div>
-            <table style={{ fontSize: 11, width: "100%", borderCollapse: "collapse", marginBottom: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Format Import Excel - Kolom Wajib:</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
               <thead>
                 <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Tanggal Masuk</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>No. NBA</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Nama Anggota</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>No. KTP</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Tempat Lahir</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Tanggal Lahir</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Jenis Kelamin</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Status Kawin</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tanggal Masuk</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No. NBA</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Nama Anggota</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No. KTP</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tempat Lahir</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tanggal Lahir</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Jenis Kelamin</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Status Kawin</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>2023-01-15</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>NBA-001</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Budi Santoso</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>1234567890123456</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Jakarta</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>1990-05-20</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Laki-laki</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Kawin</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>2023-01-15</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>NBA-001</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Budi Santoso</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>1234567890123456</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jakarta</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>1990-05-20</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Laki-laki</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Kawin</td>
                 </tr>
               </tbody>
             </table>
-            
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 KolomOpsional:</div>
-            <table style={{ fontSize: 11, width: "100%", borderCollapse: "collapse", marginBottom: 12 }}>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Data Keluarga:</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
               <thead>
                 <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Alamat KTP</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>No. HP</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Pekerjaan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Pendapatan Perbulan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Simpanan Pokok</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Simpanan Wajib</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Buku Tabungan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 6, background: "#f9fafb" }}>Metode Pembayaran</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Nama Pasangan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Jumlah Anak</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Nama Ibu Kandung</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Nama Saudara Tidak Serumah</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No HP Saudara</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Hubungan Saudara</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Jl. Merdeka No. 10</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>081234567890</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Karyawan</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>5000000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>100000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>25000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>25000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 6 }}>Tunai</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Siti Aminah</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>2</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Hj. Mariam</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Ahmad</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>081234567891</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Adik</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Alamat:</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Alamat KTP</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kelurahan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kecamatan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kota</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No. HP</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jl. Merdeka No. 10</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Cempaka Putih</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Cempaka Putih</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jakarta Pusat</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>081234567890</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>budi@email.com</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Pekerjaan (untuk PNS/Karyawan):</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pekerjaan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tempat Kerja</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Alamat Tempat Kerja</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Status Pekerjaan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Lama Bekerja</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pendapatan Perbulan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>PNS</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Kantor Wilayah</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jl. Sudirman No. 50</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Tetap</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>5 Tahun</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>5000000</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Untuk PNS:</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Posisi/Jabatan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pangkat</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Golongan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Staff</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Penata</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>III/a</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Simpanan Awal & Pembayaran:</div>
+            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 12 }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Simpanan Pokok</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Simpanan Wajib</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Buku Tabungan</th>
+                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Metode Pembayaran</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>100000</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>25000</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>25000</td>
+                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Tunai</td>
                 </tr>
               </tbody>
             </table>
