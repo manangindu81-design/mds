@@ -346,8 +346,10 @@ export default function AnggotaPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const parseExcelDate = (value: any): string => {
-      if (!value) return "";
+    const parseExcelDate = (value: any, defaultDate?: string): string => {
+      if (!value || value === "") {
+        return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+      }
       
       if (typeof value === "number") {
         const excelEpoch = new Date(1899, 11, 30);
@@ -357,6 +359,8 @@ export default function AnggotaPage() {
       
       if (typeof value === "string") {
         const str = value.trim();
+        if (!str) return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+        
         const parts = str.split(/[-/]/);
         if (parts.length === 3) {
           const [p1, p2, p3] = parts;
@@ -376,7 +380,7 @@ export default function AnggotaPage() {
         return str;
       }
       
-      return "";
+      return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
     };
     
     const reader = new FileReader();
