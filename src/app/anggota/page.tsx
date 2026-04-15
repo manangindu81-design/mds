@@ -10,27 +10,6 @@ export default function AnggotaPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   
-// Helper function to get value from row with multiple possible column names
-  const getRowValue = (row: any, ...keys: string[]): string => {
-    for (const key of keys) {
-      if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
-        return String(row[key]);
-      }
-    }
-    return "";
-  };
-  
-  // Helper function to get numeric value (for Excel date serials)
-  const getRowNumber = (row: any, ...keys: string[]): number | undefined => {
-    for (const key of keys) {
-      if (row[key] !== undefined && row[key] !== null) {
-        const val = Number(row[key]);
-        if (!isNaN(val)) return val;
-      }
-    }
-    return undefined;
-  };
-  
   // Parse Excel date serial or string to DD-MM-YYYY
   const parseExcelDate = (value: any, defaultDate?: string): string => {
     if (value === undefined || value === null || value === "") {
@@ -455,62 +434,57 @@ export default function AnggotaPage() {
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
         jsonData.forEach((row: any, index: number) => {
-          // Get raw values for debugging/logging
-          const keys = Object.keys(row);
-          const firstRow = index === 0 ? keys : [];
+          // Get date serial numbers
+          const tglMasukSerial = row["Tanggal Masuk"];
+          const tglLahirSerial = row["Tanggal Lahir"];
           
-          // Try to get date serial numbers first (for Excel date columns)
-          const tglMasukSerial = getRowNumber(row, "Tanggal Masuk", "Tgl Masuk", "Tgl Join", "Tanggal Join");
-          const tglLahirSerial = getRowNumber(row, "Tanggal Lahir", "Tgl Lahir", "Tanggal Kelahiran");
+          // Parse dates - support both serial numbers and string dates
+          const tglMasuk = typeof tglMasukSerial === "number" ? parseExcelDate(tglMasukSerial) : parseExcelDate(tglMasukSerial || "");
+          const tglLahir = typeof tglLahirSerial === "number" ? parseExcelDate(tglLahirSerial) : parseExcelDate(tglLahirSerial || "");
           
-          // Parse dates (use serial if available, otherwise try string)
-          const tglMasuk = tglMasukSerial !== undefined ? parseExcelDate(tglMasukSerial) : parseExcelDate(getRowValue(row, "Tanggal Masuk", "Tgl Masuk", "Tgl Join", "Tanggal Join"));
-          const tglLahir = tglLahirSerial !== undefined ? parseExcelDate(tglLahirSerial) : parseExcelDate(getRowValue(row, "Tanggal Lahir", "Tgl Lahir", "Tanggal Kelahiran"));
-          
-          const noNBA = getRowValue(row, "No. NBA", "No NBA", "NBA", "Nomor NBA", "No. Anggota", "Nomor Anggota") || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
-          
-          const jk = getRowValue(row, "Jenis Kelamin", "JK", "Gender", "Jkelamin", "Sex", "Jenis_Kelamin");
-          const statusKawin = getRowValue(row, "Status Perkawinan", "Status_Kawin", "Marital", "Status", "Status_Perkawinan");
+          const noNBA = row["No. NBA"] || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
+          const jk = row["Jenis Kelamin"] || "";
+          const statusKawin = row["Status Perkawinan"] || "";
           
           const newAnggota: AnggotaType = {
             id: anggota.length + index + 1,
             nomorNBA: noNBA,
-            nik: String(getRowValue(row, "NIK", "Nomor Identitas", "No. KTP", "No_KTP", "Nomor_KTP", "No Identitas", "Nomor Identitas (KTP)") || "").replace(/\.0$/, ""),
-            nama: getRowValue(row, "Nama", "Nama Anggota", "Nama Lengkap", "Nama_Lengkap", "Nama_Lengkap ") || "",
-            tempatLahir: getRowValue(row, "Tempat Lahir", "Tempat_Lahir", "Tempat") || "",
+            nik: String(row["Nomor Identitas (KTP)"] || "").replace(/\.0$/, ""),
+            nama: row["Nama Anggota"] || "",
+            tempatLahir: row["Tempat Lahir"] || "",
             tanggalLahir: tglLahir,
             jkelamin: jk.toLowerCase().includes("laki") ? "laki" : jk.toLowerCase().includes("peremp") ? "perempuan" : "",
             status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : statusKawin.toLowerCase().includes("cerai") ? "cerai" : "",
-            namaPasangan: getRowValue(row, "Nama Pasangan", "Pasangan", "Nama_Pasangan") || "",
-            jumlahAnak: getRowValue(row, "Jumlah Anak", "Jml Anak", "Jumlah_Anak") || "",
-            namaIbuKandung: getRowValue(row, "Nama Ibu Kandung", "Ibu Kandung", "Nama_Ibu") || "",
-            namaSaudara: getRowValue(row, "Nama Saudara", "Saudara", "Nama_Saudara") || "",
-            telpSaudara: getRowValue(row, "No HP Saudara", "HP Saudara", "Telp_Saudara") || "",
-            hubungan: getRowValue(row, "Hubungan", "Hubungan_Saudara") || "",
-            alamat: getRowValue(row, "Alamat", "Alamat KTP", "Alamat_Rumah", "Alamat_KTP", "Alamat Domisili") || "",
+            namaPasangan: row["Nama Pasangan"] || "",
+            jumlahAnak: row["Jumlah Anak"] || "",
+            namaIbuKandung: row["Nama Ibu Kandung"] || "",
+            namaSaudara: row["Nama Saudara Tidak Serumah"] || "",
+            telpSaudara: row["No HP Saudara"] || "",
+            hubungan: row["Hubungan Saudara"] || "",
+            alamat: row["Alamat KTP"] || row["Alamat"] || "",
             rt: "",
             rw: "",
-            kel: getRowValue(row, "Kelurahan", "Desa", "Kel/Desa", "Kelurahan ") || "",
-            kec: getRowValue(row, "Kecamatan", "Kecamatan ", "Kec") || "",
-            kota: getRowValue(row, "Kota", "Kabupaten", "Kota/Kabupaten") || "",
-            telepon: String(getRowValue(row, "No HP", "HP", "Telepon", "No_HP", "Nomor_HP") || "").replace(/\.0$/, ""),
-            email: getRowValue(row, "Email", "E-mail", "Email ") || "",
-            pekerjaan: getRowValue(row, "Pekerjaan", "Pekerjaan_Saat_Ini", "Pekerjaan ") || "",
-            besarPenghasilan: getRowValue(row, "Pendapatan", "Penghasilan", "Gaji", "Pendapatan_Perbulan", "Pendapatan Perbulan") || "",
-            posisi: getRowValue(row, "Posisi", "Jabatan", "Posisi/Jabatan", "Posisi ", "Jabatan ") || "",
-            pangkat: getRowValue(row, "Pangkat", "Pangkat ") || "",
-            Golongan: getRowValue(row, "Golongan", "Golongan ", "Gol") || "",
-            statusPekerjaan: getRowValue(row, "Status Pekerjaan", "Status Kerja", "Status_Pekerjaan") || "",
-            lamaBekerja: getRowValue(row, "Lama Bekerja", "Lama Kerja", "Lama_Bekerja") || "",
-            alamatTempatKerja: getRowValue(row, "Alamat Tempat Kerja", "Alamat Kantor", "Alamat Kerja", "Alamat_Tempat_Kerja") || "",
-            tempatKerja: getRowValue(row, "Tempat Kerja", "Nama Perusahaan", "Kantor", "Tempat_Kerja") || "",
-            pendapatan: getRowValue(row, "Pendapatan Perbulan", "Pendapatan_Bulanan", "Pendapatan ", "Gaji") || "",
-            tanggalJoin: parseExcelDate(getRowValue(row, "Tanggal Masuk", "Tgl Masuk", "Tanggal Join", "Tgl Join")),
+            kel: row["Kelurahan"] || "",
+            kec: row["Kecamatan"] || "",
+            kota: row["Kota"] || "",
+            telepon: String(row["No HP"] || "").replace(/\.0$/, ""),
+            email: row["Email"] || "",
+            pekerjaan: row["Pekerjaan"] || "",
+            besarPenghasilan: row["Pendapatan Perbulan"] || "",
+            posisi: row["Posisi/Jabatan"] || "",
+            pangkat: row["Pangkat"] || "",
+            Golongan: row["Golongan"] || "",
+            statusPekerjaan: row["Status Pekerjaan"] || "",
+            lamaBekerja: row["Lama Bekerja"] || "",
+            alamatTempatKerja: row["Alamat Tempat Kerja"] || "",
+            tempatKerja: row["Tempat Kerja"] || "",
+            pendapatan: row["Pendapatan Perbulan"] || "",
+            tanggalJoin: tglMasuk,
             statusKeanggotaan: "Aktif",
           };
           addAnggota(newAnggota);
           
-          const metode = getRowValue(row, "Metode Pembayaran", "Metode", "Cara Pembayaran", "Pembayaran");
+          const metode = row["Metode Pembayaran"] || "";
           const metodeVal = metode.toLowerCase().includes("tunai") ? "tunai" : metode.toLowerCase().includes("bri") ? "bri" : metode.toLowerCase().includes("bpr") ? "bpr" : "tunai";
           
           const getAkun = () => {
@@ -521,7 +495,7 @@ export default function AnggotaPage() {
           };
           const akun = getAkun();
           
-          const simpananPokok = getRowValue(row, "Simpanan Pokok", "Simpanan Pokok ", "Setoran Pokok", "Pokok");
+          const simpananPokok = row["Simpanan Pokok"] || "";
           if (simpananPokok) {
             addSimpanan({
               id: 0,
@@ -530,7 +504,7 @@ export default function AnggotaPage() {
               nomorAnggota: newAnggota.nomorNBA,
               tanggal: tglMasuk,
               jenisSimpanan: "pokok",
-              jumlah: parseInt(simpananPokok.replace(/\.0$/, "")) || 100000,
+              jumlah: parseInt(String(simpananPokok).replace(/\.0$/, "")) || 100000,
               metode: metodeVal,
               bunga: 0,
             });
@@ -543,14 +517,14 @@ export default function AnggotaPage() {
               akun: akun,
               kategori: "Setoran Anggota",
               uraian: `Simpanan Pokok ${newAnggota.nama}`,
-              debet: parseInt(simpananPokok.replace(/\.0$/, "")) || 100000,
+              debet: parseInt(String(simpananPokok).replace(/\.0$/, "")) || 100000,
               kredit: 0,
               saldo: 0,
               operator: "Admin",
             });
           }
           
-          const simpananWajib = getRowValue(row, "Simpanan Wajib", "Simpanan Wajib ", "Setoran Wajib", "Wajib");
+          const simpananWajib = row["Simpanan Wajib"] || "";
           if (simpananWajib) {
             addSimpanan({
               id: 0,
@@ -559,7 +533,7 @@ export default function AnggotaPage() {
               nomorAnggota: newAnggota.nomorNBA,
               tanggal: tglMasuk,
               jenisSimpanan: "wajib",
-              jumlah: parseInt(simpananWajib.replace(/\.0$/, "")) || 25000,
+              jumlah: parseInt(String(simpananWajib).replace(/\.0$/, "")) || 25000,
               metode: metodeVal,
               bunga: 0,
             });
@@ -579,7 +553,7 @@ export default function AnggotaPage() {
             });
           }
           
-          const uangBuku = getRowValue(row, "Uang Buku", "Buku Tabungan", "Buku", "Uang Buku ");
+          const uangBuku = row["Uang Buku"] || row["Buku Tabungan"] || "";
           if (uangBuku) {
             addSimpanan({
               id: 0,
@@ -588,7 +562,7 @@ export default function AnggotaPage() {
               nomorAnggota: newAnggota.nomorNBA,
               tanggal: tglMasuk,
               jenisSimpanan: "buku",
-              jumlah: parseInt(uangBuku.replace(/\.0$/, "")) || 25000,
+              jumlah: parseInt(String(uangBuku).replace(/\.0$/, "")) || 25000,
               metode: metodeVal,
               bunga: 0,
             });
@@ -601,7 +575,7 @@ export default function AnggotaPage() {
               akun: akun,
               kategori: "Setoran Anggota",
               uraian: `Uang Buku ${newAnggota.nama}`,
-              debet: parseInt(uangBuku.replace(/\.0$/, "")) || 25000,
+              debet: parseInt(String(uangBuku).replace(/\.0$/, "")) || 25000,
               kredit: 0,
               saldo: 0,
               operator: "Admin",
