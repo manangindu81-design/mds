@@ -129,7 +129,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         }}>
           <div>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>KSP Mulia Dana Sejahtera</div>
-            <div style={{ fontSize: 13, opacity: 0.7 }}>Sistem Pengelolaan Data Koperasi Modern</div>
+            <div style={{ fontSize: 13, opacity: 0.7 }}>Koperasi Simpan Pinjam</div>
+            <div style={{ fontSize: 11, marginTop: 8, opacity: 0.6, lineHeight: 1.6 }}>
+              Jl. Veteran No. 85, Berastagi, Karo, Sumatera Utara<br/>
+              Akta No. 03 (9 Nov 2023) | AHU-0005532.AH.01.39 TH 2025<br/>
+              NIB: 1111230014031 | NPWP: 99.043.935.8-128.000<br/>
+              Kontak: 089505117507 | Email: koperasimuliads@gmail.com
+            </div>
           </div>
           <div style={{ textAlign: "right", fontSize: 12, opacity: 0.7 }}>
             <div style={{ fontSize: 12, marginTop: 12, borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 12 }}>
