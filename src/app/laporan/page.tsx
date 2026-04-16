@@ -121,20 +121,25 @@ export default function LaporanPage() {
   const shuBersih = shuSebelumPajak - (shuSebelumPajak * 0.25);
   
   // === VALIDASI NERACA (BALANCE CHECK) ===
-  // Total Aset (Sisi Kiri)
+  // Total Aset (Sisi Kiri PDF) = Kas + Bank + Piutang
   const totalAset = totalKasBank + totalPiutang;
   
-  // Total Liabilitas (Kewajiban)
-  const totalLiabilitas = simpananWajib + simpananSibuhar + simpananSimapan + simpananSihat + simpananSihar;
+  // Total Pasiva (Sisi Kanan PDF) = Simpanan Harian + Simpanan Berencana + Simpanan Berjangka + Simpanan Pokok + Simpanan Wajib + SHU
+  // - Simpanan Berencana: Sihat + Sihar + Simapan
+  // - Simpanan Berjangka: Sibuhar / Berjangka
+  // - Simpanan Pokok: Modal Pokok
+  // - Simpanan Wajib: Modal Wajib
+  // - SHU: Sisa Hasil Usaha
+  const simpananBerencana = simpananSihat + simpananSihar + simpananSimapan;
+  const totalPasiva = simpananBerencana + simpananBerjangka + simpananPokok + simpananWajib + shuBersih;
   
-  // Total Ekuitas (Modal)
-  const totalEkuitas = simpananPokok + shuBersih; // Modal Pokok + SHU
-  
-  // Total Kanan (Liabilitas + Ekuitas)
+  // Total Kanan = Total Liabilitas + Total Ekuitas
+  const totalLiabilitas = simpananBerencana + simpananBerjangka;
+  const totalEkuitas = simpananPokok + simpananWajib + shuBersih;
   const totalKanan = totalLiabilitas + totalEkuitas;
   
   // Selisih (Harus 0 untuk balance)
-  const selisih = totalAset - totalKanan;
+  const selisih = totalAset - totalPasiva;
   const isBalance = selisih === 0;
 
   return (
