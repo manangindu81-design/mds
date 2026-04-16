@@ -115,7 +115,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
       </main>
 
-      <footer style={{ 
+<footer style={{ 
         background: "#1B4D3E", 
         color: "white", 
         padding: "32px 24px"
@@ -131,8 +131,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <div style={{ fontWeight: 600, marginBottom: 4 }}>KSP Mulia Dana Sejahtera</div>
             <div style={{ fontSize: 13, opacity: 0.7 }}>Sistem Pengelolaan Data Koperasi Modern</div>
           </div>
-          <div style={{ fontSize: 13, opacity: 0.7 }}>
-            © {new Date().getFullYear()} - All Rights Reserved
+          <div style={{ textAlign: "right", fontSize: 12, opacity: 0.7 }}>
+            <div style={{ fontSize: 12, marginTop: 12, borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: 12 }}>
+              © {new Date().getFullYear()} MEB Tech Solutions
+            </div>
+            <div>Created by Marwan Esra Bangun</div>
           </div>
         </div>
       </footer>
