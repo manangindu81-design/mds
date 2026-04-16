@@ -59,6 +59,12 @@ export default function LaporanPage() {
   const [periode, setPeriode] = useState(String(currentYear));
   const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
   
+  // === RATE BUNGA SIMPANAN (PER TAON) ===
+  const RATE_SIBUHAR = 0.03; // 3%
+  const RATE_SIMAPAN = 0.05; // 5%
+  const RATE_SIHAT = 0.06; // 6%
+  const RATE_SIHAR = 0.04; // 4%
+  
   // === SIMPANAN (KEWAJIBAN) ===
   const simpananPokok = simpanan.filter(s => s.jenisSimpanan === "pokok").reduce((acc, s) => acc + s.jumlah, 0);
   const simpananWajib = simpanan.filter(s => s.jenisSimpanan === "wajib").reduce((acc, s) => acc + s.jumlah, 0);
@@ -68,6 +74,13 @@ export default function LaporanPage() {
   const simpananSihar = simpanan.filter(s => s.jenisSimpanan === "sihar").reduce((acc, s) => acc + s.jumlah, 0);
   const simpananBerjangka = simpanan.filter(s => s.jenisSimpanan === "berjangka").reduce((acc, s) => acc + s.jumlah, 0);
   const totalSimpanan = simpanan.reduce((acc, s) => acc + s.jumlah, 0);
+  
+  // === HITUNG BEBAN BUNGA SIMPANAN (Per Tahun) ===
+  const bebanBungaSibuhar = simpananSibuhar * RATE_SIBUHAR;
+  const bebanBungaSimapan = simpananSimapan * RATE_SIMAPAN;
+  const bebanBungaSihat = simpananSihat * RATE_SIHAT;
+  const bebanBungaSihar = simpananSihar * RATE_SIHAR;
+  const totalBebanBungaSimpanan = bebanBungaSibuhar + bebanBungaSimapan + bebanBungaSihat + bebanBungaSihar;
   
   // === PINJAMAN (ASET) ===
   const totalPinjamanDisetujui = pinjaman.filter(p => p.status === "Disetujui").reduce((acc, p) => acc + p.jumlah, 0);
@@ -101,7 +114,8 @@ export default function LaporanPage() {
   const totalKasBank = kasTunai + bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri;
   
   // === SHU (SISA HASIL USAHA) ===
-  const totalBeban = 0; // Contoh: biaya operasional
+  // Beban = Beban Bunga Simpanan + Beban Operasional (jika ada input pengeluaran)
+  const totalBeban = totalBebanBungaSimpanan; // Nanti bisa ditambah beban operasional
   const shuSebelumPajak = totalPendapatan - totalBeban;
   const shuSetelahPajak = shuSebelumPajak * 0.25; // Asumsi pajak 25%
   const shuBersih = shuSebelumPajak - (shuSebelumPajak * 0.25);
@@ -292,19 +306,24 @@ export default function LaporanPage() {
                     <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalBungaPinjaman)}</td>
                   </tr>
 
-                  <tr><td colSpan={4} style={{ padding: "12px 0", fontWeight: 600 }}>BEBAN USAHA</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Bunga</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+<tr><td colSpan={4} style={{ padding: "12px 0", fontWeight: 600 }}>BEBAN USAHA</td></tr>
+                  <tr>
+                    <td style={{ padding: "8px 12px 8px 24px" }}>Beban Bunga Simpanan</td>
+                    <td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalBebanBungaSimpanan)}</td>
+                    <td rowSpan={4} style={{ width: 100 }}></td>
+                    <td rowSpan={4}></td>
+                  </tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Operasional</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Penyusutan</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr style={{ background: "#f9fafb", fontWeight: 600, borderTop: "1px solid #374151" }}>
                     <td style={{ padding: 12 }}>JUMLAH BEBAN</td>
-                    <td style={{ textAlign: "right", padding: 12 }}>Rp 0</td>
+                    <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalBeban)}</td>
                   </tr>
 
                   <tr style={{ background: "#d4edda", fontWeight: 700, borderTop: "2px solid #374151" }}>
                     <td style={{ padding: 12 }}>SHU SEBELUM PAJAK</td>
-                    <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalBungaPinjaman)}</td>
+                    <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(shuSebelumPajak)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: "8px 12px 8px 24px" }}>Beban Pajak</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td>
