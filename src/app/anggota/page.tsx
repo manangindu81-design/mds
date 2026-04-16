@@ -444,6 +444,8 @@ export default function AnggotaPage() {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
+        console.log("Total rows:", jsonData.length);
+        
         jsonData.forEach((row: any, index: number) => {
           // Get raw value from Excel
           const tglMasukRaw = row["Tanggal Masuk"];
