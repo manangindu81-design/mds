@@ -439,12 +439,44 @@ export default function AnggotaPage() {
     reader.onload = (event) => {
       try {
         const data = event.target?.result;
+        if (!data) {
+          alert("File tidak terbaca!");
+          return;
+        }
+        
         const workbook = XLSX.read(data, { type: "binary" });
+        
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          alert("Tidak ada sheet di file Excel!");
+          return;
+        }
+        
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
+        
+        if (!sheet) {
+          alert("Sheet tidak ditemukan!");
+          return;
+        }
+        
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
         console.log("Total rows:", jsonData.length);
+        console.log("Sample row keys:", jsonData.length > 0 ? Object.keys(jsonData[0]) : []);
+        
+        if (!jsonData || jsonData.length === 0) {
+          alert("Tidak ada data di file Excel!");
+          return;
+        }
+        
+        const sampleRow = jsonData[0];
+        const requiredKeys = ["Nama Anggota", "Nomor Identitas (KTP)", "NIK"];
+        const hasAnyKey = requiredKeys.some(key => sampleRow[key] !== undefined);
+        
+        if (!hasAnyKey) {
+          alert(`Format Excel salah! Kolom yang ditemukan: ${Object.keys(sampleRow).join(", ")}\n\nPastikan menggunakan nama kolom yang sama dengan template.`);
+          return;
+        }
         
         let count = 0;
         jsonData.forEach((row: any, index: number) => {
