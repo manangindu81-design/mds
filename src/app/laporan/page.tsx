@@ -119,6 +119,23 @@ export default function LaporanPage() {
   const shuSebelumPajak = totalPendapatan - totalBeban;
   const shuSetelahPajak = shuSebelumPajak * 0.25; // Asumsi pajak 25%
   const shuBersih = shuSebelumPajak - (shuSebelumPajak * 0.25);
+  
+  // === VALIDASI NERACA (BALANCE CHECK) ===
+  // Total Aset (Sisi Kiri)
+  const totalAset = totalKasBank + totalPiutang;
+  
+  // Total Liabilitas (Kewajiban)
+  const totalLiabilitas = simpananWajib + simpananSibuhar + simpananSimapan + simpananSihat + simpananSihar;
+  
+  // Total Ekuitas (Modal)
+  const totalEkuitas = simpananPokok + shuBersih; // Modal Pokok + SHU
+  
+  // Total Kanan (Liabilitas + Ekuitas)
+  const totalKanan = totalLiabilitas + totalEkuitas;
+  
+  // Selisih (Harus 0 untuk balance)
+  const selisih = totalAset - totalKanan;
+  const isBalance = selisih === 0;
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }} className="no-print">
@@ -353,6 +370,27 @@ export default function LaporanPage() {
                   <p style={{ fontSize: 13, marginTop: 8, color: "#374151" }}>
                     SHU dibukkan setelah melalui RAT dan dibagi sesuai ratio yang ditentukan.
                   </p>
+                </div>
+              </div>
+              
+              {/* Balance Check Notification */}
+              <div style={{ 
+                marginTop: 24, 
+                padding: 16, 
+                borderRadius: 8, 
+                background: isBalance ? "#d4edda" : "#f8d7da",
+                border: isBalance ? "2px solid #28a745" : "2px solid #dc3545"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>{isBalance ? "✅" : "⚠️"}</span>
+                  <div>
+                    <div style={{ fontWeight: 600, color: isBalance ? "#155724" : "#721c24" }}>
+                      {isBalance ? "Neraca Balance!" : "Ada Selisih!"}
+                    </div>
+                    <div style={{ fontSize: 12, color: isBalance ? "#155724" : "#721c24" }}>
+                      Total Aset: {formatRupiah(totalAset)} | Total Kanan: {formatRupiah(totalKanan)} | Selisih: {formatRupiah(selisih)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
