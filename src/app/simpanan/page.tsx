@@ -70,13 +70,27 @@ export default function SimpananPage() {
         return "Kas";
       };
       
+      // Mapping jenis simpanan ke kategori jurnal
+      const getKategoriSimpanan = (jenis: string) => {
+        switch (jenis) {
+          case "pokok": return "Setoran Simpanan Pokok";
+          case "wajib": return "Setoran Simpanan Wajib";
+          case "sibuhar": return "Setoran Sibuhar";
+          case "simapan": return "Setoran Simapan";
+          case "sihat": return "Setoran Sihat";
+          case "sihar": return "Setoran Sihar";
+          case "berjangka": return "Setoran Berjangka";
+          default: return "Setoran Anggota";
+        }
+      };
+      
       addTransaksi({
         id: 0,
         noBukti: `SM-${formData.tanggal.replace(/-/g, "")}-${String(simpanan.length + 1).padStart(3, "0")}`,
         tanggal: formData.tanggal,
         jam: "10:00",
         akun: getAkun(formData.metodePembayaran),
-        kategori: "Setoran Anggota",
+        kategori: getKategoriSimpanan(formData.jenisSimpanan),
         uraian: `${formData.jenisSimpanan} - ${formData.nama}`,
         debet: jumlahNum,
         kredit: 0,
