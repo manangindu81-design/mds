@@ -47,7 +47,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Aplikasi KSP sudah production-ready
 - Semua error sudah diperbaiki (typecheck ✅, lint ✅, build ✅)
 - Edit anggota berfungsi dengan baik
-- Fix TypeScript errors di laporan/page.tsx - totalBunga variable
+- Fix TypeScript errors di laporan/page.tsx - totalBungaPinjaman
+- Import Excel sudah diperbaiki - skip empty rows, counter yang benar
+- Semua menu sudah terhubung ke DataContext dan tersinkronisasi
 
 ## Riwayat Perubahan
 
@@ -62,3 +64,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-15 | Enhance anggota import - support all fields including family, work, PNS data |
 | 2026-04-15 | Add download template Excel button for anggota import |
 | 2026-04-15 | Fix date format in template to Indonesian format (DD-MM-YYYY) and parse multiple formats |
+| 2026-04-16 | Fix import Excel - skip empty rows, use counter instead of array index |
+| 2026-04-16 | Verify all menus connected to DataContext and synchronized |
