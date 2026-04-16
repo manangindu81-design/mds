@@ -19,8 +19,9 @@ const getJenisLabel = (jenis: string) => {
 };
 
 export default function SimpananPage() {
-  const { simpanan, addSimpanan, addTransaksi } = useData();
-  const [activeTab, setActiveTab] = useState<"input" | "data" | "import">("input");
+  const { simpanan, addSimpanan, addTransaksi, anggota } = useData();
+  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu">("input");
+  const [selectedAnggota, setSelectedAnggota] = useState<number | "">(0);
   const [formData, setFormData] = useState({
     nama: "",
     nomorAnggota: "",
@@ -118,6 +119,7 @@ export default function SimpananPage() {
         <button onClick={() => setActiveTab("input")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "input" ? "#1B4D3E" : "transparent", color: activeTab === "input" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Input</button>
         <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({simpanan.length})</button>
         <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
+        <button onClick={() => setActiveTab("kartu")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "kartu" ? "#1B4D3E" : "transparent", color: activeTab === "kartu" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📒 Kartu Simpanan</button>
       </div>
 
       {activeTab === "input" && (
@@ -231,6 +233,83 @@ export default function SimpananPage() {
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <p style={{ color: "#6b7280", textAlign: "center" }}>Fitur import simpanan dalam pengembangan.</p>
+        </div>
+      )}
+
+      {activeTab === "kartu" && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📒 Kartu Simpanan Anggota</h3>
+          
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Anggota</label>
+            <select 
+              value={selectedAnggota} 
+              onChange={(e) => setSelectedAnggota(e.target.value ? Number(e.target.value) : 0)}
+              style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}
+            >
+              <option value={0}>-- Pilih Anggota --</option>
+              {anggota.map(a => (
+                <option key={a.id} value={a.id}>{a.nama} (NBA: {(a as any).nomorNBA || "-"})</option>
+              ))}
+            </select>
+          </div>
+
+          {Number(selectedAnggota) > 0 && (
+            <>
+              {(() => {
+                const anggotaData = anggota.find(a => a.id === selectedAnggota);
+                const mutasi = simpanan.filter(s => s.idAnggota === selectedAnggota);
+                const totalSaldo = mutasi.reduce((sum, s) => sum + s.jumlah, 0);
+                
+                return (
+                  <div>
+                    <div style={{ background: "#f0fdf4", padding: 16, borderRadius: 8, marginBottom: 20 }}>
+                      <h4 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{anggotaData?.nama}</h4>
+                      <p style={{ fontSize: 13, color: "#6b7280" }}>No. NBA: {(anggotaData as any)?.nomorNBA || "-"}</p>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", marginTop: 8 }}>Total Saldo: {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(totalSaldo)}</p>
+                    </div>
+
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: "#f9fafb" }}>
+                          <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>TANGGAL</th>
+                          <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>JENIS</th>
+                          <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>DEBET (MASUK)</th>
+                          <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>SALDO</th>
+                          <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>METODE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mutasi.length === 0 ? (
+                          <tr><td colSpan={5} style={{ padding: 20, textAlign: "center", color: "#6b7280" }}>Belum ada transaksi simpanan.</td></tr>
+                        ) : (
+                          mutasi.map((s, i) => {
+                            const saldoSekarang = mutasi.slice(0, i + 1).reduce((sum, m) => sum + m.jumlah, 0);
+                            return (
+                              <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
+                                <td style={{ padding: 10 }}>{s.tanggal}</td>
+                                <td style={{ padding: 10, fontWeight: 500 }}>{getJenisLabel(s.jenisSimpanan)}</td>
+                                <td style={{ padding: 10, textAlign: "right", color: "#22c55e" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
+                                <td style={{ padding: 10, textAlign: "right", fontWeight: 600 }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(saldoSekarang)}</td>
+                                <td style={{ padding: 10 }}>{s.metode}</td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+
+                    <button 
+                      onClick={() => window.print()}
+                      style={{ marginTop: 20, padding: "12px 24px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                    >
+                      🖨️ Cetak Kartu Simpanan
+                    </button>
+                  </div>
+                );
+              })()}
+            </>
+          )}
         </div>
       )}
     </div>
