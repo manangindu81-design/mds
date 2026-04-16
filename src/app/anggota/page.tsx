@@ -446,7 +446,15 @@ export default function AnggotaPage() {
         
         console.log("Total rows:", jsonData.length);
         
+        let count = 0;
         jsonData.forEach((row: any, index: number) => {
+          // Skip empty rows
+          const nama = row["Nama Anggota"];
+          const nik = row["Nomor Identitas (KTP)"] || row["NIK"];
+          if (!nama && !nik) return;
+          
+          count++;
+          
           // Get raw value from Excel
           const tglMasukRaw = row["Tanggal Masuk"];
           const tglLahirRaw = row["Tanggal Lahir"];
@@ -455,12 +463,12 @@ export default function AnggotaPage() {
           const tglMasuk = parseExcelDate(tglMasukRaw);
           const tglLahir = parseExcelDate(tglLahirRaw);
           
-          const noNBA = row["No. NBA"] || `NBA-${String(anggota.length + index + 1).padStart(3, "0")}`;
+          const noNBA = row["No. NBA"] || `NBA-${String(count).padStart(3, "0")}`;
           const jk = row["Jenis Kelamin"] || "";
           const statusKawin = row["Status Perkawinan"] || "";
           
           const newAnggota: AnggotaType = {
-            id: anggota.length + index + 1,
+            id: count,
             nomorNBA: noNBA,
             nik: String(row["Nomor Identitas (KTP)"] || "").replace(/\.0$/, ""),
             nama: row["Nama Anggota"] || "",
@@ -596,7 +604,7 @@ export default function AnggotaPage() {
           }
         });
         
-        alert(`Berhasil import ${jsonData.length} data anggota!`);
+        alert(`Berhasil import ${count} data anggota!`);
       } catch (error) {
         alert("Gagal import data. Pastikan format Excel benar.");
       }
