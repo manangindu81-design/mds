@@ -62,6 +62,7 @@ export default function SimpananPage() {
     noBukti: string; nama: string; jenisSimpanan: string; jumlah: number; metode: string; tanggal: string;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const [importType, setImportType] = useState<"pokok" | "wajib">("wajib");
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -261,8 +262,23 @@ export default function SimpananPage() {
 
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Simpanan Wajib dari Excel</h3>
+          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Simpanan dari Excel</h3>
           
+          <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+            <button 
+              onClick={() => setImportType("pokok")}
+              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "pokok" ? "#1B4D3E" : "#e5e7eb", color: importType === "pokok" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+            >
+              🏦 Simpanan Pokok
+            </button>
+            <button 
+              onClick={() => setImportType("wajib")}
+              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "wajib" ? "#1B4D3E" : "#e5e7eb", color: importType === "wajib" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+            >
+              💰 Simpanan Wajib
+            </button>
+          </div>
+
           <div style={{ marginBottom: 24 }}>
             <button 
               onClick={() => {
@@ -271,12 +287,12 @@ export default function SimpananPage() {
                   "Nama Anggota": "Budi Santoso",
                   "Tanggal Transaksi": "15-01-2024",
                   "Jenis Pembayaran": "Tunai",
-                  "Jumlah Transaksi": 25000
+                  "Jumlah Transaksi": importType === "pokok" ? 100000 : 25000
                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Template");
-                XLSX.writeFile(wb, "template_import_simpanan_wajib_ksp.xlsx");
+                XLSX.writeFile(wb, `template_import_simpanan_${importType}_ksp.xlsx`);
               }}
               style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
             >
@@ -376,7 +392,7 @@ export default function SimpananPage() {
                       if (!anggotaFound) return;
                       
                       // Tentukan jenis simpanan - Import Simpanan Wajib
-                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : "wajib";
+                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : importType;
                       
                       addSimpanan({
                         id: 0,
@@ -402,8 +418,8 @@ export default function SimpananPage() {
                         tanggal: tanggal,
                         jam: "09:00",
                         akun: akun,
-                        kategori: metode === "penarikan" ? "Penarikan Simpanan Wajib" : "Setoran Simpanan Wajib",
-                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} Simpanan Wajib ${nama || anggotaFound.nama}`,
+                        kategori: metode === "penarikan" ? `Penarikan Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}` : `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}`,
+                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)} ${nama || anggotaFound.nama}`,
                         debet: metode === "penarikan" ? 0 : jumlah,
                         kredit: metode === "penarikan" ? jumlah : 0,
                         saldo: 0,
