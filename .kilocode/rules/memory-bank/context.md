@@ -21,6 +21,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - [x] Complete loan management: Pencairan, Daftar Peminjam (Plafon/Sudah Dibayar/Outstanding), Angsuran
 - [x] Auto jurnal: Piutang, Kas, Pendapatan(Bunga, Admin, Denda)
 - [x] Fix JSX syntax error di anggota/page.tsx - edit functionality works now
+- [x] Dashboard enhancement: Quick Actions, Trend Charts, Jatuh Tempo, Aktivitas Terbaru
 
 ## Struktur Aplikasi
 
@@ -46,10 +47,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 
 - Aplikasi KSP sudah production-ready
 - Semua error sudah diperbaiki (typecheck ✅, lint ✅, build ✅)
+- Dashboard sudah lengkap: Quick Actions, Trend Chart 6 bulan, Jatuh Tempo warnings, Aktivitas terbaru
 - Edit anggota berfungsi dengan baik
-- Fix TypeScript errors di laporan/page.tsx - totalBungaPinjaman
-- Import Excel sudah diperbaiki - skip empty rows, counter yang benar
-- Semua menu sudah terhubung ke DataContext dan tersinkronisasi
+- Import Excel anggota berfungsi dengan mapping kolom yang benar
 
 ## Riwayat Perubahan
 
@@ -66,3 +66,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-15 | Fix date format in template to Indonesian format (DD-MM-YYYY) and parse multiple formats |
 | 2026-04-16 | Fix import Excel - skip empty rows, use counter instead of array index |
 | 2026-04-16 | Verify all menus connected to DataContext and synchronized |
+| 2026-04-17 | Add dashboard enhancements: Quick Actions, Trend Charts (Simpanan vs Pinjaman 6 bulan), Peringatan Jatuh Tempo (7 hari), Aktivitas Terbaru |

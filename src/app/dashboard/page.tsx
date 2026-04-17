@@ -65,12 +65,103 @@ export default function DashboardPage() {
   const composition = komposisiPinjaman();
   const monthlyStats = statistikSimpanan();
 
+  // === TREN 6 BULAN TERAKHIR (SIMPANAN & PINJAMAN) ===
+  const getTrendData = () => {
+    const monthlySimpanan: Record<string, number> = {};
+    const monthlyPinjaman: Record<string, number> = {};
+    
+    // Get last 6 months
+    const months: string[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      months.push(d.toISOString().substring(0, 7));
+    }
+    
+    // Calculate monthly savings
+    simpanan.forEach(s => {
+      const bulan = s.tanggal?.substring(0, 7);
+      if (bulan && months.includes(bulan)) {
+        monthlySimpanan[bulan] = (monthlySimpanan[bulan] || 0) + s.jumlah;
+      }
+    });
+    
+    // Calculate monthly loans (disbursed)
+    const loansDisbursed = pinjaman.filter(p => p.status === "Disetujui");
+    loansDisbursed.forEach(p => {
+      const bulan = p.tanggal?.substring(0, 7);
+      if (bulan && months.includes(bulan)) {
+        monthlyPinjaman[bulan] = (monthlyPinjaman[bulan] || 0) + p.jumlah;
+      }
+    });
+    
+    // Build trend data
+    return months.map(bulan => ({
+      month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
+      simpanan: monthlySimpanan[bulan] || 0,
+      pinjaman: monthlyPinjaman[bulan] || 0
+    }));
+  };
+  
+  const trendData = getTrendData();
+  const maxTrendValue = Math.max(
+    ...trendData.map(d => Math.max(d.simpanan, d.pinjaman)),
+    1
+  );
+
+  // === JATUH TEMPO ANGSURAN (7 HARI KE DEPAN) ===
+  const getJatuhTempo = () => {
+    const today = new Date();
+    const next7Days = new Date(today);
+    next7Days.setDate(next7Days.getDate() + 7);
+    
+    return angsuran
+      .filter(a => {
+        const dueDate = new Date(a.tanggal);
+        return dueDate >= today && dueDate <= next7Days;
+      })
+      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+      .slice(0, 5);
+  };
+  
+  const jatuhTempo = getJatuhTempo();
+
+  // === LOG AKTIVITAS (5 TRANSAKSI TERAKHIR) ===
+  const recentActivity = [...transaksi]
+    .sort((a, b) => new Date(b.tanggal + " " + b.jam).getTime() - new Date(a.tanggal + " " + a.jam).getTime())
+    .slice(0, 5);
+
   const renderContent = () => {
     switch (activeTab) {
       case "overview":
       default:
         return (
           <>
+            {/* Quick Actions */}
+            <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+              <Link href="/simpanan" style={{ flex: 1, padding: "16px 20px", background: "linear-gradient(135deg, #1B4D3E 0%, #2D7A5F 100%)", borderRadius: 12, textDecoration: "none", color: "white", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(27,77,62,0.3)" }}>
+                <span style={{ fontSize: 24 }}>💵</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Setoran Baru</div>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Input setoran anggota</div>
+                </div>
+              </Link>
+              <Link href="/pinjaman" style={{ flex: 1, padding: "16px 20px", background: "linear-gradient(135deg, #D4AF37 0%, #B8962E 100%)", borderRadius: 12, textDecoration: "none", color: "white", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(212,175,55,0.3)" }}>
+                <span style={{ fontSize: 24 }}>🏦</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Pinjaman Baru</div>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Ajukan pinjaman</div>
+                </div>
+              </Link>
+              <Link href="/transaksi" style={{ flex: 1, padding: "16px 20px", background: "linear-gradient(135deg, #0A2E25 0%, #1B4D3E 100%)", borderRadius: 12, textDecoration: "none", color: "white", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 4px 12px rgba(10,46,37,0.3)" }}>
+                <span style={{ fontSize: 24 }}>📝</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>Transaksi</div>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>Kas masuk/keluar</div>
+                </div>
+              </Link>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, marginBottom: 32 }}>
               <div className="card" style={{ padding: 24 }}>
                 <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
@@ -152,6 +243,117 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Trend Chart: Simpanan vs Pinjaman */}
+            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+              <h3 style={{ fontSize: 18, marginBottom: 24 }}>Tren Simpanan vs Pinjaman (6 Bulan Terakhir)</h3>
+              {trendData.every(d => d.simpanan === 0 && d.pinjaman === 0) ? (
+                <div style={{ textAlign: "center", padding: 32, color: "var(--color-text-secondary)" }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>📈</div>
+                  <p>Belum ada data untuk menampilkan tren.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: 220 }}>
+                  {trendData.map((item, index) => (
+                    <div key={index} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: "100%", display: "flex", gap: 4, justifyContent: "center", height: `${Math.min((Math.max(item.simpanan, item.pinjaman) / maxTrendValue) * 180, 180)}px` }}>
+                        <div style={{ 
+                          width: 20, 
+                          height: `${(item.simpanan / maxTrendValue) * 180}px`, 
+                          background: "linear-gradient(180deg, #1B4D3E 0%, #2D7A5F 100%)",
+                          borderRadius: 4
+                        }} title={`Simpanan: ${formatRupiah(item.simpanan)}`} />
+                        <div style={{ 
+                          width: 20, 
+                          height: `${(item.pinjaman / maxTrendValue) * 180}px`, 
+                          background: "linear-gradient(180deg, #D4AF37 0%, #B8962E 100%)",
+                          borderRadius: 4
+                        }} title={`Pinjaman: ${formatRupiah(item.pinjaman)}`} />
+                      </div>
+                      <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.month}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 24, marginTop: 16, justifyContent: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 12, height: 12, background: "#1B4D3E", borderRadius: 2 }} />
+                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Simpanan</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 12, height: 12, background: "#D4AF37", borderRadius: 2 }} />
+                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Pinjaman</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Jatuh Tempo & Aktivitas */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
+              {/* Jatuh Tempo Angsuran */}
+              <div className="card" style={{ padding: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 18 }}>Peringatan Jatuh Tempo</h3>
+                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>7 hari ke depan</span>
+                </div>
+                {jatuhTempo.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 24, color: "var(--color-text-secondary)" }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+                    <p>Tidak ada angsuran jatuh tempo.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {jatuhTempo.map((item, index) => {
+                      const pinjam = pinjaman.find(p => p.id === item.idPinjaman);
+                      return (
+                        <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "#fff3cd", borderRadius: 8, border: "1px solid #ffeeba" }}>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 500 }}>{pinjam?.nama || "Unknown"}</div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Angsuran ke-{item.angsuranKe}</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 14, fontWeight: 600 }}>{formatRupiah(item.totalBayar)}</div>
+                            <div style={{ fontSize: 12, color: "#856404" }}>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Log Aktivitas */}
+              <div className="card" style={{ padding: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 18 }}>Aktivitas Terbaru</h3>
+                  <button onClick={() => setActiveTab("transaksi")} style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontWeight: 500 }}>Lihat Semua →</button>
+                </div>
+                {recentActivity.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 24, color: "var(--color-text-secondary)" }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
+                    <p>Belum ada aktivitas.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {recentActivity.map((item, index) => {
+                      const isMasuk = (item.debet || 0) > 0;
+                      return (
+                        <div key={index} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: index < recentActivity.length - 1 ? "1px solid #f5f5f5" : "none" }}>
+                          <div style={{ fontSize: 20 }}>{isMasuk ? "📥" : "📤"}</div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 14, fontWeight: 500 }}>{item.uraian}</div>
+                            <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.tanggal} • {item.jam}</div>
+                          </div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: isMasuk ? "#22c55e" : "#ef4444" }}>
+                            {isMasuk ? "+" : "-"}{formatRupiah(item.debet || item.kredit || 0)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Simpanan & Pinjaman Terbaru */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
               <div className="card" style={{ padding: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
