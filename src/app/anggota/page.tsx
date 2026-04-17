@@ -119,7 +119,7 @@ export default function AnggotaPage() {
     return date;
   };
   
-  const noNBA = `NBA-${String(anggota.length + 1).padStart(3, "0")}`;
+  const noNBA = String(anggota.length + 1);
   const tanggalMasuk = formatDate(new Date().toISOString().split("T")[0]);
   
   const optionsHubungan = [
@@ -434,7 +434,7 @@ export default function AnggotaPage() {
           const tglMasuk = parseExcelDate(tglMasukRaw);
           const tglLahir = parseExcelDate(tglLahirRaw);
           
-          const noNBA = row["No. NBA"] || `NBA-${String(count).padStart(3, "0")}`;
+          const noNBA = row["No. NBA"] || String(count);
           const jk = row["Jenis Kelamin"] || "";
           const statusKawin = row["Status Perkawinan"] || "";
           
