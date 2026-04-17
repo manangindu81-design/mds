@@ -231,7 +231,6 @@ export default function AnggotaPage() {
     statusPekerjaan: "",
     lamaBekerja: "",
     alamatTempatKerja: "",
-    jenisTransaksi: "",
     alamat: "",
     rt: "",
     rw: "",
@@ -261,7 +260,6 @@ export default function AnggotaPage() {
     if (!formData.kota.trim()) errors.kota = "Kota wajib";
     if (!formData.telepon.trim()) errors.telepon = "Telepon wajib";
     if (!formData.pekerjaan) errors.pekerjaan = "Pekerjaan wajib";
-    if (!formData.jenisTransaksi) errors.jenisTransaksi = "Jenis transaksi wajib dipilih";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -294,102 +292,10 @@ export default function AnggotaPage() {
       };
       addAnggota(newAnggota);
       
-      const idAnggota = anggota.length + 1;
-      const today = new Date().toISOString().split("T")[0];
-      const noanggota = noNBA;
-      const tglMasuk = tanggalMasuk;
-      
-      const getAkun = (metode: string) => {
-        if (metode === "tunai") return "Kas";
-        if (metode === "bri-tigabinanga") return "Bank BRI Cab. Tigabinanga";
-        if (metode === "bri-berastagi") return "Bank BRI Cab. Berastagi";
-        if (metode === "bpr-logo-asri") return "Bank BPR Logo Asri";
-        return "Kas";
-      };
-      const akun = getAkun(formData.jenisTransaksi);
-      
-      addSimpanan({
-        id: 0,
-        idAnggota,
-        nama: formData.nama,
-        nomorAnggota: noanggota,
-        tanggal: tglMasuk,
-        jenisSimpanan: "pokok",
-        jumlah: 100000,
-        metode: formData.jenisTransaksi,
-        bunga: 0,
-      });
-      
-      addSimpanan({
-        id: 0,
-        idAnggota,
-        nama: formData.nama,
-        nomorAnggota: noanggota,
-        tanggal: tglMasuk,
-        jenisSimpanan: "wajib",
-        jumlah: 25000,
-        metode: formData.jenisTransaksi,
-        bunga: 0,
-      });
-      
-      addSimpanan({
-        id: 0,
-        idAnggota,
-        nama: formData.nama,
-        nomorAnggota: noanggota,
-        tanggal: tglMasuk,
-        jenisSimpanan: "buku",
-        jumlah: 25000,
-        metode: formData.jenisTransaksi,
-        bunga: 0,
-      });
-      
-      addTransaksi({
-        id: 0,
-        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
-        tanggal: tglMasuk,
-        jam: "09:00",
-        akun: akun,
-        kategori: "Setoran Anggota",
-        uraian: `Simpanan Pokok ${formData.nama}`,
-        debet: 100000,
-        kredit: 0,
-        saldo: 0,
-        operator: "Admin",
-      });
-      
-      addTransaksi({
-        id: 0,
-        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
-        tanggal: tglMasuk,
-        jam: "09:01",
-        akun: akun,
-        kategori: "Setoran Anggota",
-        uraian: `Simpanan Wajib ${formData.nama}`,
-        debet: 25000,
-        kredit: 0,
-        saldo: 0,
-        operator: "Admin",
-      });
-      
-      addTransaksi({
-        id: 0,
-        noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
-        tanggal: tglMasuk,
-        jam: "09:02",
-        akun: akun,
-        kategori: "Setoran Anggota",
-        uraian: `Uang Buku ${formData.nama}`,
-        debet: 25000,
-        kredit: 0,
-        saldo: 0,
-        operator: "Admin",
-      });
-      
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", posisi: "", pangkat: "", Golongan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", jenisTransaksi: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", posisi: "", pangkat: "", Golongan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
       }, 3000);
     }
   };
@@ -566,7 +472,7 @@ export default function AnggotaPage() {
           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota dari Excel</h3>
           <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
             Upload file Excel dengan format kolom:<br/>
-            Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, No HP, Alamat KTP, Alamat Domisili, Status Perkawinan, Nama Pasangan, Jumlah Anak, Nama Ibu Kandung, Nama Saudara Tidak Serumah, No HP Saudara, Pekerjaan, Pendapatan Perbulan, Status Rumah, Nama Referensi, Simpanan Pokok, Simpanan Wajib, Uang Buku, Metode Pembayaran
+            Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, No HP, Alamat KTP, Alamat Domisili, Status Perkawinan, Nama Pasangan, Jumlah Anak, Nama Ibu Kandung, Nama Saudara Tidak Serumah, No HP Saudara, Pekerjaan, Pendapatan Perbulan, Status Rumah, Nama Referensi
           </p>
           
           <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center", marginBottom: 20 }}>
@@ -749,26 +655,7 @@ export default function AnggotaPage() {
               </tbody>
             </table>
 
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Simpanan Awal & Pembayaran:</div>
-            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 12 }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Simpanan Pokok</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Simpanan Wajib</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Buku Tabungan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Metode Pembayaran</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>100000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>25000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>25000</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Tunai</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+            </div>
           
           <div style={{ marginTop: 24, padding: 16, background: "#fff3cd", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
@@ -805,11 +692,7 @@ export default function AnggotaPage() {
                   "Alamat KTP": a.alamat,
                   "No HP": a.telepon,
                   "Pekerjaan": a.pekerjaan,
-                  "Pendapatan Perbulan": a.pendapatan,
-                  "Metode Pembayaran": "Tunai",
-                  "Simpanan Pokok": 100000,
-                  "Simpanan Wajib": 25000,
-                  "Uang Buku": 25000
+                  "Pendapatan Perbulan": a.pendapatan
                 }));
                 const ws = XLSX.utils.json_to_sheet(exportData);
                 const wb = XLSX.utils.book_new();
@@ -879,24 +762,6 @@ export default function AnggotaPage() {
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Alamat Tempat Kerja</label><input type="text" value={formData.alamatTempatKerja || ""} onChange={e => setFormData({ ...formData, alamatTempatKerja: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }} /></div>
                 </>
               )}
-            </div>
-
-            <h3 style={{ fontSize: 16, marginBottom: 16, borderBottom: "2px solid #1B4D3E", paddingBottom: 8 }}>Setoran Awal</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Pokok</label><input type="text" value="100.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Simpanan Wajib</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
-              <div><label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Uang Buku</label><input type="text" value="25.000" readOnly style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #22c55e", fontSize: 14, background: "#f0fdf4", fontWeight: 600, color: "#1B4D3E" }} /></div>
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Jenis Transaksi *</label>
-              <select value={formData.jenisTransaksi} onChange={e => setFormData({ ...formData, jenisTransaksi: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.jenisTransaksi ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
-                <option value="">Pilih</option>
-                <option value="tunai">Tunai</option>
-                <option value="bri-tigabinanga">Bank BRI Cab. Tigabinanga</option>
-                <option value="bri-berastagi">Bank BRI Cab. Berastagi</option>
-                <option value="bpr-logo-asri">Bank BPR Logo Asri</option>
-              </select>
-              {formErrors.jenisTransaksi && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jenisTransaksi}</div>}
             </div>
 
             <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>📝 Daftar Anggota</button>
@@ -1085,27 +950,11 @@ export default function AnggotaPage() {
 
             {anggota.length > 0 && (
             <div style={{ marginTop: 24 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
                 <div style={{ padding: 16, background: "#d4edda", borderRadius: 10, textAlign: "center" }}>
                   <div style={{ fontSize: 12, color: "#155724", marginBottom: 4 }}>Total Anggota</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#155724" }}>{anggota.length} Orang</div>
                 </div>
-                <div style={{ padding: 16, background: "#cce5ff", borderRadius: 10, textAlign: "center" }}>
-                  <div style={{ fontSize: 12, color: "#004085", marginBottom: 4 }}>Simpanan Pokok</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#004085" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 100000)}</div>
-                </div>
-                <div style={{ padding: 16, background: "#fff3cd", borderRadius: 10, textAlign: "center" }}>
-                  <div style={{ fontSize: 12, color: "#856404", marginBottom: 4 }}>Simpanan Wajib</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#856404" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 25000)}</div>
-                </div>
-                <div style={{ padding: 16, background: "#f8d7da", borderRadius: 10, textAlign: "center" }}>
-                  <div style={{ fontSize: 12, color: "#721c24", marginBottom: 4 }}>Uang Buku</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#721c24" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 25000)}</div>
-                </div>
-              </div>
-              <div style={{ marginTop: 16, padding: 16, background: "#1B4D3E", borderRadius: 10, textAlign: "center" }}>
-                <div style={{ fontSize: 14, color: "white", marginBottom: 4 }}>Total Pendapatan Awal</div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#D4AF37" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(anggota.length * 150000)}</div>
               </div>
             </div>
             )}
