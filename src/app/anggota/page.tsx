@@ -225,22 +225,8 @@ export default function AnggotaPage() {
     hubungan: "",
     pekerjaan: "",
     besarPenghasilan: "",
-    posisi: "",
-    pangkat: "",
-    Golongan: "",
-    statusPekerjaan: "",
-    lamaBekerja: "",
-    alamatTempatKerja: "",
     alamat: "",
-    rt: "",
-    rw: "",
-    kel: "",
-    kec: "",
-    kota: "",
     telepon: "",
-    email: "",
-    tempatKerja: "",
-    pendapatan: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -255,9 +241,6 @@ export default function AnggotaPage() {
     if (!formData.jkelamin) errors.jkelamin = "Jenis kelamin wajib";
     if (!formData.status) errors.status = "Status wajib dipilih";
     if (!formData.alamat.trim()) errors.alamat = "Alamat wajib diisi";
-    if (!formData.kel.trim()) errors.kel = "Kelurahan wajib";
-    if (!formData.kec.trim()) errors.kec = "Kecamatan wajib";
-    if (!formData.kota.trim()) errors.kota = "Kota wajib";
     if (!formData.telepon.trim()) errors.telepon = "Telepon wajib";
     if (!formData.pekerjaan) errors.pekerjaan = "Pekerjaan wajib";
     setFormErrors(errors);
@@ -277,16 +260,16 @@ export default function AnggotaPage() {
         jkelamin: formData.jkelamin,
         status: formData.status,
         alamat: formData.alamat,
-        rt: formData.rt,
-        rw: formData.rw,
-        kel: formData.kel,
-        kec: formData.kec,
-        kota: formData.kota,
+        rt: "",
+        rw: "",
+        kel: "",
+        kec: "",
+        kota: "",
         telepon: formData.telepon,
-        email: formData.email,
+        email: "",
         pekerjaan: formData.pekerjaan,
-        tempatKerja: formData.tempatKerja,
-        pendapatan: formData.pendapatan,
+        tempatKerja: "",
+        pendapatan: "",
         tanggalJoin: tanggalMasuk,
         statusKeanggotaan: "Aktif",
       };
@@ -295,7 +278,7 @@ export default function AnggotaPage() {
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", posisi: "", pangkat: "", Golongan: "", statusPekerjaan: "", lamaBekerja: "", alamatTempatKerja: "", alamat: "", rt: "", rw: "", kel: "", kec: "", kota: "", telepon: "", email: "", tempatKerja: "", pendapatan: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", alamat: "", telepon: "" });
       }, 3000);
     }
   };
@@ -421,23 +404,9 @@ export default function AnggotaPage() {
             telpSaudara: row["No HP Saudara"] || "",
             hubungan: row["Hubungan Saudara"] || "",
             alamat: row["Alamat KTP"] || row["Alamat"] || "",
-            rt: "",
-            rw: "",
-            kel: row["Kelurahan"] || "",
-            kec: row["Kecamatan"] || "",
-            kota: row["Kota"] || "",
             telepon: String(row["No HP"] || "").replace(/\.0$/, ""),
-            email: row["Email"] || "",
             pekerjaan: row["Pekerjaan"] || "",
             besarPenghasilan: row["Pendapatan Perbulan"] || "",
-            posisi: row["Posisi/Jabatan"] || "",
-            pangkat: row["Pangkat"] || "",
-            Golongan: row["Golongan"] || "",
-            statusPekerjaan: row["Status Pekerjaan"] || "",
-            lamaBekerja: row["Lama Bekerja"] || "",
-            alamatTempatKerja: row["Alamat Tempat Kerja"] || "",
-            tempatKerja: row["Tempat Kerja"] || "",
-            pendapatan: row["Pendapatan Perbulan"] || "",
             tanggalJoin: tglMasuk,
             statusKeanggotaan: "Aktif",
           };

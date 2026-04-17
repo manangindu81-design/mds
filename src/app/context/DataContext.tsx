@@ -17,13 +17,13 @@ export interface Anggota {
   telpSaudara?: string;
   hubungan?: string;
   alamat: string;
-  rt: string;
-  rw: string;
-  kel: string;
-  kec: string;
-  kota: string;
+  rt?: string;
+  rw?: string;
+  kel?: string;
+  kec?: string;
+  kota?: string;
   telepon: string;
-  email: string;
+  email?: string;
   pekerjaan: string;
   besarPenghasilan?: string;
   posisi?: string;
@@ -32,8 +32,8 @@ export interface Anggota {
   statusPekerjaan?: string;
   lamaBekerja?: string;
   alamatTempatKerja?: string;
-  tempatKerja: string;
-  pendapatan: string;
+  tempatKerja?: string;
+  pendapatan?: string;
   tanggalJoin: string;
   statusKeanggotaan: string;
 }
