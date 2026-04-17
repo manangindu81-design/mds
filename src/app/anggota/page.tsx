@@ -841,10 +841,20 @@ export default function AnggotaPage() {
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Kota/Kabupaten</label><input type="text" value={editForm.kota || ""} onChange={e => setEditForm({...editForm, kota: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
                 </div>
 
+                <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Keluarga</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Pasangan</label><input type="text" value={editForm.namaPasangan || ""} onChange={e => setEditForm({...editForm, namaPasangan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Jumlah Anak</label><input type="text" value={editForm.jumlahAnak || ""} onChange={e => setEditForm({...editForm, jumlahAnak: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Saudara</label><input type="text" value={editForm.namaSaudara || ""} onChange={e => setEditForm({...editForm, namaSaudara: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>No HP Saudara</label><input type="text" value={editForm.telpSaudara || ""} onChange={e => setEditForm({...editForm, telpSaudara: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div style={{ gridColumn: "span 2" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Hubungan Saudara</label><input type="text" value={editForm.hubungan || ""} onChange={e => setEditForm({...editForm, hubungan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                </div>
+
                 <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Pekerjaan</h4>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Pekerjaan</label><select value={editForm.pekerjaan || ""} onChange={e => setEditForm({...editForm, pekerjaan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}>{optionsPekerjaan.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tempat Kerja</label><input type="text" value={editForm.tempatKerja || ""} onChange={e => setEditForm({...editForm, tempatKerja: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                  <div style={{ gridColumn: "span 2" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Pendapatan</label><input type="text" value={editForm.pendapatan || ""} onChange={e => setEditForm({...editForm, pendapatan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
                 </div>
 
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
