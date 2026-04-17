@@ -222,6 +222,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteSimpanan = (id: number) => {
+    setSimpanan(prev => prev.filter(s => s.id !== id));
+  };
+
+  const deleteAllSimpanan = () => {
+    setSimpanan([]);
+  };
+
   return (
     <DataContext.Provider value={{
       anggota,
@@ -238,6 +246,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateAnggota,
       deleteAnggota,
       clearAllData,
+      setSimpanan,
+      deleteSimpanan,
+      deleteAllSimpanan,
     }}>
       {children}
     </DataContext.Provider>

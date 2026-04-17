@@ -44,8 +44,8 @@ const getKategoriSimpanan = (jenis: string) => {
 };
 
 export default function SimpananPage() {
-  const { simpanan, addSimpanan, addTransaksi, anggota } = useData();
-  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu" | "jurnal">("input");
+  const { simpanan, addSimpanan, addTransaksi, anggota, deleteSimpanan, deleteAllSimpanan } = useData();
+  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "hapus" | "kartu" | "jurnal">("input");
   const [selectedAnggota, setSelectedAnggota] = useState<number | "">(0);
   const [formData, setFormData] = useState({
     nama: "",
@@ -163,18 +163,19 @@ export default function SimpananPage() {
         <button onClick={() => setActiveTab("input")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "input" ? "#1B4D3E" : "transparent", color: activeTab === "input" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Input</button>
         <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({simpanan.length})</button>
         <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
-        <button onClick={() => setActiveTab("kartu")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "kartu" ? "#1B4D3E" : "transparent", color: activeTab === "kartu" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📒 Kartu Simpanan</button>
+        <button onClick={() => setActiveTab("hapus")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "hapus" ? "#dc2626" : "transparent", color: activeTab === "hapus" ? "white" : "#dc2626", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>🗑️ Hapus</button>
+        <button onClick={() => setActiveTab("kartu")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "kartu" ? "#1B4D3E" : "transparent", color: activeTab === "kartu" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📒 Kartu</button>
       </div>
 
       {activeTab === "input" && (
         <div>
-        {submitted && (
-        <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
-          ✓ Data simpanan berhasil disimpan!
-        </div>
-      )}
+          {submitted && (
+          <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+            ✓ Data simpanan berhasil disimpan!
+          </div>
+          )}
 
-      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
         <form onSubmit={handleSubmit}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
             <div>
@@ -239,9 +240,9 @@ export default function SimpananPage() {
         </form>
         </div>
         </div>
-        )}
+      )}
 
-        {activeTab === "data" && (
+      {activeTab === "data" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           {simpanan.length === 0 ? (
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada data simpanan.</div>
@@ -471,6 +472,64 @@ export default function SimpananPage() {
               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
             </label>
           </div>
+        )}
+
+      {activeTab === "hapus" && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#dc2626" }}>🗑️ Hapus Data Simpanan</h3>
+          
+          {simpanan.length === 0 ? (
+            <p style={{ color: "#6b7280", textAlign: "center" }}>Belum ada data simpanan.</p>
+          ) : (
+            <>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Data yang Akan Dihapus</label>
+                <select 
+                  id="hapusSimpanan"
+                  style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}
+                >
+                  <option value="">-- Pilih --</option>
+                  {simpanan.map((s, i) => (
+                    <option key={s.id} value={s.id}>
+                      {i + 1}. {s.nama} - {getJenisLabel(s.jenisSimpanan)} - {formatDisplayDate(s.tanggal)} - Rp {Number(s.jumlah).toLocaleString("id-ID")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div style={{ display: "flex", gap: 12 }}>
+                <button 
+                  onClick={() => {
+                    const select = document.getElementById("hapusSimpanan") as HTMLSelectElement;
+                    const id = Number(select.value);
+                    if (!id) {
+                      alert("Pilih data yang akan dihapus!");
+                      return;
+                    }
+                    if (confirm("Yakin ingin menghapus data simpanan ini?")) {
+                      deleteSimpanan(id);
+                      alert("Data berhasil dihapus!");
+                    }
+                  }}
+                  style={{ padding: "12px 24px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                >
+                  🗑️ Hapus
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    if (confirm("Yakin ingin menghapus SEMUA data simpanan? Tindakan ini tidak bisa dibatalkan!")) {
+                      deleteAllSimpanan();
+                      alert("Semua data simpanan berhasil dihapus!");
+                    }
+                  }}
+                  style={{ padding: "12px 24px", background: "#7f1d1d", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                >
+                  ⚠️ Hapus Semua
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
