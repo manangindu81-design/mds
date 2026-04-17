@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
@@ -62,6 +62,35 @@ export default function AnggotaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  
+  // When editingId changes, populate editForm with the selected anggota data
+  useEffect(() => {
+    if (editingId) {
+      const selected = anggota.find(a => a.id === editingId);
+      if (selected) {
+        setEditForm({
+          nik: String(selected.nik || ""),
+          nama: String(selected.nama || ""),
+          tempatLahir: String(selected.tempatLahir || ""),
+          tanggalLahir: formatDate(String(selected.tanggalLahir || "")),
+          jkelamin: String(selected.jkelamin || ""),
+          status: String(selected.status || ""),
+          namaPasangan: String((selected as any).namaPasangan || ""),
+          jumlahAnak: String((selected as any).jumlahAnak || ""),
+          namaIbuKandung: String((selected as any).namaIbuKandung || ""),
+          namaSaudara: String((selected as any).namaSaudara || ""),
+          telpSaudara: String((selected as any).telpSaudara || ""),
+          hubungan: String((selected as any).hubungan || ""),
+          pekerjaan: String(selected.pekerjaan || ""),
+          alamat: String(selected.alamat || ""),
+          telepon: String(selected.telepon || ""),
+          email: String((selected as any).email || ""),
+          tempatKerja: String((selected as any).tempatKerja || ""),
+          pendapatan: String(selected.pendapatan || ""),
+        });
+      }
+    }
+  }, [editingId, anggota]);
   
   const formatDate = (date: string) => {
     if (!date) return "";
