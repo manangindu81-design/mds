@@ -65,15 +65,29 @@ export default function AnggotaPage() {
   
   const formatDate = (date: string) => {
     if (!date) return "";
-    // Handle YYYY-MM-DD format
-    if (date.includes("-") && date.length === 10) {
-      const parts = date.split("-");
-      if (parts[0].length === 4) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-      }
+    // Handle YYYY-MM-DD format (for edit form input)
+    if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
+      return date;
     }
+    // Handle DD-MM-YYYY format (convert to YYYY-MM-DD for edit form)
+    if (date.includes("-") && date.length === 10 && date.substring(6,10).length === 4) {
+      const parts = date.split("-");
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    // Fallback
     const d = new Date(date);
-    return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
+    if (isNaN(d.getTime())) return "";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
+  const displayDate = (date: string) => {
+    if (!date) return "-";
+    // If YYYY-MM-DD, convert to DD-MM-YYYY for display
+    if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
+      const parts = date.split("-");
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return date;
   };
   
   const noNBA = `NBA-${String(anggota.length + 1).padStart(3, "0")}`;
@@ -689,7 +703,7 @@ export default function AnggotaPage() {
                     <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalLahir || "-"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
                     <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{(a as any).namaPasangan || "-"}</td>
@@ -720,7 +734,7 @@ export default function AnggotaPage() {
                               nik: a.nik,
                               nama: a.nama,
                               tempatLahir: a.tempatLahir,
-                              tanggalLahir: a.tanggalLahir,
+                              tanggalLahir: formatDate(a.tanggalLahir),
                               jkelamin: a.jkelamin,
                               status: a.status,
                               namaPasangan: a.namaPasangan || "",
