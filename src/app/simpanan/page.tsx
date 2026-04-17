@@ -261,7 +261,7 @@ export default function SimpananPage() {
 
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Transaksi Simpanan dari Excel</h3>
+          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Simpanan Wajib dari Excel</h3>
           
           <div style={{ marginBottom: 24 }}>
             <button 
@@ -276,7 +276,7 @@ export default function SimpananPage() {
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Template");
-                XLSX.writeFile(wb, "template_import_simpanan_ksp.xlsx");
+                XLSX.writeFile(wb, "template_import_simpanan_wajib_ksp.xlsx");
               }}
               style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
             >
@@ -375,8 +375,8 @@ export default function SimpananPage() {
                       });
                       if (!anggotaFound) return;
                       
-                      // Tentukan jenis simpanan berdasarkan metode - untuk penarikan gunakan jenis berbeda
-                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : "sukarela";
+                      // Tentukan jenis simpanan - Import Simpanan Wajib
+                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : "wajib";
                       
                       addSimpanan({
                         id: 0,
@@ -402,8 +402,8 @@ export default function SimpananPage() {
                         tanggal: tanggal,
                         jam: "09:00",
                         akun: akun,
-                        kategori: metode === "penarikan" ? "Penarikan Simpanan" : "Setoran Simpanan",
-                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} ${nama || anggotaFound.nama}`,
+                        kategori: metode === "penarikan" ? "Penarikan Simpanan Wajib" : "Setoran Simpanan Wajib",
+                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} Simpanan Wajib ${nama || anggotaFound.nama}`,
                         debet: metode === "penarikan" ? 0 : jumlah,
                         kredit: metode === "penarikan" ? jumlah : 0,
                         saldo: 0,
