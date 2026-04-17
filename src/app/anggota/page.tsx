@@ -479,9 +479,6 @@ export default function AnggotaPage() {
                   "No HP Saudara": "081234567891",
                   "Hubungan Saudara": "Adik",
                   "Alamat KTP": "Jl. Merdeka No. 10",
-                  "Kelurahan": "Cempaka Putih",
-                  "Kecamatan": "Cempaka Putih",
-                  "Kota": "Jakarta Pusat",
                   "No HP": "081234567890",
                   "Pekerjaan": "PNS",
                   "Pendapatan Perbulan": "5000000"
@@ -550,73 +547,7 @@ export default function AnggotaPage() {
               </tbody>
             </table>
 
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Alamat:</div>
-            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Alamat KTP</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kelurahan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kecamatan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Kota</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No. HP</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jl. Merdeka No. 10</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Cempaka Putih</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Cempaka Putih</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jakarta Pusat</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>081234567890</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>budi@email.com</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Pekerjaan (untuk PNS/Karyawan):</div>
-            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pekerjaan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tempat Kerja</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Alamat Tempat Kerja</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Status Pekerjaan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Lama Bekerja</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pendapatan Perbulan</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>PNS</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Kantor Wilayah</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Jl. Sudirman No. 50</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Tetap</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>5 Tahun</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>5000000</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#0369a1", marginBottom: 8 }}>📌 Kolom Opsional - Untuk PNS:</div>
-            <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Posisi/Jabatan</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pangkat</th>
-                  <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Golongan</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Staff</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>Penata</td>
-                  <td style={{ border: "1px solid #ddd", padding: 4 }}>III/a</td>
-                </tr>
-              </tbody>
-            </table>
-
-            </div>
+</div>
           
           <div style={{ marginTop: 24, padding: 16, background: "#fff3cd", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
