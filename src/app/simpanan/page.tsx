@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { useData, Simpanan as SimpananType } from "../context/DataContext";
+import * as XLSX from "xlsx";
 
 const formatRupiah = (value: string) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 const formatRupiahNum = (value: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -260,7 +261,170 @@ export default function SimpananPage() {
 
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-          <p style={{ color: "#6b7280", textAlign: "center" }}>Fitur import simpanan dalam pengembangan.</p>
+          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Transaksi Simpanan dari Excel</h3>
+          
+          <div style={{ marginBottom: 24 }}>
+            <button 
+              onClick={() => {
+                const templateData = [{
+                  "No. NBA": "NBA-001",
+                  "Nama Anggota": "Budi Santoso",
+                  "Tanggal Transaksi": "15-01-2024",
+                  "Jenis Pembayaran": "Tunai",
+                  "Jumlah Transaksi": 25000
+                }];
+                const ws = XLSX.utils.json_to_sheet(templateData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Template");
+                XLSX.writeFile(wb, "template_import_simpanan_ksp.xlsx");
+              }}
+              style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+            >
+              📥 Download Template Excel
+            </button>
+          </div>
+
+          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+            <p style={{ fontWeight: 600, marginBottom: 8 }}>Format Kolom Excel:</p>
+            <table style={{ borderCollapse: "collapse", width: "100%" }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>No. NBA</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Nama Anggota</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Tanggal Transaksi</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Jenis Pembayaran</th>
+                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Jumlah Transaksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>NBA-001</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Budi Santoso</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>15-01-2024</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Tunai</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>25000</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style={{ marginTop: 8, fontSize: 12 }}>*) Jenis Pembayaran: Tunai, Transfer BRI Cab. Tigabinanga, Transfer BRI Cab. Berastagi, Transfer BPR Logo Asri, Penarikan</p>
+          </div>
+
+          <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center" }}>
+            <input
+              type="file"
+              accept=".xlsx, .xls, .csv"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                  try {
+                    const data = event.target?.result;
+                    const workbook = XLSX.read(data, { type: "binary" });
+                    const sheetName = workbook.SheetNames[0];
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                    
+                    let count = 0;
+                    jsonData.forEach((row: any) => {
+                      const noNBA = row["No. NBA"];
+                      const nama = row["Nama Anggota"];
+                      if (!noNBA && !nama) return;
+                      
+                      // Parse tanggal
+                      const tglRaw = row["Tanggal Transaksi"];
+                      let tanggal = new Date().toISOString().split("T")[0];
+                      if (tglRaw) {
+                        const tglNum = Number(tglRaw);
+                        if (!isNaN(tglNum)) {
+                          const excelEpoch = new Date(1899, 11, 30);
+                          const date = new Date(excelEpoch.getTime() + tglNum * 24 * 60 * 60 * 1000);
+                          tanggal = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+                        } else if (typeof tglRaw === "string") {
+                          const parts = tglRaw.split(/[-/]/);
+                          if (parts.length === 3) {
+                            if (tglRaw.includes("-") && parts[2].length === 4) {
+                              tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+                            }
+                          }
+                        }
+                      }
+                      
+                      // Parse metode pembayaran
+                      const jenisBayar = row["Jenis Pembayaran"] || "";
+                      let metode = "tunai";
+                      if (jenisBayar.toLowerCase().includes("tigabinanga")) metode = "bri-tigabinanga";
+                      else if (jenisBayar.toLowerCase().includes("berastagi")) metode = "bri-berastagi";
+                      else if (jenisBayar.toLowerCase().includes("bpr")) metode = "bpr-logo-asri";
+                      else if (jenisBayar.toLowerCase().includes("tarik")) metode = "penarikan";
+                      
+                      // Parse jumlah
+                      let jumlah = 0;
+                      const jmlRaw = row["Jumlah Transaksi"];
+                      if (typeof jmlRaw === "number") {
+                        jumlah = jmlRaw;
+                      } else if (typeof jmlRaw === "string") {
+                        jumlah = parseInt(jmlRaw.replace(/\.0$/, "").replace(/[^0-9]/g, "")) || 0;
+                      }
+                      
+                      // Cari anggota berdasarkan No NBA
+                      const anggotaFound = anggota.find(a => (a as any).nomorNBA === noNBA);
+                      if (!anggotaFound) return;
+                      
+                      // Tentukan jenis simpanan berdasarkan metode - untuk penarikan gunakan jenis berbeda
+                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : "sukarela";
+                      
+                      addSimpanan({
+                        id: 0,
+                        idAnggota: anggotaFound.id,
+                        nama: nama || anggotaFound.nama,
+                        nomorAnggota: noNBA,
+                        tanggal: tanggal,
+                        jenisSimpanan: jenisSimpanan,
+                        jumlah: metode === "penarikan" ? -jumlah : jumlah,
+                        metode: metode === "penarikan" ? "tunai" : metode,
+                        bunga: 0,
+                      });
+                      
+                      // Buat jurnal
+                      const akun = metode === "tunai" ? "Kas" : 
+                                   metode === "bri-tigabinanga" ? "Bank BRI Cab. Tigabinanga" :
+                                   metode === "bri-berastagi" ? "Bank BRI Cab. Berastagi" :
+                                   metode === "bpr-logo-asri" ? "Bank BPR Logo Asri" : "Kas";
+                      
+                      addTransaksi({
+                        id: 0,
+                        noBukti: `BK-${tanggal.replace(/-/g, "")}-${String(count + 1).padStart(3, "0")}`,
+                        tanggal: tanggal,
+                        jam: "09:00",
+                        akun: akun,
+                        kategori: metode === "penarikan" ? "Penarikan Simpanan" : "Setoran Simpanan",
+                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} ${nama || anggotaFound.nama}`,
+                        debet: metode === "penarikan" ? 0 : jumlah,
+                        kredit: metode === "penarikan" ? jumlah : 0,
+                        saldo: 0,
+                        operator: "Admin",
+                      });
+                      
+                      count++;
+                    });
+                    
+                    alert(`Berhasil import ${count} transaksi simpanan!`);
+                  } catch (error) {
+                    alert("Gagal import data. Pastikan format Excel benar.");
+                  }
+                };
+                reader.readAsBinaryString(file);
+              }}
+              style={{ display: "none" }}
+              id="fileInputSimpanan"
+            />
+            <label htmlFor="fileInputSimpanan" style={{ cursor: "pointer", display: "block" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>📁</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "#1B4D3E" }}>Klik untuk upload file Excel</div>
+              <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
+            </label>
+          </div>
         </div>
       )}
 
