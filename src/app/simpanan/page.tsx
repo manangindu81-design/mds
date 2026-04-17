@@ -64,6 +64,20 @@ export default function SimpananPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const [importType, setImportType] = useState<"pokok" | "wajib">("wajib");
 
+  const formatDisplayDate = (date: string) => {
+    if (!date) return "-";
+    // If already in DD-MM-YYYY format, return as is
+    if (date.includes("-") && date.length === 10 && date.substring(0, 2).length === 2 && !isNaN(Number(date.substring(0, 2)))) {
+      return date;
+    }
+    // If in YYYY-MM-DD format, convert to DD-MM-YYYY
+    if (date.includes("-") && date.length === 10 && date.substring(0, 4).length === 4) {
+      const parts = date.split("-");
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return date;
+  };
+
   const validateForm = () => {
     const errors: Record<string, string> = {};
     if (!formData.nama.trim()) errors.nama = "Nama wajib diisi";
@@ -247,7 +261,7 @@ export default function SimpananPage() {
                 {simpanan.map((s, i) => (
                   <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 10 }}>{i + 1}</td>
-                    <td style={{ padding: 10 }}>{s.tanggal}</td>
+                    <td style={{ padding: 10 }}>{formatDisplayDate(s.tanggal)}</td>
                     <td style={{ padding: 10 }}>{s.nama}</td>
                     <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                     <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
@@ -499,7 +513,7 @@ export default function SimpananPage() {
                             const saldoSekarang = mutasi.slice(0, i + 1).reduce((sum, m) => sum + m.jumlah, 0);
                             return (
                               <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: 10 }}>{s.tanggal}</td>
+<td style={{ padding: 10 }}>{formatDisplayDate(s.tanggal)}</td>
                                 <td style={{ padding: 10, fontWeight: 500 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                                 <td style={{ padding: 10, textAlign: "right", color: "#22c55e" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
                                 <td style={{ padding: 10, textAlign: "right", fontWeight: 600 }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(saldoSekarang)}</td>
