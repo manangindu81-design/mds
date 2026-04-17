@@ -483,15 +483,7 @@ export default function AnggotaPage() {
                   "Kecamatan": "Cempaka Putih",
                   "Kota": "Jakarta Pusat",
                   "No HP": "081234567890",
-                  "Email": "budi@email.com",
                   "Pekerjaan": "PNS",
-                  "Tempat Kerja": "Kantor Wilayah",
-                  "Alamat Tempat Kerja": "Jl. Sudirman No. 50",
-                  "Status Pekerjaan": "Tetap",
-                  "Lama Bekerja": "5 Tahun",
-                  "Posisi/Jabatan": "Staff",
-                  "Pangkat": "Penata",
-                  "Golongan": "III/a",
                   "Pendapatan Perbulan": "5000000"
                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
