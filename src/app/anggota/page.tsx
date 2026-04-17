@@ -536,104 +536,6 @@ export default function AnggotaPage() {
             statusKeanggotaan: "Aktif",
           };
           addAnggota(newAnggota);
-          
-          const metode = row["Metode Pembayaran"] || "";
-          const metodeVal = metode.toLowerCase().includes("tunai") ? "tunai" : metode.toLowerCase().includes("bri") ? "bri" : metode.toLowerCase().includes("bpr") ? "bpr" : "tunai";
-          
-          const getAkun = () => {
-            if (metodeVal === "tunai") return "Kas";
-            if (metodeVal === "bri") return "Bank BRI Cab. Tigabinanga";
-            if (metodeVal === "bpr") return "Bank BPR Logo Asri";
-            return "Kas";
-          };
-          const akun = getAkun();
-          
-          const simpananPokok = row["Simpanan Pokok"] || "";
-          if (simpananPokok) {
-            addSimpanan({
-              id: 0,
-              idAnggota: newAnggota.id,
-              nama: newAnggota.nama,
-              nomorAnggota: newAnggota.nomorNBA,
-              tanggal: tglMasuk,
-              jenisSimpanan: "pokok",
-              jumlah: parseInt(String(simpananPokok).replace(/\.0$/, "")) || 100000,
-              metode: metodeVal,
-              bunga: 0,
-            });
-            
-            addTransaksi({
-              id: 0,
-              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-001`,
-              tanggal: tglMasuk,
-              jam: "09:00",
-              akun: akun,
-              kategori: "Setoran Simpanan Pokok",
-              uraian: `Simpanan Pokok ${newAnggota.nama}`,
-              debet: parseInt(String(simpananPokok).replace(/\.0$/, "")) || 100000,
-              kredit: 0,
-              saldo: 0,
-              operator: "Admin",
-            });
-          }
-          
-          const simpananWajib = row["Simpanan Wajib"] || "";
-          if (simpananWajib) {
-            addSimpanan({
-              id: 0,
-              idAnggota: newAnggota.id,
-              nama: newAnggota.nama,
-              nomorAnggota: newAnggota.nomorNBA,
-              tanggal: tglMasuk,
-              jenisSimpanan: "wajib",
-              jumlah: parseInt(String(simpananWajib).replace(/\.0$/, "")) || 25000,
-              metode: metodeVal,
-              bunga: 0,
-            });
-            
-            addTransaksi({
-              id: 0,
-              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-002`,
-              tanggal: tglMasuk,
-              jam: "09:01",
-              akun: akun,
-              kategori: "Setoran Simpanan Wajib",
-              uraian: `Simpanan Wajib ${newAnggota.nama}`,
-              debet: parseInt(simpananWajib.replace(/\.0$/, "")) || 25000,
-              kredit: 0,
-              saldo: 0,
-              operator: "Admin",
-            });
-          }
-          
-          const uangBuku = row["Uang Buku"] || row["Buku Tabungan"] || "";
-          if (uangBuku) {
-            addSimpanan({
-              id: 0,
-              idAnggota: newAnggota.id,
-              nama: newAnggota.nama,
-              nomorAnggota: newAnggota.nomorNBA,
-              tanggal: tglMasuk,
-              jenisSimpanan: "buku",
-              jumlah: parseInt(String(uangBuku).replace(/\.0$/, "")) || 25000,
-              metode: metodeVal,
-              bunga: 0,
-            });
-            
-            addTransaksi({
-              id: 0,
-              noBukti: `BK-${tglMasuk.replace(/-/g, "")}-003`,
-              tanggal: tglMasuk,
-              jam: "09:02",
-              akun: akun,
-              kategori: "Setoran Uang Buku",
-              uraian: `Uang Buku ${newAnggota.nama}`,
-              debet: parseInt(String(uangBuku).replace(/\.0$/, "")) || 25000,
-              kredit: 0,
-              saldo: 0,
-              operator: "Admin",
-            });
-          }
         });
         
         alert(`Berhasil import ${count} data anggota!`);
@@ -715,11 +617,7 @@ export default function AnggotaPage() {
                   "Posisi/Jabatan": "Staff",
                   "Pangkat": "Penata",
                   "Golongan": "III/a",
-                  "Pendapatan Perbulan": "5000000",
-                  "Simpanan Pokok": "100000",
-                  "Simpanan Wajib": "25000",
-                  "Buku Tabungan": "25000",
-                  "Metode Pembayaran": "Tunai"
+                  "Pendapatan Perbulan": "5000000"
                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
