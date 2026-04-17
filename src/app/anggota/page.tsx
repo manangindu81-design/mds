@@ -13,7 +13,7 @@ export default function AnggotaPage() {
   // Parse Excel date serial or string to DD-MM-YYYY
   const parseExcelDate = (value: any, defaultDate?: string): string => {
     if (value === undefined || value === null || value === "") {
-      return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+      return defaultDate || new Date().toISOString().split("T")[0];
     }
     
     // Check if it's a number (Excel serial date)
@@ -22,42 +22,42 @@ export default function AnggotaPage() {
       // Handle Excel serial number (starting from Dec 30, 1899)
       const excelEpoch = new Date(1899, 11, 30);
       const date = new Date(excelEpoch.getTime() + numValue * 24 * 60 * 60 * 1000);
-      return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     }
     
     // Handle string dates
     if (typeof value === "string") {
       const str = value.trim();
-      if (!str) return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+      if (!str) return defaultDate || new Date().toISOString().split("T")[0];
       
       // Check if it's a numeric string (like "45272")
       const numericStr = Number(str);
       if (!isNaN(numericStr)) {
         const excelEpoch = new Date(1899, 11, 30);
         const date = new Date(excelEpoch.getTime() + numericStr * 24 * 60 * 60 * 1000);
-        return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       }
       
       const parts = str.split(/[-/]/);
       if (parts.length === 3) {
         const [p1, p2, p3] = parts;
-        // Format DD-MM-YYYY -> DD-MM-YYYY
+        // Format DD-MM-YYYY -> YYYY-MM-DD
         if (str.includes("-") && p1.length <= 2 && p3.length === 4) {
-          return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
+          return `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
         }
-        // Format YYYY-MM-DD -> DD-MM-YYYY
+        // Format YYYY-MM-DD -> YYYY-MM-DD (already correct)
         if (str.includes("-") && p1.length === 4 && p3.length <= 2) {
-          return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
+          return `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
         }
-        // Format YYYY/MM/DD -> DD-MM-YYYY
+        // Format YYYY/MM/DD -> YYYY-MM-DD
         if (str.includes("/") && p1.length === 4) {
-          return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
+          return `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
         }
       }
       return str;
     }
     
-    return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+    return defaultDate || new Date().toISOString().split("T")[0];
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -65,6 +65,13 @@ export default function AnggotaPage() {
   
   const formatDate = (date: string) => {
     if (!date) return "";
+    // Handle YYYY-MM-DD format
+    if (date.includes("-") && date.length === 10) {
+      const parts = date.split("-");
+      if (parts[0].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
     const d = new Date(date);
     return `${String(d.getDate()).padStart(2, "0")}-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`;
   };
