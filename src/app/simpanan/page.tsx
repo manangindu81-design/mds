@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useData, Simpanan as SimpananType } from "../context/DataContext";
 
 const formatRupiah = (value: string) => value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const formatRupiahNum = (value: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
 
 const getJenisLabel = (jenis: string) => {
   const labels: Record<string, string> = {
@@ -18,9 +19,32 @@ const getJenisLabel = (jenis: string) => {
   return labels[jenis] || jenis;
 };
 
+const getAkunLabel = (metode: string) => {
+  const labels: Record<string, string> = {
+    tunai: "Kas",
+    "bri-tigabinanga": "Bank BRI Cab. Tigabinanga",
+    "bri-berastagi": "Bank BRI Cab. Berastagi",
+    "bpr-logo-asri": "Bank BPR Logo Asri",
+  };
+  return labels[metode] || "Kas";
+};
+
+const getKategoriSimpanan = (jenis: string) => {
+  switch (jenis) {
+    case "pokok": return "Setoran Simpanan Pokok";
+    case "wajib": return "Setoran Simpanan Wajib";
+    case "sibuhar": return "Setoran Sibuhar";
+    case "simapan": return "Setoran Simapan";
+    case "sihat": return "Setoran Sihat";
+    case "sihar": return "Setoran Sihar";
+    case "berjangka": return "Setoran Berjangka";
+    default: return "Setoran Anggota";
+  }
+};
+
 export default function SimpananPage() {
   const { simpanan, addSimpanan, addTransaksi, anggota } = useData();
-  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu">("input");
+  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu" | "jurnal">("input");
   const [selectedAnggota, setSelectedAnggota] = useState<number | "">(0);
   const [formData, setFormData] = useState({
     nama: "",
@@ -33,6 +57,10 @@ export default function SimpananPage() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [lastSavedTransaction, setLastSavedTransaction] = useState<{
+    noBukti: string; nama: string; jenisSimpanan: string; jumlah: number; metode: string; tanggal: string;
+  } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
