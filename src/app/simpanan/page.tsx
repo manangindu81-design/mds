@@ -267,7 +267,7 @@ export default function SimpananPage() {
             <button 
               onClick={() => {
                 const templateData = [{
-                  "No. NBA": "NBA-001",
+                  "No. NBA": "1",
                   "Nama Anggota": "Budi Santoso",
                   "Tanggal Transaksi": "15-01-2024",
                   "Jenis Pembayaran": "Tunai",
@@ -298,7 +298,7 @@ export default function SimpananPage() {
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>NBA-001</td>
+                  <td style={{ border: "1px solid #ddd", padding: 8 }}>1</td>
                   <td style={{ border: "1px solid #ddd", padding: 8 }}>Budi Santoso</td>
                   <td style={{ border: "1px solid #ddd", padding: 8 }}>15-01-2024</td>
                   <td style={{ border: "1px solid #ddd", padding: 8 }}>Tunai</td>
@@ -367,8 +367,12 @@ export default function SimpananPage() {
                         jumlah = parseInt(jmlRaw.replace(/\.0$/, "").replace(/[^0-9]/g, "")) || 0;
                       }
                       
-                      // Cari anggota berdasarkan No NBA
-                      const anggotaFound = anggota.find(a => (a as any).nomorNBA === noNBA);
+                      // Cari anggota berdasarkan No NBA (support format angka atau NBA-XXX)
+                      const noNBAString = String(noNBA);
+                      const anggotaFound = anggota.find(a => {
+                        const anggotaNBA = String((a as any).nomorNBA || "");
+                        return anggotaNBA === noNBAString || anggotaNBA === `NBA-${noNBAString.padStart(3, "0")}` || anggotaNBA === `NBA-${noNBAString}`;
+                      });
                       if (!anggotaFound) return;
                       
                       // Tentukan jenis simpanan berdasarkan metode - untuk penarikan gunakan jenis berbeda

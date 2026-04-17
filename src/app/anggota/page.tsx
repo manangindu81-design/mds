@@ -515,7 +515,7 @@ export default function AnggotaPage() {
               onClick={() => {
                 const templateData = [{
                   "Tanggal Masuk": "15-01-2023",
-                  "No. NBA": "NBA-001",
+                  "No. NBA": "1",
                   "Nama Anggota": "Budi Santoso",
                   "Nomor Identitas (KTP)": "1234567890123456",
                   "Tempat Lahir": "Jakarta",
