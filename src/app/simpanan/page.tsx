@@ -361,23 +361,35 @@ export default function SimpananPage() {
                       const nama = row["Nama Anggota"];
                       if (!noNBA && !nama) return;
                       
-                      // Parse tanggal
+                      // Parse tanggal - supports DD-MM-YYYY, YYYY-MM-DD, or Excel serial number
                       const tglRaw = row["Tanggal Transaksi"];
-                      let tanggal = new Date().toISOString().split("T")[0];
+                      let tanggal = "";
                       if (tglRaw) {
+                        // Check if it's an Excel serial number
                         const tglNum = Number(tglRaw);
-                        if (!isNaN(tglNum)) {
+                        if (!isNaN(tglNum) && typeof tglRaw !== "string") {
                           const excelEpoch = new Date(1899, 11, 30);
                           const date = new Date(excelEpoch.getTime() + tglNum * 24 * 60 * 60 * 1000);
                           tanggal = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
                         } else if (typeof tglRaw === "string") {
-                          const parts = tglRaw.split(/[-/]/);
+                          const str = tglRaw.trim();
+                          const parts = str.split(/[-/]/);
                           if (parts.length === 3) {
-                            if (tglRaw.includes("-") && parts[2].length === 4) {
-                              tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+                            const [p1, p2, p3] = parts;
+                            // Format DD-MM-YYYY or DD/MM/YYYY
+                            if (p1.length <= 2 && p3.length === 4) {
+                              tanggal = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
+                            }
+                            // Format YYYY-MM-DD or YYYY/MM/DD
+                            else if (p1.length === 4 && p3.length <= 2) {
+                              tanggal = `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
                             }
                           }
                         }
+                      }
+                      // If still empty, use current date
+                      if (!tanggal) {
+                        tanggal = new Date().toISOString().split("T")[0];
                       }
                       
                       // Parse metode pembayaran
