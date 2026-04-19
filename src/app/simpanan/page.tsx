@@ -472,7 +472,7 @@ export default function SimpananPage() {
               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
             </label>
           </div>
-        )}
+        )
 
       {activeTab === "hapus" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
@@ -609,6 +609,7 @@ export default function SimpananPage() {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }
