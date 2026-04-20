@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
@@ -9,6 +9,16 @@ export default function AnggotaPage() {
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("import");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredAnggota = useMemo(() => {
+    if (!searchQuery) return anggota;
+    const q = searchQuery.toLowerCase();
+    return anggota.filter(a => 
+      (a.nama && a.nama.toLowerCase().includes(q)) ||
+      ((a as any).nomorNBA && (a as any).nomorNBA.toLowerCase().includes(q)) ||
+      (a.nik && a.nik.includes(searchQuery))
+    );
+  }, [anggota, searchQuery]);
   
   // Parse Excel date serial or string to DD-MM-YYYY
   const parseExcelDate = (value: any, defaultDate?: string): string => {
@@ -838,8 +848,19 @@ Yakin ingin memproses?`;
       {activeTab === "daftar" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 16, marginBottom: 24 }}>Data Anggota</h3>
-          {anggota.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada anggota. Silakan tambah anggota baru.</div>
+          <div style={{ marginBottom: 16 }}>
+            <input 
+              type="text" 
+              placeholder="Cari berdasarkan No. NBA, Nama, atau NIK..." 
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              style={{ width: "100%", padding: 10, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }}
+            />
+          </div>
+          {filteredAnggota.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>
+              {searchQuery ? "Tidak ada anggota yang cocok dengan pencarian." : "Belum ada anggota. Silakan tambah anggota baru."}
+            </div>
           ) : (
             <>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -865,7 +886,7 @@ Yakin ingin memproses?`;
                 </tr>
               </thead>
 <tbody>
-                {anggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
+                {filteredAnggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
@@ -966,7 +987,7 @@ Yakin ingin memproses?`;
               </tbody>
             </table>
 
-            {anggota.length > 0 && (
+            {filteredAnggota.length > itemsPerPage && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
                 <button 
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -976,10 +997,10 @@ Yakin ingin memproses?`;
                   ← Prev
                 </button>
                 <span style={{ fontSize: 13, color: "#6b7280" }}>
-                  Halaman {currentPage} dari {Math.ceil(anggota.length / itemsPerPage)}
+                  Halaman {currentPage} dari {Math.ceil(filteredAnggota.length / itemsPerPage)}
                 </span>
                 <button 
-                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(anggota.length / itemsPerPage), p + 1))}
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredAnggota.length / itemsPerPage), p + 1))}
                   disabled={currentPage >= Math.ceil(anggota.length / itemsPerPage)}
                   style={{ padding: "8px 16px", background: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(anggota.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}
                 >
