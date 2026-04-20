@@ -10,22 +10,31 @@ export default function AnggotaPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
+  const [keluarSearch, setKeluarSearch] = useState("");
+  
   const filteredAnggota = useMemo(() => {
-    if (!searchQuery) return anggota;
+    if (!searchQuery) return anggota || [];
     const q = searchQuery.toLowerCase();
-    return anggota.filter(a => 
+    return (anggota || []).filter(a => 
       (a.nama && a.nama.toLowerCase().includes(q)) ||
       (a.nomorNBA && a.nomorNBA.toLowerCase().includes(q)) ||
       (a.nik && a.nik.includes(searchQuery))
     );
   }, [anggota, searchQuery]);
   
-  const aktifAnggota = useMemo(() => {
-    return filteredAnggota.filter(a => a.statusKeanggotaan !== "Non-Aktif");
-  }, [filteredAnggota]);
+  const filteredKeluar = useMemo(() => {
+    if (!keluarSearch) return (anggota || []).filter(a => a.statusKeanggotaan !== "Non-Aktif");
+    const q = keluarSearch.toLowerCase();
+    return (anggota || []).filter(a => 
+      a.statusKeanggotaan !== "Non-Aktif" &&
+      ((a.nama && a.nama.toLowerCase().includes(q)) ||
+      (a.nomorNBA && a.nomorNBA.toLowerCase().includes(q)) ||
+      (a.nik && a.nik.includes(keluarSearch)))
+    );
+  }, [anggota, keluarSearch]);
   
   const nonAktifAnggota = useMemo(() => {
-    return anggota.filter(a => a.statusKeanggotaan === "Non-Aktif");
+    return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
   }, [anggota]);
   
   // Parse Excel date serial or string to DD-MM-YYYY
@@ -866,20 +875,20 @@ Yakin ingin memproses?`;
             <input 
               type="text" 
               placeholder="Cari berdasarkan No. NBA, Nama, atau NIK..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={keluarSearch}
+              onChange={(e) => setKeluarSearch(e.target.value)}
               style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #dc2626", fontSize: 14 }}
             />
           </div>
 
-          {searchQuery && aktifAnggota.length === 0 && (
+          {keluarSearch && filteredKeluar.length === 0 && (
             <div style={{ textAlign: "center", padding: 32, background: "#fef2f2", borderRadius: 12, marginBottom: 20 }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
               <p style={{ color: "#991b1b", fontSize: 14 }}>Tidak ada anggota aktif yang cocok dengan pencarian.</p>
             </div>
           )}
 
-          {aktifAnggota.length > 0 && (
+          {filteredKeluar.length > 0 && (
             <div style={{ background: "#fef2f2", borderRadius: 12, padding: 20, marginBottom: 20, border: "2px solid #fecaca" }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 12 }}>
                 ⚠️ Perhatian - Proses Pengunduran Diri
@@ -894,8 +903,8 @@ Yakin ingin memproses?`;
           )}
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-            {aktifAnggota.map((a) => {
-              const aggSimpanan = simpanan.filter(s => s.idAnggota === a.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+            {filteredKeluar.map((a: typeof anggota[number]) => {
+              const aggSimpanan = (simpanan || []).filter(s => s.idAnggota === a.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
               const totalSimpanan = aggSimpanan.reduce((sum, s) => sum + s.jumlah, 0);
               const pokok = aggSimpanan.filter(s => s.jenisSimpanan === "pokok").reduce((sum, s) => sum + s.jumlah, 0);
               const wajib = aggSimpanan.filter(s => s.jenisSimpanan === "wajib").reduce((sum, s) => sum + s.jumlah, 0);
