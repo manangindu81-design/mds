@@ -62,7 +62,7 @@ export default function SimpananPage() {
     noBukti: string; nama: string; jenisSimpanan: string; jumlah: number; metode: string; tanggal: string;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
-  const [importType, setImportType] = useState<"pokok" | "wajib">("wajib");
+  const [importType, setImportType] = useState<"pokok" | "wajib" | "penarikan-pokok" | "penarikan-wajib">("wajib");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -288,30 +288,43 @@ export default function SimpananPage() {
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Simpanan dari Excel</h3>
           
-          <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
             <button 
               onClick={() => setImportType("pokok")}
               style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "pokok" ? "#1B4D3E" : "#e5e7eb", color: importType === "pokok" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
             >
-              🏦 Simpanan Pokok
+              🏦 Setoran Pokok
             </button>
             <button 
               onClick={() => setImportType("wajib")}
               style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "wajib" ? "#1B4D3E" : "#e5e7eb", color: importType === "wajib" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
             >
-              💰 Simpanan Wajib
+              💰 Setoran Wajib
+            </button>
+            <button 
+              onClick={() => setImportType("penarikan-pokok")}
+              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "penarikan-pokok" ? "#dc2626" : "#e5e7eb", color: importType === "penarikan-pokok" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+            >
+              ⬇️ Penarikan Pokok
+            </button>
+            <button 
+              onClick={() => setImportType("penarikan-wajib")}
+              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "penarikan-wajib" ? "#dc2626" : "#e5e7eb", color: importType === "penarikan-wajib" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+            >
+              ⬇️ Penarikan Wajib
             </button>
           </div>
 
           <div style={{ marginBottom: 24 }}>
             <button 
               onClick={() => {
+                const isPenarikan = importType.startsWith("penarikan");
                 const templateData = [{
                   "No. NBA": "1",
                   "Nama Anggota": "Budi Santoso",
                   "Tanggal Transaksi": "15-01-2024",
-                  "Jenis Pembayaran": "Tunai",
-                  "Jumlah Transaksi": importType === "pokok" ? 100000 : 25000
+                  "Jenis Pembayaran": isPenarikan ? "Penarikan" : "Tunai",
+                  "Jumlah Transaksi": importType === "pokok" || importType === "penarikan-pokok" ? 100000 : 25000
                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
@@ -460,10 +473,16 @@ export default function SimpananPage() {
                         return;
                       }
                       
+                      const isPenarikan = importType.startsWith("penarikan");
+                      const jenisSimpanan = isPenarikan ? importType.replace("penarikan-", "") : importType;
+                      
                       let metode = "tunai";
                       if (jenisBayar.toLowerCase().includes("tigabinanga")) metode = "bri-tigabinanga";
                       else if (jenisBayar.toLowerCase().includes("berastagi")) metode = "bri-berastagi";
                       else if (jenisBayar.toLowerCase().includes("tarik")) metode = "penarikan";
+                      
+                      const jumlahFinal = isPenarikan ? -jumlah : jumlah;
+                      const metodeFinal = isPenarikan ? "tunai" : metode;
                       
                       count++;
                       
@@ -473,16 +492,16 @@ export default function SimpananPage() {
                         nama: nama || anggotaFound.nama,
                         nomorAnggota: noNBA,
                         tanggal: tanggal,
-                        jenisSimpanan: importType,
-                        jumlah: jumlah,
-                        metode: metode,
+                        jenisSimpanan: jenisSimpanan,
+                        jumlah: jumlahFinal,
+                        metode: metodeFinal,
                         bunga: 0,
                       });
                       
-                      const akun = metode === "tunai" ? "Kas" : 
-                                   metode === "bri-tigabinanga" ? "Bank BRI Cab. Tigabinanga" :
-                                   metode === "bri-berastagi" ? "Bank BRI Cab. Berastagi" :
-                                   metode === "bpr-logo-asri" ? "Bank BPR Logo Asri" : "Kas";
+                      const akun = metodeFinal === "tunai" ? "Kas" : 
+                                   metodeFinal === "bri-tigabinanga" ? "Bank BRI Cab. Tigabinanga" :
+                                   metodeFinal === "bri-berastagi" ? "Bank BRI Cab. Berastagi" :
+                                   metodeFinal === "bpr-logo-asri" ? "Bank BPR Logo Asri" : "Kas";
                       
                       addTransaksi({
                         id: 0,
@@ -490,10 +509,10 @@ export default function SimpananPage() {
                         tanggal: tanggal,
                         jam: "09:00",
                         akun: akun,
-                        kategori: `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}`,
-                        uraian: `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)} ${nama || anggotaFound.nama}`,
-                        debet: jumlah,
-                        kredit: 0,
+                        kategori: isPenarikan ? `Penarikan Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}` : `Setoran Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}`,
+                        uraian: `${isPenarikan ? "Penarikan" : "Setoran"} Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)} ${nama || anggotaFound.nama}`,
+                        debet: isPenarikan ? 0 : jumlah,
+                        kredit: isPenarikan ? jumlah : 0,
                         saldo: 0,
                         operator: "Admin",
                       });
