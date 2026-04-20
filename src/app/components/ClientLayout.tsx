@@ -8,6 +8,7 @@ const formatRupiah = (num: number) => new Intl.NumberFormat("id-ID", { style: "c
 const navItems = [
   { label: "Beranda", href: "/", icon: "🏠" },
   { label: "Anggota", href: "/anggota", icon: "👥" },
+  { label: "Keluar", href: "/anggota-keluar", icon: "🚪" },
   { label: "Simpanan", href: "/simpanan", icon: "💰" },
   { label: "Pinjaman", href: "/pinjaman", icon: "🏦" },
   { label: "Transaksi", href: "/transaksi", icon: "💳" },
