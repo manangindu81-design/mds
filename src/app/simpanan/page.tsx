@@ -63,6 +63,8 @@ export default function SimpananPage() {
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [importType, setImportType] = useState<"pokok" | "wajib">("wajib");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -232,30 +234,38 @@ export default function SimpananPage() {
           {simpanan.length === 0 ? (
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada data simpanan.</div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "#f9fafb" }}>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tanggal</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
-                  <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Metode</th>
-                </tr>
-              </thead>
-              <tbody>
-                {simpanan.map((s, i) => (
-                  <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: 10 }}>{i + 1}</td>
-                    <td style={{ padding: 10 }}>{s.tanggal}</td>
-                    <td style={{ padding: 10 }}>{s.nama}</td>
-                    <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
-                    <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
-                    <td style={{ padding: 10 }}>{s.metode}</td>
+            <>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: "#f9fafb" }}>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tanggal</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
+                    <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Metode</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {simpanan.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((s, i) => (
+                    <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
+                      <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
+                      <td style={{ padding: 10 }}>{s.tanggal}</td>
+                      <td style={{ padding: 10 }}>{s.nama}</td>
+                      <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
+                      <td style={{ padding: 10 }}>{s.metode}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: "8px 16px", background: currentPage === 1 ? "#ddd" : "#1B4D3E", color: currentPage === 1 ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: 13 }}>← Prev</button>
+                <span style={{ padding: "8px 16px", fontSize: 13 }}>Halaman {currentPage} dari {Math.ceil(simpanan.length / itemsPerPage)}</span>
+                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(simpanan.length / itemsPerPage), p + 1))} disabled={currentPage >= Math.ceil(simpanan.length / itemsPerPage)} style={{ padding: "8px 16px", background: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}>Next →</button>
+              </div>
+            </>
           )}
         </div>
       )}
