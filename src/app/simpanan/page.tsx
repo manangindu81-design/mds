@@ -44,7 +44,7 @@ const getKategoriSimpanan = (jenis: string) => {
 };
 
 export default function SimpananPage() {
-  const { simpanan, addSimpanan, addTransaksi, anggota } = useData();
+  const { simpanan, addSimpanan, addTransaksi, anggota, deleteSimpanan } = useData();
   const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu" | "jurnal">("input");
   const [selectedAnggota, setSelectedAnggota] = useState<number | "">(0);
   const [formData, setFormData] = useState({
@@ -244,6 +244,7 @@ export default function SimpananPage() {
                     <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis</th>
                     <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jumlah</th>
                     <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Metode</th>
+                    <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,6 +256,19 @@ export default function SimpananPage() {
                       <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                       <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
                       <td style={{ padding: 10 }}>{s.metode}</td>
+                      <td style={{ padding: 10, textAlign: "center" }}>
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Yakin ingin menghapus simpanan "${s.nama}" sebesar Rp ${Number(s.jumlah).toLocaleString("id-ID")}?`)) {
+                              deleteSimpanan(s.id);
+                              alert("Data simpanan berhasil dihapus!");
+                            }
+                          }}
+                          style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                        >
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
