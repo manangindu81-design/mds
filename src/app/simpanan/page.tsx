@@ -210,9 +210,9 @@ export default function SimpananPage() {
               <select value={formData.metodePembayaran} onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
                 <option value="">Pilih metode</option>
                 <option value="tunai">Tunai</option>
-                <option value="bri-tigabinanga">Bank BRI Cab. Tigabinanga</option>
-                <option value="bri-berastagi">Bank BRI Cab. Berastagi</option>
-                <option value="bpr-logo-asri">Bank BPR Logo Asri</option>
+                <option value="bri-tigabinanga">Transfer BRI Cab. Tigabinanga</option>
+                <option value="bri-berastagi">Transfer BRI Cab. Berastagi</option>
+                <option value="penarikan">Penarikan</option>
               </select>
               {formErrors.metodePembayaran && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.metodePembayaran}</div>}
             </div>
