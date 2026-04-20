@@ -44,8 +44,8 @@ const getKategoriSimpanan = (jenis: string) => {
 };
 
 export default function SimpananPage() {
-  const { simpanan, addSimpanan, addTransaksi, anggota, deleteSimpanan, deleteAllSimpanan } = useData();
-  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "hapus" | "kartu" | "jurnal">("input");
+  const { simpanan, addSimpanan, addTransaksi, anggota } = useData();
+  const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu" | "jurnal">("input");
   const [selectedAnggota, setSelectedAnggota] = useState<number | "">(0);
   const [formData, setFormData] = useState({
     nama: "",
@@ -63,20 +63,6 @@ export default function SimpananPage() {
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const [importType, setImportType] = useState<"pokok" | "wajib">("wajib");
-
-  const formatDisplayDate = (date: string) => {
-    if (!date) return "-";
-    // If already in DD-MM-YYYY format, return as is
-    if (date.includes("-") && date.length === 10 && date.substring(0, 2).length === 2 && !isNaN(Number(date.substring(0, 2)))) {
-      return date;
-    }
-    // If in YYYY-MM-DD format, convert to DD-MM-YYYY
-    if (date.includes("-") && date.length === 10 && date.substring(0, 4).length === 4) {
-      const parts = date.split("-");
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return date;
-  };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -163,19 +149,18 @@ export default function SimpananPage() {
         <button onClick={() => setActiveTab("input")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "input" ? "#1B4D3E" : "transparent", color: activeTab === "input" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Input</button>
         <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({simpanan.length})</button>
         <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
-        <button onClick={() => setActiveTab("hapus")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "hapus" ? "#dc2626" : "transparent", color: activeTab === "hapus" ? "white" : "#dc2626", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>🗑️ Hapus</button>
-        <button onClick={() => setActiveTab("kartu")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "kartu" ? "#1B4D3E" : "transparent", color: activeTab === "kartu" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📒 Kartu</button>
+        <button onClick={() => setActiveTab("kartu")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "kartu" ? "#1B4D3E" : "transparent", color: activeTab === "kartu" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📒 Kartu Simpanan</button>
       </div>
 
       {activeTab === "input" && (
         <div>
-          {submitted && (
-          <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
-            ✓ Data simpanan berhasil disimpan!
-          </div>
-          )}
+        {submitted && (
+        <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+          ✓ Data simpanan berhasil disimpan!
+        </div>
+      )}
 
-          <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
         <form onSubmit={handleSubmit}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
             <div>
@@ -240,9 +225,9 @@ export default function SimpananPage() {
         </form>
         </div>
         </div>
-      )}
+        )}
 
-      {activeTab === "data" && (
+        {activeTab === "data" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           {simpanan.length === 0 ? (
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada data simpanan.</div>
@@ -262,7 +247,7 @@ export default function SimpananPage() {
                 {simpanan.map((s, i) => (
                   <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 10 }}>{i + 1}</td>
-                    <td style={{ padding: 10 }}>{formatDisplayDate(s.tanggal)}</td>
+                    <td style={{ padding: 10 }}>{s.tanggal}</td>
                     <td style={{ padding: 10 }}>{s.nama}</td>
                     <td style={{ padding: 10 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                     <td style={{ padding: 10, textAlign: "right" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
@@ -362,35 +347,23 @@ export default function SimpananPage() {
                       const nama = row["Nama Anggota"];
                       if (!noNBA && !nama) return;
                       
-                      // Parse tanggal - supports DD-MM-YYYY, YYYY-MM-DD, or Excel serial number
+                      // Parse tanggal
                       const tglRaw = row["Tanggal Transaksi"];
-                      let tanggal = "";
+                      let tanggal = new Date().toISOString().split("T")[0];
                       if (tglRaw) {
-                        // Check if it's an Excel serial number
                         const tglNum = Number(tglRaw);
-                        if (!isNaN(tglNum) && typeof tglRaw !== "string") {
+                        if (!isNaN(tglNum)) {
                           const excelEpoch = new Date(1899, 11, 30);
                           const date = new Date(excelEpoch.getTime() + tglNum * 24 * 60 * 60 * 1000);
                           tanggal = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
                         } else if (typeof tglRaw === "string") {
-                          const str = tglRaw.trim();
-                          const parts = str.split(/[-/]/);
+                          const parts = tglRaw.split(/[-/]/);
                           if (parts.length === 3) {
-                            const [p1, p2, p3] = parts;
-                            // Format DD-MM-YYYY or DD/MM/YYYY
-                            if (p1.length <= 2 && p3.length === 4) {
-                              tanggal = `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
-                            }
-                            // Format YYYY-MM-DD or YYYY/MM/DD
-                            else if (p1.length === 4 && p3.length <= 2) {
-                              tanggal = `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
+                            if (tglRaw.includes("-") && parts[2].length === 4) {
+                              tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
                             }
                           }
                         }
-                      }
-                      // If still empty, use current date
-                      if (!tanggal) {
-                        tanggal = new Date().toISOString().split("T")[0];
                       }
                       
                       // Parse metode pembayaran
@@ -472,64 +445,6 @@ export default function SimpananPage() {
               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
             </label>
           </div>
-        )
-
-      {activeTab === "hapus" && (
-        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-          <h3 style={{ fontSize: 18, marginBottom: 20, color: "#dc2626" }}>🗑️ Hapus Data Simpanan</h3>
-          
-          {simpanan.length === 0 ? (
-            <p style={{ color: "#6b7280", textAlign: "center" }}>Belum ada data simpanan.</p>
-          ) : (
-            <>
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ display: "block", fontWeight: 500, marginBottom: 8 }}>Pilih Data yang Akan Dihapus</label>
-                <select 
-                  id="hapusSimpanan"
-                  style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, background: "white" }}
-                >
-                  <option value="">-- Pilih --</option>
-                  {simpanan.map((s, i) => (
-                    <option key={s.id} value={s.id}>
-                      {i + 1}. {s.nama} - {getJenisLabel(s.jenisSimpanan)} - {formatDisplayDate(s.tanggal)} - Rp {Number(s.jumlah).toLocaleString("id-ID")}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div style={{ display: "flex", gap: 12 }}>
-                <button 
-                  onClick={() => {
-                    const select = document.getElementById("hapusSimpanan") as HTMLSelectElement;
-                    const id = Number(select.value);
-                    if (!id) {
-                      alert("Pilih data yang akan dihapus!");
-                      return;
-                    }
-                    if (confirm("Yakin ingin menghapus data simpanan ini?")) {
-                      deleteSimpanan(id);
-                      alert("Data berhasil dihapus!");
-                    }
-                  }}
-                  style={{ padding: "12px 24px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
-                >
-                  🗑️ Hapus
-                </button>
-                
-                <button 
-                  onClick={() => {
-                    if (confirm("Yakin ingin menghapus SEMUA data simpanan? Tindakan ini tidak bisa dibatalkan!")) {
-                      deleteAllSimpanan();
-                      alert("Semua data simpanan berhasil dihapus!");
-                    }
-                  }}
-                  style={{ padding: "12px 24px", background: "#7f1d1d", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
-                >
-                  ⚠️ Hapus Semua
-                </button>
-              </div>
-            </>
-          )}
         </div>
       )}
 
@@ -584,7 +499,7 @@ export default function SimpananPage() {
                             const saldoSekarang = mutasi.slice(0, i + 1).reduce((sum, m) => sum + m.jumlah, 0);
                             return (
                               <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
-<td style={{ padding: 10 }}>{formatDisplayDate(s.tanggal)}</td>
+                                <td style={{ padding: 10 }}>{s.tanggal}</td>
                                 <td style={{ padding: 10, fontWeight: 500 }}>{getJenisLabel(s.jenisSimpanan)}</td>
                                 <td style={{ padding: 10, textAlign: "right", color: "#22c55e" }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(s.jumlah)}</td>
                                 <td style={{ padding: 10, textAlign: "right", fontWeight: 600 }}>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(saldoSekarang)}</td>
@@ -609,7 +524,6 @@ export default function SimpananPage() {
           )}
         </div>
       )}
-    </div>
     </div>
   );
 }

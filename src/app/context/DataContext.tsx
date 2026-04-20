@@ -123,6 +123,9 @@ interface DataContextType {
   updateAnggota: (id: number, data: Partial<Anggota>) => void;
   deleteAnggota: (id: number) => void;
   clearAllData: () => void;
+  setSimpanan: React.Dispatch<React.SetStateAction<Simpanan[]>>;
+  deleteSimpanan: (id: number) => void;
+  deleteAllSimpanan: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
