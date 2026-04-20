@@ -400,9 +400,6 @@ export default function AnggotaPage() {
         
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
         
-        console.log("Total rows:", jsonData.length);
-        console.log("Sample row keys:", jsonData.length > 0 ? Object.keys(jsonData[0]) : []);
-        
         if (!jsonData || jsonData.length === 0) {
           alert("Tidak ada data di file Excel!");
           return;
@@ -417,36 +414,69 @@ export default function AnggotaPage() {
           return;
         }
         
+        const requiredColumns = ["Nama Anggota", "Nomor Identitas (KTP)"];
+        const foundColumns = Object.keys(sampleRow);
+        const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
+        
+        if (missingColumns.length > 0) {
+          alert(`Kolom wajib tidak ditemukan: ${missingColumns.join(", ")}\nKolom yang ada: ${foundColumns.join(", ")}`);
+          return;
+        }
+        
         let count = 0;
+        const errors: { row: number; nama: string; errors: string[] }[] = [];
+        
         jsonData.forEach((row: any, index: number) => {
-          // Skip empty rows
-          const nama = row["Nama Anggota"];
-          const nik = row["Nomor Identitas (KTP)"] || row["NIK"];
-          if (!nama && !nik) return;
+          const rowNum = index + 1;
+          const rowErrors: string[] = [];
           
-          count++;
+          const nama = String(row["Nama Anggota"] || "").trim();
+          const nik = String(row["Nomor Identitas (KTP)"] || row["NIK"] || "").replace(/\.0$/, "").trim();
+          const jk = String(row["Jenis Kelamin"] || "").trim();
+          const statusKawin = String(row["Status Perkawinan"] || "").trim();
           
-          // Get raw value from Excel
+          if (!nama) rowErrors.push("Nama Anggota wajib diisi");
+          if (!nik) rowErrors.push("Nomor Identitas (KTP) wajib diisi");
+          else if (nik.length < 16) rowErrors.push("NIK harus 16 digit");
+          
+          if (jk && !jk.toLowerCase().includes("laki") && !jk.toLowerCase().includes("peremp")) {
+            rowErrors.push("Jenis Kelamin harus 'Laki-laki' atau 'Perempuan'");
+          }
+          
+          if (statusKawin && !statusKawin.toLowerCase().includes("kawin") && !statusKawin.toLowerCase().includes("belum") && !statusKawin.toLowerCase().includes("cerai")) {
+            rowErrors.push("Status Perkawinan harus 'Kawin', 'Belum Kawin', atau 'Cerai'");
+          }
+          
+          if (rowErrors.length > 0) {
+            errors.push({ row: rowNum, nama: nama || "-", errors: rowErrors });
+            return;
+          }
+          
           const tglMasukRaw = row["Tanggal Masuk"];
           const tglLahirRaw = row["Tanggal Lahir"];
-          
-          // Always try to convert to number and parse as Excel date serial
           const tglMasuk = parseExcelDate(tglMasukRaw);
           const tglLahir = parseExcelDate(tglLahirRaw);
           
-          const noNBA = row["No. NBA"] || String(count);
-          const jk = row["Jenis Kelamin"] || "";
-          const statusKawin = row["Status Perkawinan"] || "";
+          if (!tglMasuk || tglMasuk === "-") rowErrors.push("Format Tanggal Masuk tidak valid (gunakan DD-MM-YYYY)");
+          if (!tglLahir || tglLahir === "-") rowErrors.push("Format Tanggal Lahir tidak valid (gunakan DD-MM-YYYY)");
           
+          if (rowErrors.length > 0) {
+            errors.push({ row: rowNum, nama: nama, errors: rowErrors });
+            return;
+          }
+          
+          count++;
+          
+          const noNBA = row["No. NBA"] || String(count);
           const newAnggota: AnggotaType = {
             id: count,
             nomorNBA: noNBA,
-            nik: String(row["Nomor Identitas (KTP)"] || "").replace(/\.0$/, ""),
-            nama: row["Nama Anggota"] || "",
+            nik: nik,
+            nama: nama,
             tempatLahir: row["Tempat Lahir"] || "",
             tanggalLahir: tglLahir,
-            jkelamin: jk.toLowerCase().includes("laki") ? "laki" : jk.toLowerCase().includes("peremp") ? "perempuan" : "",
-            status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : statusKawin.toLowerCase().includes("cerai") ? "cerai" : "",
+            jkelamin: jk.toLowerCase().includes("laki") ? "laki" : "perempuan",
+            status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
             namaPasangan: row["Nama Pasangan"] || "",
             jumlahAnak: row["Jumlah Anak"] || "",
             namaIbuKandung: row["Nama Ibu Kandung"] || "",
@@ -463,7 +493,16 @@ export default function AnggotaPage() {
           addAnggota(newAnggota);
         });
         
-        alert(`Berhasil import ${count} data anggota!`);
+        if (errors.length > 0) {
+          const errorMsg = errors.slice(0, 10).map(e => 
+            `Baris ${e.row}: ${e.nama} - ${e.errors.join(", ")}`
+          ).join("\n");
+          
+          const moreMsg = errors.length > 10 ? `\n...dan ${errors.length - 10} error lainnya` : "";
+          alert(`Import selesai dengan ${errors.length} error:\n\n${errorMsg}${moreMsg}\n\nData yang valid: ${count} berhasil diimport.`);
+        } else {
+          alert(`Berhasil import ${count} data anggota!`);
+        }
       } catch (error) {
         alert("Gagal import data. Pastikan format Excel benar.");
       }

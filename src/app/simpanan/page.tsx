@@ -337,19 +337,86 @@ export default function SimpananPage() {
                 reader.onload = (event) => {
                   try {
                     const data = event.target?.result;
+                    if (!data) {
+                      alert("File tidak terbaca!");
+                      return;
+                    }
+                    
                     const workbook = XLSX.read(data, { type: "binary" });
+                    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                      alert("Tidak ada sheet di file Excel!");
+                      return;
+                    }
+                    
                     const sheetName = workbook.SheetNames[0];
                     const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
                     
+                    if (!jsonData || jsonData.length === 0) {
+                      alert("Tidak ada data di file Excel!");
+                      return;
+                    }
+                    
+                    const sampleRow = jsonData[0] as Record<string, unknown>;
+                    const requiredColumns = ["No. NBA", "Nama Anggota", "Jumlah Transaksi"];
+                    const foundColumns = Object.keys(sampleRow);
+                    const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
+                    
+                    if (missingColumns.length > 0) {
+                      alert(`Kolom wajib tidak ditemukan: ${missingColumns.join(", ")}\nKolom yang ada: ${foundColumns.join(", ")}`);
+                      return;
+                    }
+                    
                     let count = 0;
-                    jsonData.forEach((row: any) => {
+                    const errors: { row: number; noNBA: string; nama: string; error: string }[] = [];
+                    
+                    jsonData.forEach((row: any, index: number) => {
+                      const rowNum = index + 1;
                       const noNBA = row["No. NBA"];
                       const nama = row["Nama Anggota"];
-                      if (!noNBA && !nama) return;
+                      const jmlRaw = row["Jumlah Transaksi"];
+                      const tglRaw = row["Tanggal Transaksi"];
+                      const jenisBayar = row["Jenis Pembayaran"] || "";
+                      
+                      if (!noNBA && !nama) {
+                        errors.push({ row: rowNum, noNBA: "-", nama: "-", error: "No. NBA dan Nama Anggota kosong" });
+                        return;
+                      }
+                      
+                      // Validate No NBA exists
+                      const noNBAString = String(noNBA);
+                      const anggotaFound = anggota.find(a => {
+                        const anggotaNBA = String((a as any).nomorNBA || "");
+                        return anggotaNBA === noNBAString || anggotaNBA === `NBA-${noNBAString.padStart(3, "0")}` || anggotaNBA === `NBA-${noNBAString}`;
+                      });
+                      
+                      if (!anggotaFound) {
+                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama || "-", error: "No. NBA tidak ditemukan di data anggota" });
+                        return;
+                      }
+                      
+                      // Validate jumlah
+                      let jumlah = 0;
+                      if (typeof jmlRaw === "number") {
+                        jumlah = jmlRaw;
+                      } else if (typeof jmlRaw === "string") {
+                        jumlah = parseInt(jmlRaw.replace(/\.0$/, "").replace(/[^0-9]/g, "")) || 0;
+                      }
+                      
+                      if (jumlah <= 0) {
+                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jumlah harus lebih dari 0" });
+                        return;
+                      }
+                      
+                      // Validate metode
+                      const validMetode = ["tunai", "tigabinanga", "berastagi", "bpr"];
+                      const metodeMatch = validMetode.find(m => jenisBayar.toLowerCase().includes(m));
+                      if (!metodeMatch && jenisBayar) {
+                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jenis Pembayaran tidak valid (pilih: Tunai, BRI Tigabinanga, BRI Berastagi, BPR)" });
+                        return;
+                      }
                       
                       // Parse tanggal
-                      const tglRaw = row["Tanggal Transaksi"];
-                      let tanggal = new Date().toISOString().split("T")[0];
+                      let tanggal = "";
                       if (tglRaw) {
                         const tglNum = Number(tglRaw);
                         if (!isNaN(tglNum)) {
@@ -358,41 +425,23 @@ export default function SimpananPage() {
                           tanggal = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
                         } else if (typeof tglRaw === "string") {
                           const parts = tglRaw.split(/[-/]/);
-                          if (parts.length === 3) {
-                            if (tglRaw.includes("-") && parts[2].length === 4) {
-                              tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-                            }
+                          if (parts.length === 3 && parts[2].length === 4) {
+                            tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
                           }
                         }
                       }
                       
-                      // Parse metode pembayaran
-                      const jenisBayar = row["Jenis Pembayaran"] || "";
+                      if (!tanggal) {
+                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Format Tanggal tidak valid (gunakan DD-MM-YYYY)" });
+                        return;
+                      }
+                      
                       let metode = "tunai";
                       if (jenisBayar.toLowerCase().includes("tigabinanga")) metode = "bri-tigabinanga";
                       else if (jenisBayar.toLowerCase().includes("berastagi")) metode = "bri-berastagi";
                       else if (jenisBayar.toLowerCase().includes("bpr")) metode = "bpr-logo-asri";
-                      else if (jenisBayar.toLowerCase().includes("tarik")) metode = "penarikan";
                       
-                      // Parse jumlah
-                      let jumlah = 0;
-                      const jmlRaw = row["Jumlah Transaksi"];
-                      if (typeof jmlRaw === "number") {
-                        jumlah = jmlRaw;
-                      } else if (typeof jmlRaw === "string") {
-                        jumlah = parseInt(jmlRaw.replace(/\.0$/, "").replace(/[^0-9]/g, "")) || 0;
-                      }
-                      
-                      // Cari anggota berdasarkan No NBA (support format angka atau NBA-XXX)
-                      const noNBAString = String(noNBA);
-                      const anggotaFound = anggota.find(a => {
-                        const anggotaNBA = String((a as any).nomorNBA || "");
-                        return anggotaNBA === noNBAString || anggotaNBA === `NBA-${noNBAString.padStart(3, "0")}` || anggotaNBA === `NBA-${noNBAString}`;
-                      });
-                      if (!anggotaFound) return;
-                      
-                      // Tentukan jenis simpanan - Import Simpanan Wajib
-                      const jenisSimpanan = metode === "penarikan" ? "penarikan" : importType;
+                      count++;
                       
                       addSimpanan({
                         id: 0,
@@ -400,13 +449,12 @@ export default function SimpananPage() {
                         nama: nama || anggotaFound.nama,
                         nomorAnggota: noNBA,
                         tanggal: tanggal,
-                        jenisSimpanan: jenisSimpanan,
-                        jumlah: metode === "penarikan" ? -jumlah : jumlah,
-                        metode: metode === "penarikan" ? "tunai" : metode,
+                        jenisSimpanan: importType,
+                        jumlah: jumlah,
+                        metode: metode,
                         bunga: 0,
                       });
                       
-                      // Buat jurnal
                       const akun = metode === "tunai" ? "Kas" : 
                                    metode === "bri-tigabinanga" ? "Bank BRI Cab. Tigabinanga" :
                                    metode === "bri-berastagi" ? "Bank BRI Cab. Berastagi" :
@@ -414,22 +462,29 @@ export default function SimpananPage() {
                       
                       addTransaksi({
                         id: 0,
-                        noBukti: `BK-${tanggal.replace(/-/g, "")}-${String(count + 1).padStart(3, "0")}`,
+                        noBukti: `BK-${tanggal.replace(/-/g, "")}-${String(count).padStart(3, "0")}`,
                         tanggal: tanggal,
                         jam: "09:00",
                         akun: akun,
-                        kategori: metode === "penarikan" ? `Penarikan Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}` : `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}`,
-                        uraian: `${metode === "penarikan" ? "Penarikan" : "Setoran"} Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)} ${nama || anggotaFound.nama}`,
-                        debet: metode === "penarikan" ? 0 : jumlah,
-                        kredit: metode === "penarikan" ? jumlah : 0,
+                        kategori: `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)}`,
+                        uraian: `Setoran Simpanan ${importType.charAt(0).toUpperCase() + importType.slice(1)} ${nama || anggotaFound.nama}`,
+                        debet: jumlah,
+                        kredit: 0,
                         saldo: 0,
                         operator: "Admin",
                       });
-                      
-                      count++;
                     });
                     
-                    alert(`Berhasil import ${count} transaksi simpanan!`);
+                    if (errors.length > 0) {
+                      const errorMsg = errors.slice(0, 10).map(e => 
+                        `Baris ${e.row} (${e.noNBA}): ${e.nama} - ${e.error}`
+                      ).join("\n");
+                      
+                      const moreMsg = errors.length > 10 ? `\n...dan ${errors.length - 10} error lainnya` : "";
+                      alert(`Import selesai dengan ${errors.length} error:\n\n${errorMsg}${moreMsg}\n\nData valid: ${count} berhasil diimport.`);
+                    } else {
+                      alert(`Berhasil import ${count} transaksi simpanan!`);
+                    }
                   } catch (error) {
                     alert("Gagal import data. Pastikan format Excel benar.");
                   }
