@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
 
@@ -48,7 +48,19 @@ export default function TransaksiPage() {
     referensi: "",
   });
   
-  const allTransaksi = [...transaksi];
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredTransaksi = useMemo(() => {
+    if (!searchQuery) return transaksi;
+    const q = searchQuery.toLowerCase();
+    return transaksi.filter(t => 
+      (t.noBukti && t.noBukti.toLowerCase().includes(q)) ||
+      (t.kategori && t.kategori.toLowerCase().includes(q)) ||
+      (t.uraian && t.uraian.toLowerCase().includes(q)) ||
+      (t.akun && t.akun.toLowerCase().includes(q))
+    );
+  }, [transaksi, searchQuery]);
+  
+  const allTransaksi = [...filteredTransaksi];
   const totalMasuk = allTransaksi.filter(t => (t.debet || 0) > 0).reduce((sum, t) => sum + (t.debet || 0), 0);
   const totalKeluar = allTransaksi.filter(t => (t.kredit || 0) > 0).reduce((sum, t) => sum + (t.kredit || 0), 0);
   const saldoKas = totalMasuk - totalKeluar;

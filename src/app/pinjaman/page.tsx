@@ -1,11 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
 
 export default function PinjamanPage() {
   const { anggota, pinjaman, angsuran, addPinjaman, addAngsuran, updatePinjaman, addTransaksi } = useData();
   const [activeTab, setActiveTab] = useState<"pencairan" | "daftar" | "angsuran">("pencairan");
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredPinjaman = useMemo(() => {
+    if (!searchQuery) return pinjaman;
+    const q = searchQuery.toLowerCase();
+    return pinjaman.filter(p => 
+      (p.nama && p.nama.toLowerCase().includes(q)) ||
+      (p.nomorAnggota && p.nomorAnggota.toLowerCase().includes(q)) ||
+      (p.jenisPinjaman && p.jenisPinjaman.toLowerCase().includes(q))
+    );
+  }, [pinjaman, searchQuery]);
   
   const [formData, setFormData] = useState({
     idAnggota: "",
@@ -410,10 +420,19 @@ export default function PinjamanPage() {
           {activeTab === "daftar" && (
             <div className="card" style={{ padding: 40 }}>
               <h3 style={{ fontSize: 18, marginBottom: 24 }}>Daftar Peminjam</h3>
-              {pinjaman.length === 0 ? <div style={{ textAlign: "center", padding: 48 }}><p>Belum ada peminjam.</p></div> : (
+              <div style={{ marginBottom: 16 }}>
+                <input 
+                  type="text" 
+                  placeholder="Cari berdasarkan Nama, No. Perjanjian, atau Jenis..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: "100%", padding: 10, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }}
+                />
+              </div>
+              {filteredPinjaman.length === 0 ? <div style={{ textAlign: "center", padding: 48 }}><p>{searchQuery ? "Tidak ada data yang cocok." : "Belum ada peminjam."}</p></div> : (
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                   <thead><tr><th>#</th><th>Nama</th><th>No. Perjanjian</th><th>Plafon</th><th>Outstanding</th><th>Tenor</th><th>Jatuh Tempo</th><th>Status</th></tr></thead>
-                  <tbody>{pinjaman.map((p, i) => (
+                  <tbody>{filteredPinjaman.map((p, i) => (
                     <tr key={p.id}><td>{i+1}</td><td>{p.nama}</td><td>{p.noPerjanjian || "-"}</td><td>{formatRupiahNum(p.jumlah)}</td><td style={{ color: "#e74c3c" }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td><td>{p.tenor} bln</td><td>{p.tanggalJatuhTempo || "-"}</td><td><span style={{ padding: "4px 8px", borderRadius: 12, fontSize: 11, background: p.status==="Disetujui"?"#d4edda":"#fff3cd" }}>{p.status}</span></td></tr>
                   ))}</tbody>
                 </table>
