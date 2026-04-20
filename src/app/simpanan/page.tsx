@@ -432,10 +432,10 @@ export default function SimpananPage() {
                       }
                       
                       // Validate metode
-                      const validMetode = ["tunai", "tigabinanga", "berastagi", "bpr"];
+                      const validMetode = ["tunai", "tigabinanga", "berastagi", "penarikan"];
                       const metodeMatch = validMetode.find(m => jenisBayar.toLowerCase().includes(m));
                       if (!metodeMatch && jenisBayar) {
-                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jenis Pembayaran tidak valid (pilih: Tunai, BRI Tigabinanga, BRI Berastagi, BPR)" });
+                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jenis Pembayaran tidak valid (pilih: Tunai, Transfer BRI Tigabinanga, Transfer BRI Berastagi, Penarikan)" });
                         return;
                       }
                       
@@ -463,7 +463,7 @@ export default function SimpananPage() {
                       let metode = "tunai";
                       if (jenisBayar.toLowerCase().includes("tigabinanga")) metode = "bri-tigabinanga";
                       else if (jenisBayar.toLowerCase().includes("berastagi")) metode = "bri-berastagi";
-                      else if (jenisBayar.toLowerCase().includes("bpr")) metode = "bpr-logo-asri";
+                      else if (jenisBayar.toLowerCase().includes("tarik")) metode = "penarikan";
                       
                       count++;
                       
