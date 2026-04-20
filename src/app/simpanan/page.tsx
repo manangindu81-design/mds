@@ -516,6 +516,22 @@ export default function SimpananPage() {
                         saldo: 0,
                         operator: "Admin",
                       });
+
+                      if (isPenarikan) {
+                        addTransaksi({
+                          id: 0,
+                          noBukti: `PD-${tanggal.replace(/-/g, "")}-${String(count).padStart(3, "0")}`,
+                          tanggal: tanggal,
+                          jam: "09:00",
+                          akun: "Pendapatan Pengunduran Diri Anggota",
+                          kategori: "Pendapatan Pengunduran Diri",
+                          uraian: `Pendapatan Pengunduran Diri ${nama || anggotaFound.nama}`,
+                          debet: 0,
+                          kredit: jumlah,
+                          saldo: 0,
+                          operator: "Admin",
+                        });
+                      }
                     });
                     
                     if (errors.length > 0) {
