@@ -20,6 +20,14 @@ export default function AnggotaPage() {
     );
   }, [anggota, searchQuery]);
   
+  const aktifAnggota = useMemo(() => {
+    return filteredAnggota.filter(a => (a as any).statusKeanggotaan !== "Non-Aktif");
+  }, [filteredAnggota]);
+  
+  const nonAktifAnggota = useMemo(() => {
+    return anggota.filter(a => (a as any).statusKeanggotaan === "Non-Aktif");
+  }, [anggota]);
+  
   // Parse Excel date serial or string to DD-MM-YYYY
   const parseExcelDate = (value: any, defaultDate?: string): string => {
     if (value === undefined || value === null || value === "") {
@@ -859,19 +867,19 @@ Yakin ingin memproses?`;
               type="text" 
               placeholder="Cari berdasarkan No. NBA, Nama, atau NIK..." 
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #dc2626", fontSize: 14 }}
             />
           </div>
 
-          {searchQuery && filteredAnggota.filter(a => (a as any).statusKeanggotaan !== "Non-Aktif").length === 0 && (
+          {searchQuery && aktifAnggota.length === 0 && (
             <div style={{ textAlign: "center", padding: 32, background: "#fef2f2", borderRadius: 12, marginBottom: 20 }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
               <p style={{ color: "#991b1b", fontSize: 14 }}>Tidak ada anggota aktif yang cocok dengan pencarian.</p>
             </div>
           )}
 
-          {filteredAnggota.filter(a => (a as any).statusKeanggotaan !== "Non-Aktif").length > 0 && (
+          {aktifAnggota.length > 0 && (
             <div style={{ background: "#fef2f2", borderRadius: 12, padding: 20, marginBottom: 20, border: "2px solid #fecaca" }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 12 }}>
                 ⚠️ Perhatian - Proses Pengunduran Diri
@@ -886,7 +894,7 @@ Yakin ingin memproses?`;
           )}
 
           <div style={{ maxHeight: 400, overflowY: "auto" }}>
-            {filteredAnggota.filter(a => (a as any).statusKeanggotaan !== "Non-Aktif").map((a) => {
+            {aktifAnggota.map((a) => {
               const aggSimpanan = simpanan.filter(s => s.idAnggota === a.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
               const totalSimpanan = aggSimpanan.reduce((sum, s) => sum + s.jumlah, 0);
               const pokok = aggSimpanan.filter(s => s.jenisSimpanan === "pokok").reduce((sum, s) => sum + s.jumlah, 0);
@@ -927,13 +935,13 @@ Yakin ingin memproses?`;
             })}
           </div>
 
-          {anggota.filter(a => (a as any).statusKeanggotaan === "Non-Aktif").length > 0 && (
+          {nonAktifAnggota.length > 0 && (
             <div style={{ marginTop: 32 }}>
               <h4 style={{ fontSize: 14, color: "#6b7280", marginBottom: 16, borderBottom: "1px solid #e5e7eb", paddingBottom: 8 }}>
-                Riwayat Anggota Non-Aktif ({anggota.filter(a => (a as any).statusKeanggotaan === "Non-Aktif").length})
+                Riwayat Anggota Non-Aktif ({nonAktifAnggota.length})
               </h4>
               <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                {anggota.filter(a => (a as any).statusKeanggotaan === "Non-Aktif").slice(0, 10).map((a) => (
+                {nonAktifAnggota.slice(0, 10).map((a) => (
                   <div key={a.id} style={{ padding: 10, borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "#6b7280" }}>{a.nama}</div>
