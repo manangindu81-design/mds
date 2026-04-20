@@ -67,3 +67,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-16 | Fix import Excel - skip empty rows, use counter instead of array index |
 | 2026-04-16 | Verify all menus connected to DataContext and synchronized |
 | 2026-04-17 | Add dashboard enhancements: Quick Actions, Trend Charts (Simpanan vs Pinjaman 6 bulan), Peringatan Jatuh Tempo (7 hari), Aktivitas Terbaru |
+| 2026-04-20 | Add search functionality to all pages (anggota, simpanan, pinjaman, transaksi) |
+| 2026-04-20 | Add Keluar tab for member resignation with auto simpanan withdrawal (Rp 50.000 fee) | |
