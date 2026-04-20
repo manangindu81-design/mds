@@ -838,6 +838,19 @@ export default function AnggotaPage() {
                           ✕
                         </button>
                       )}
+                      {editingId !== a.id && (
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Yakin ingin menghapus anggota "${a.nama}"?`)) {
+                              deleteAnggota(a.id);
+                              alert("Anggota berhasil dihapus!");
+                            }
+                          }}
+                          style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
+                        >
+                          🗑️
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
