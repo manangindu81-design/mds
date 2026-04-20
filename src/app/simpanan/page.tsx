@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useData, Simpanan as SimpananType } from "../context/DataContext";
 import * as XLSX from "xlsx";
 
@@ -65,6 +65,16 @@ export default function SimpananPage() {
   const [importType, setImportType] = useState<"pokok" | "wajib" | "penarikan-pokok" | "penarikan-wajib">("wajib");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredSimpanan = useMemo(() => {
+    if (!searchQuery) return simpanan;
+    const q = searchQuery.toLowerCase();
+    return simpanan.filter(s => 
+      (s.nama && s.nama.toLowerCase().includes(q)) ||
+      (s.nomorAnggota && s.nomorAnggota.toLowerCase().includes(q)) ||
+      (s.jenisSimpanan && s.jenisSimpanan.toLowerCase().includes(q))
+    );
+  }, [simpanan, searchQuery]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -235,6 +245,15 @@ export default function SimpananPage() {
             <div style={{ textAlign: "center", padding: 48, color: "#6b7280" }}>Belum ada data simpanan.</div>
           ) : (
             <>
+              <div style={{ marginBottom: 16 }}>
+                <input 
+                  type="text" 
+                  placeholder="Cari berdasarkan No. NBA, Nama, atau Jenis..." 
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                  style={{ width: "100%", padding: 10, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }}
+                />
+              </div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: "#f9fafb" }}>
@@ -248,7 +267,7 @@ export default function SimpananPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {simpanan.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((s, i) => (
+                  {filteredSimpanan.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((s, i) => (
                     <tr key={s.id} style={{ borderBottom: "1px solid #eee" }}>
                       <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
                       <td style={{ padding: 10 }}>{s.tanggal}</td>
@@ -274,11 +293,13 @@ export default function SimpananPage() {
                 </tbody>
               </table>
 
+              {filteredSimpanan.length > itemsPerPage && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: "8px 16px", background: currentPage === 1 ? "#ddd" : "#1B4D3E", color: currentPage === 1 ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: 13 }}>← Prev</button>
-                <span style={{ padding: "8px 16px", fontSize: 13 }}>Halaman {currentPage} dari {Math.ceil(simpanan.length / itemsPerPage)}</span>
-                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(simpanan.length / itemsPerPage), p + 1))} disabled={currentPage >= Math.ceil(simpanan.length / itemsPerPage)} style={{ padding: "8px 16px", background: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(simpanan.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}>Next →</button>
+                <span style={{ padding: "8px 16px", fontSize: 13 }}>Halaman {currentPage} dari {Math.ceil(filteredSimpanan.length / itemsPerPage)}</span>
+                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredSimpanan.length / itemsPerPage), p + 1))} disabled={currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage)} style={{ padding: "8px 16px", background: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}>Next →</button>
               </div>
+            )}
             </>
           )}
         </div>
