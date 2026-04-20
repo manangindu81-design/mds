@@ -5,7 +5,7 @@ import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
 
 export default function AnggotaPage() {
-  const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota } = useData();
+  const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota, simpanan } = useData();
   const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("import");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -62,6 +62,67 @@ export default function AnggotaPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<any>({});
+  
+  const handlePengunduran = (id: number) => {
+    const targetDate = prompt("Masukkan tanggal pengunduran diri (YYYY-MM-DD):", new Date().toISOString().split("T")[0]);
+    if (!targetDate) return;
+    
+    const agg = anggota.find(a => a.id === id);
+    if (!agg) return;
+    
+    if (!confirm(`Yakin "${agg.nama}" mengundurkan diri pada ${targetDate}?`)) return;
+    
+    updateAnggota(id, {
+      statusKeanggotaan: "Non-Aktif",
+      tanggalPengunduran: targetDate
+    });
+    
+    const aggSimpanan = simpanan.filter(s => s.idAnggota === id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+    
+    aggSimpanan.forEach((s, i) => {
+      addSimpanan({
+        id: 0,
+        idAnggota: id,
+        nama: agg.nama,
+        nomorAnggota: (agg as any).nomorNBA || "",
+        tanggal: targetDate,
+        jenisSimpanan: s.jenisSimpanan,
+        jumlah: -Math.abs(s.jumlah),
+        metode: "tunai",
+        bunga: 0,
+      });
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `PD-${targetDate.replace(/-/g, "")}-${String(i + 1).padStart(3, "0")}`,
+        tanggal: targetDate,
+        jam: "10:00",
+        akun: "Kas",
+        kategori: `Penarikan Simpanan ${s.jenisSimpanan.charAt(0).toUpperCase() + s.jenisSimpanan.slice(1)}`,
+        uraian: `Penarikan Simpanan ${s.jenisSimpanan} ${agg.nama}`,
+        debet: 0,
+        kredit: Math.abs(s.jumlah),
+        saldo: 0,
+        operator: "Admin",
+      });
+      
+      addTransaksi({
+        id: 0,
+        noBukti: `PP-${targetDate.replace(/-/g, "")}-${String(i + 1).padStart(3, "0")}`,
+        tanggal: targetDate,
+        jam: "10:00",
+        akun: "Pendapatan Pengunduran Diri Anggota",
+        kategori: "Pendapatan Pengunduran Diri",
+        uraian: `Pendapatan Pengunduran Diri ${agg.nama}`,
+        debet: 0,
+        kredit: Math.abs(s.jumlah),
+        saldo: 0,
+        operator: "Admin",
+      });
+    });
+    
+    alert(`Anggota "${agg.nama}" telah mengundurkan diri.\nSimpanan Pokok & Wajib sejumlah ${aggSimpanan.length} telah ditarik.`);
+  };
   
   // When editingId changes, populate editForm with the selected anggota data
   useEffect(() => {
@@ -836,6 +897,14 @@ export default function AnggotaPage() {
                           style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
                         >
                           ✕
+                        </button>
+)}
+                      {editingId !== a.id && (a as any).statusKeanggotaan !== "Non-Aktif" && (
+                        <button 
+                          onClick={() => handlePengunduran(a.id)}
+                          style={{ padding: "6px 12px", background: "#dc2626", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                        >
+                          🚫
                         </button>
                       )}
                       {editingId !== a.id && (

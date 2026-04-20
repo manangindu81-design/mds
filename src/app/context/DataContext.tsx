@@ -36,6 +36,7 @@ export interface Anggota {
   pendapatan?: string;
   tanggalJoin: string;
   statusKeanggotaan: string;
+  tanggalPengunduran?: string;
 }
 
 export interface Simpanan {
