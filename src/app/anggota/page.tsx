@@ -15,17 +15,17 @@ export default function AnggotaPage() {
     const q = searchQuery.toLowerCase();
     return anggota.filter(a => 
       (a.nama && a.nama.toLowerCase().includes(q)) ||
-      ((a as any).nomorNBA && (a as any).nomorNBA.toLowerCase().includes(q)) ||
+      (a.nomorNBA && a.nomorNBA.toLowerCase().includes(q)) ||
       (a.nik && a.nik.includes(searchQuery))
     );
   }, [anggota, searchQuery]);
   
   const aktifAnggota = useMemo(() => {
-    return filteredAnggota.filter(a => (a as any).statusKeanggotaan !== "Non-Aktif");
+    return filteredAnggota.filter(a => a.statusKeanggotaan !== "Non-Aktif");
   }, [filteredAnggota]);
   
   const nonAktifAnggota = useMemo(() => {
-    return anggota.filter(a => (a as any).statusKeanggotaan === "Non-Aktif");
+    return anggota.filter(a => a.statusKeanggotaan === "Non-Aktif");
   }, [anggota]);
   
   // Parse Excel date serial or string to DD-MM-YYYY
@@ -92,7 +92,7 @@ export default function AnggotaPage() {
     const totalSimpanan = aggSimpanan.reduce((sum, s) => sum + s.jumlah, 0);
     
     const confirmMsg = `anggota: ${agg.nama}
-No. NBA: ${(agg as any).nomorNBA || "-"}
+No. NBA: ${agg.nomorNBA || "-"}
 
 Simpanan Pokok: Rp ${aggSimpanan.filter(s => s.jenisSimpanan === "pokok").reduce((sum, s) => sum + s.jumlah, 0).toLocaleString("id-ID")}
 Simpanan Wajib: Rp ${aggSimpanan.filter(s => s.jenisSimpanan === "wajib").reduce((sum, s) => sum + s.jumlah, 0).toLocaleString("id-ID")}
@@ -114,7 +114,7 @@ Yakin ingin memproses?`;
         id: 0,
         idAnggota: id,
         nama: agg.nama,
-        nomorAnggota: (agg as any).nomorNBA || "",
+        nomorAnggota: agg.nomorNBA || "",
         tanggal: targetDate,
         jenisSimpanan: s.jenisSimpanan,
         jumlah: -Math.abs(s.jumlah),
@@ -783,7 +783,7 @@ Yakin ingin memproses?`;
                 }
                 const exportData = anggota.map(a => ({
                   "Tanggal Masuk": a.tanggalJoin,
-                  "No. NBA": (a as any).nomorNBA || "",
+                  "No. NBA": a.nomorNBA || "",
                   "Nama Anggota": a.nama,
                   "Nomor Identitas (KTP)": a.nik,
                   "Jenis Kelamin": a.jkelamin === "laki" ? "Laki-laki" : "Perempuan",
@@ -906,7 +906,7 @@ Yakin ingin memproses?`;
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 600, color: "#1f2937" }}>{a.nama}</div>
                       <div style={{ fontSize: 12, color: "#6b7280" }}>
-                        No. NBA: <span style={{ fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</span> | NIK: {(a as any).nik || "-"}
+                        No. NBA: <span style={{ fontFamily: "monospace" }}>{a.nomorNBA || "-"}</span> | NIK: {a.nik || "-"}
                       </div>
                     </div>
                     <button 
@@ -946,7 +946,7 @@ Yakin ingin memproses?`;
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "#6b7280" }}>{a.nama}</div>
                       <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                        {(a as any).nomorNBA || "-"} | Tanggal: {(a as any).tanggalPengunduran || "-"}
+                        {a.nomorNBA || "-"} | Tanggal: {a.tanggalPengunduran || "-"}
                       </div>
                     </div>
                     <span style={{ fontSize: 11, padding: "4px 8px", background: "#f3f4f6", borderRadius: 4, color: "#9ca3af" }}>
@@ -1005,18 +1005,18 @@ Yakin ingin memproses?`;
                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
-                    <td style={{ padding: 10, fontFamily: "monospace" }}>{(a as any).nomorNBA || "-"}</td>
+                    <td style={{ padding: 10, fontFamily: "monospace" }}>{a.nomorNBA || "-"}</td>
                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
                     <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{(a as any).namaPasangan || "-"}</td>
-                    <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{(a as any).jumlahAnak || "0"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.namaPasangan || "-"}</td>
+                    <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{a.jumlahAnak || "0"}</td>
                     <td style={{ padding: 10 }}>{a.telepon}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{(a as any).alamat || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{(a as any).namaSaudara || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{(a as any).hubungan || "-"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.alamat || "-"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.namaSaudara || "-"}</td>
+                    <td style={{ padding: 10, fontSize: 11 }}>{a.hubungan || "-"}</td>
                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan || "-"}</td>
                     <td style={{ padding: 10, fontSize: 11, textAlign: "right" }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
                     <td style={{ padding: 10, textAlign: "center" }}>
@@ -1043,12 +1043,12 @@ Yakin ingin memproses?`;
                               tanggalLahir: formatDate(String(a.tanggalLahir || "")),
                               jkelamin: String(a.jkelamin || ""),
                               status: String(a.status || ""),
-                              namaPasangan: String((a as any).namaPasangan || ""),
-                              jumlahAnak: String((a as any).jumlahAnak || ""),
-                              namaIbuKandung: String((a as any).namaIbuKandung || ""),
-                              namaSaudara: String((a as any).namaSaudara || ""),
-                              telpSaudara: String((a as any).telpSaudara || ""),
-                              hubungan: String((a as any).hubungan || ""),
+                              namaPasangan: String(a.namaPasangan || ""),
+                              jumlahAnak: String(a.jumlahAnak || ""),
+                              namaIbuKandung: String(a.namaIbuKandung || ""),
+                              namaSaudara: String(a.namaSaudara || ""),
+                              telpSaudara: String(a.telpSaudara || ""),
+                              hubungan: String(a.hubungan || ""),
                               pekerjaan: String(a.pekerjaan || ""),
                               alamat: String(a.alamat || ""),
                               telepon: String(a.telepon || ""),
@@ -1075,7 +1075,7 @@ Yakin ingin memproses?`;
                           ✕
                         </button>
 )}
-                      {editingId !== a.id && (a as any).statusKeanggotaan !== "Non-Aktif" && (
+                      {editingId !== a.id && a.statusKeanggotaan !== "Non-Aktif" && (
                         <button 
                           onClick={() => handlePengunduran(a.id)}
                           style={{ padding: "6px 12px", background: "#dc2626", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
