@@ -64,20 +64,32 @@ export default function AnggotaPage() {
   const [editForm, setEditForm] = useState<any>({});
   
   const handlePengunduran = (id: number) => {
-    const targetDate = prompt("Masukkan tanggal pengunduran diri (YYYY-MM-DD):", new Date().toISOString().split("T")[0]);
-    if (!targetDate) return;
+    const targetDate = new Date().toISOString().split("T")[0];
+    const biayaPengunduran = 50000;
     
     const agg = anggota.find(a => a.id === id);
     if (!agg) return;
     
-    if (!confirm(`Yakin "${agg.nama}" mengundurkan diri pada ${targetDate}?`)) return;
+    const aggSimpanan = simpanan.filter(s => s.idAnggota === id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+    const totalSimpanan = aggSimpanan.reduce((sum, s) => sum + s.jumlah, 0);
+    
+    const confirmMsg = `anggota: ${agg.nama}
+No. NBA: ${(agg as any).nomorNBA || "-"}
+
+Simpanan Pokok: Rp ${aggSimpanan.filter(s => s.jenisSimpanan === "pokok").reduce((sum, s) => sum + s.jumlah, 0).toLocaleString("id-ID")}
+Simpanan Wajib: Rp ${aggSimpanan.filter(s => s.jenisSimpanan === "wajib").reduce((sum, s) => sum + s.jumlah, 0).toLocaleString("id-ID")}
+Total Simpanan: Rp ${totalSimpanan.toLocaleString("id-ID")}
+
+Biaya Pengunduran Diri: Rp ${biayaPengunduran.toLocaleString("id-ID")}
+
+Yakin ingin memproses?`;
+    
+    if (!confirm(confirmMsg)) return;
     
     updateAnggota(id, {
       statusKeanggotaan: "Non-Aktif",
       tanggalPengunduran: targetDate
     });
-    
-    const aggSimpanan = simpanan.filter(s => s.idAnggota === id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
     
     aggSimpanan.forEach((s, i) => {
       addSimpanan({
@@ -121,7 +133,35 @@ export default function AnggotaPage() {
       });
     });
     
-    alert(`Anggota "${agg.nama}" telah mengundurkan diri.\nSimpanan Pokok & Wajib sejumlah ${aggSimpanan.length} telah ditarik.`);
+    addTransaksi({
+      id: 0,
+      noBukti: `BP-${targetDate.replace(/-/g, "")}-001`,
+      tanggal: targetDate,
+      jam: "10:00",
+      akun: "Kas",
+      kategori: "Biaya Pengunduran Diri",
+      uraian: `Biaya Pengunduran Diri ${agg.nama}`,
+      debet: biayaPengunduran,
+      kredit: 0,
+      saldo: 0,
+      operator: "Admin",
+    });
+    
+    addTransaksi({
+      id: 0,
+      noBukti: `BP-${targetDate.replace(/-/g, "")}-002`,
+      tanggal: targetDate,
+      jam: "10:00",
+      akun: "Pendapatan Pengunduran Diri Anggota",
+      kategori: "Pendapatan Pengunduran Diri",
+      uraian: `Biaya Pengunduran Diri ${agg.nama}`,
+      debet: 0,
+      kredit: biayaPengunduran,
+      saldo: 0,
+      operator: "Admin",
+    });
+    
+    alert(`Anggota "${agg.nama}" telah mengundurkan diri.\n\nSimpanan Pokok & Wajib: ${aggSimpanan.length} transaksi\nTotal Simpanan: Rp ${totalSimpanan.toLocaleString("id-ID")}\nBiaya Pengunduran: Rp ${biayaPengunduran.toLocaleString("id-ID")}`);
   };
   
   // When editingId changes, populate editForm with the selected anggota data
