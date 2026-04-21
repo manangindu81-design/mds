@@ -9,15 +9,22 @@ export default function AnggotaKeluarPage() {
   
   const filteredAnggota = useMemo(() => {
     const list = anggota || [];
-    if (!searchQuery) return list.filter(a => a.statusKeanggotaan !== "Non-Aktif");
-    const q = searchQuery.toLowerCase();
-    return list.filter(a => 
-      a.statusKeanggotaan !== "Non-Aktif" &&
-      ((a.nama && a.nama.toLowerCase().includes(q)) ||
-      (a.nomorNBA && a.nomorNBA.toLowerCase().includes(q)) ||
-      (a.nik && a.nik.includes(searchQuery)))
-    );
+    const q = searchQuery.toLowerCase().trim();
+    
+    if (!q) {
+      return list.filter((a: Anggota) => a.statusKeanggotaan !== "Non-Aktif");
+    }
+    
+    return list.filter((a: Anggota) => {
+      if (a.statusKeanggotaan === "Non-Aktif") return false;
+      const matchNama = a.nama && a.nama.toLowerCase().includes(q);
+      const matchNBA = a.nomorNBA && a.nomorNBA.toLowerCase().includes(q);
+      const matchNIK = a.nik && a.nik.includes(q);
+      return matchNama || matchNBA || matchNIK;
+    });
   }, [anggota, searchQuery]);
+  
+  const simpananList = useMemo(() => simpanan || [], [simpanan]);
   
   const nonAktifList = useMemo(() => {
     return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
@@ -173,7 +180,6 @@ Yakin ingin memproses?`;
 
         <div style={{ maxHeight: 400, overflowY: "auto" }}>
           {filteredAnggota.map((a: Anggota) => {
-            const simpananList = simpanan || [];
             const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === a.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
             const totalSimpanan = aggSimpanan.reduce((sum: number, s: any) => sum + s.jumlah, 0);
             const pokok = aggSimpanan.filter((s: any) => s.jenisSimpanan === "pokok").reduce((sum: number, s: any) => sum + s.jumlah, 0);
