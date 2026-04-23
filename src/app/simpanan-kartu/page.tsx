@@ -10,16 +10,19 @@ export default function SimpananKartuPage() {
 
   const anggotaList = useMemo(() => anggota || [], [anggota]);
 
-  const filteredAnggotaList = useMemo(() => {
-    if (!searchQuery.trim()) return anggotaList;
-    const q = searchQuery.toLowerCase().trim();
-    return anggotaList.filter((a: Anggota) => {
-      const matchNama = a.nama && a.nama.toLowerCase().includes(q);
-      const matchNBA = a.nomorNBA && a.nomorNBA.toLowerCase().includes(q);
-      const matchNIK = a.nik && a.nik.includes(q);
-      return matchNama || matchNBA || matchNIK;
-    });
-  }, [anggotaList, searchQuery]);
+   const filteredAnggotaList = useMemo(() => {
+     if (!searchQuery.trim()) return anggotaList;
+     const q = searchQuery.toLowerCase().trim();
+     return (anggotaList || []).filter((a: Anggota) => {
+       const nama = a.nama ? String(a.nama).toLowerCase() : "";
+       const nomorNBA = a.nomorNBA ? String(a.nomorNBA).toLowerCase() : "";
+       const nik = a.nik ? String(a.nik) : "";
+       const matchNama = nama.includes(q);
+       const matchNBA = nomorNBA.includes(q);
+       const matchNIK = nik.includes(q);
+       return matchNama || matchNBA || matchNIK;
+     });
+   }, [anggotaList, searchQuery]);
 
   const selectedAnggota = useMemo(() => {
     return anggotaList.find((a: Anggota) => a.id === selectedAnggotaId);
