@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useData, Anggota } from "../context/DataContext";
 
 export default function AnggotaKeluarPage() {
-  const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota } = useData();
+  const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota, deleteAnggota } = useData();
   const [searchQuery, setSearchQuery] = useState("");
-   const [manualMode, setManualMode] = useState(false);
-   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
-   const [manualInput, setManualInput] = useState("");
-   const [showDropdown, setShowDropdown] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
+  const [manualInput, setManualInput] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editTanggalKeluar, setEditTanggalKeluar] = useState("");
 
    const filteredAnggota = useMemo(() => {
      const list =anggota || [];
@@ -53,6 +55,20 @@ export default function AnggotaKeluarPage() {
   const nonAktifList = useMemo(() => {
     return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
   }, [anggota]);
+
+  // Handle edit tanggal pengunduran
+  const handleSaveEdit = (id: number) => {
+    if (!editTanggalKeluar.trim()) {
+      alert("Tanggal pengunduran wajib diisi!");
+      return;
+    }
+    updateAnggota(id, {
+      tanggalPengunduran: editTanggalKeluar
+    });
+    setEditingId(null);
+    setEditTanggalKeluar("");
+    alert("Tanggal pengunduran berhasil diperbarui!");
+  };
 
   const selectedMemberInfo = useMemo(() => {
     if (selectedAnggotaId <= 0) return null;
@@ -460,42 +476,93 @@ Yakin ingin memproses?`;
         </div>
       )}
 
-      {/* List of recently processed (non-active) members */}
-      {nonAktifList.length > 0 && (
-        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-          <h3 style={{ fontSize: 16, marginBottom: 20, color: "#6b7280" }}>
-            Riwayat Anggota Yang Telah Keluar ({nonAktifList.length})
-          </h3>
-          <div style={{ maxHeight: 300, overflowY: "auto" }}>
-            {nonAktifList.map((a: Anggota) => (
-              <div key={a.id} style={{
-                padding: 12,
-                borderBottom: "1px solid #f3f4f6",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#6b7280" }}>{a.nama}</div>
-                  <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                    {a.nomorNBA || "-"} | Tanggal: {a.tanggalPengunduran || "-"}
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: 11,
-                  padding: "4px 10px",
-                  background: "#fee2e2",
-                  borderRadius: 4,
-                  color: "#dc2626",
-                  fontWeight: 600
-                }}>
-                  Non-Aktif
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+       {/* List of recently processed (non-active) members */}
+       {nonAktifList.length > 0 && (
+         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+           <h3 style={{ fontSize: 16, marginBottom: 20, color: "#6b7280" }}>
+             Riwayat Anggota Yang Telah Keluar ({nonAktifList.length})
+           </h3>
+           <div style={{ maxHeight: 300, overflowY: "auto" }}>
+             {nonAktifList.map((a: Anggota) => (
+               <div key={a.id} style={{
+                 padding: 12,
+                 borderBottom: "1px solid #f3f4f6",
+                 display: "flex",
+                 justifyContent: "space-between",
+                 alignItems: "center"
+               }}>
+                 <div style={{ flex: 1 }}>
+                   <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937" }}>{a.nama}</div>
+                   <div style={{ fontSize: 11, color: "#6b7280" }}>
+                     {a.nomorNBA || "-"} | NIK: {a.nik}
+                   </div>
+                   {editingId === a.id ? (
+                     <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}>
+                       <input
+                         type="date"
+                         value={editTanggalKeluar}
+                         onChange={(e) => setEditTanggalKeluar(e.target.value)}
+                         style={{ padding: 6, borderRadius: 6, border: "2px solid #dc2626", fontSize: 12 }}
+                       />
+                       <button
+                         onClick={() => handleSaveEdit(a.id)}
+                         style={{ padding: "6px 12px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
+                       >
+                         💾 Simpan
+                       </button>
+                       <button
+                         onClick={() => { setEditingId(null); setEditTanggalKeluar(""); }}
+                         style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
+                       >
+                         ✕ Batal
+                       </button>
+                     </div>
+                   ) : (
+                     <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
+                       Tanggal keluar: {a.tanggalPengunduran || "Belum diisi"}
+                     </div>
+                   )}
+                 </div>
+                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                   <span style={{
+                     fontSize: 11,
+                     padding: "4px 10px",
+                     background: "#fee2e2",
+                     borderRadius: 4,
+                     color: "#dc2626",
+                     fontWeight: 600
+                   }}>
+                     Non-Aktif
+                   </span>
+                   {editingId !== a.id && (
+                     <>
+                       <button
+                         onClick={() => {
+                           setEditingId(a.id);
+                           setEditTanggalKeluar(a.tanggalPengunduran || "");
+                         }}
+                         style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
+                       >
+                         ✏️ Edit
+                       </button>
+                       <button
+                         onClick={() => {
+                           if (confirm(`Yakin menghapus anggota "${a.nama}"? Data tidak bisa dikembalikan.`)) {
+                             deleteAnggota(a.id);
+                           }
+                         }}
+                         style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
+                       >
+                         🗑️
+                       </button>
+                     </>
+                   )}
+                 </div>
+               </div>
+             ))}
+           </div>
+         </div>
+       )}
     </div>
   );
 }
