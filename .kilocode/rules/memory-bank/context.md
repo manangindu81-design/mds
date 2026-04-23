@@ -51,8 +51,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Dashboard sudah lengkap: Quick Actions, Trend Chart 6 bulan, Jatuh Tempo warnings, Aktivitas terbaru
 - Edit anggota berfungsi dengan baik
 - Import Excel anggota berfungsi dengan mapping kolom yang benar
-- Menu **Kartu Simpanan** menampilkan riwayat transaksi per anggota (real-time)
+- Menu **Kartu Simpanan** dengan pencarian anggota (No. NBA/Nama/NIK) dan riwayat transaksi real-time
 - Menu **Keluar** untuk pengunduran diri dengan withdrawal otomatis
+- Menu **SHU** dengan alokasi 9 kategori dan distribusi per anggota
 
 ## Riwayat Perubahan
 
