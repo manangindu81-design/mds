@@ -80,4 +80,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-23 | Upgrade Keluar page - dual mode (search + manual input by No. NBA) with live simpanan preview |
 | 2026-04-23 | Fix SHU calculation: aggregates from transaksi, angsuran (bunga/denda), and pinjaman admin fees; robust date parsing; non-zero results |
 | 2026-04-23 | Add selective delete feature: choose which simpanan types to delete (checkbox UI) in Data tab, avoiding full wipe |
-| 2026-04-23 | Enhance Excel import for anggota: normalize column names (space/underscore), snake_case template, auto-switch to Data tab after success, fix empty date rejection | |
+| 2026-04-23 | Enhance Excel import for anggota: normalize column names (space/underscore), snake_case template, auto-switch to Data tab after success, fix empty date rejection |
+| 2026-04-23 | Add missing Tempat Lahir column to anggota table and reorder columns to match Excel template layout; remove debug logs | |
