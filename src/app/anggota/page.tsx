@@ -521,37 +521,6 @@ Yakin ingin memproses?`;
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const parseExcelDate = (value: any): string | null => {
-      if (!value || value === "") return null;
-
-      if (typeof value === "number") {
-        const excelEpoch = new Date(1899, 11, 30);
-        const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
-        return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
-      }
-
-      if (typeof value === "string") {
-        const str = value.trim();
-        if (!str) return null;
-
-        const parts = str.split(/[-/]/);
-        if (parts.length === 3) {
-          const [p1, p2, p3] = parts;
-          // DD-MM-YYYY or DD/MM/YYYY
-          if (p1.length <= 2 && p3.length === 4) {
-            return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
-          }
-          // YYYY-MM-DD or YYYY/MM/DD -> convert to DD-MM-YYYY
-          if (p1.length === 4 && p3.length <= 2) {
-            return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
-          }
-        }
-        return str;
-      }
-
-      return null;
-    };
-
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -763,6 +732,7 @@ Yakin ingin memproses?`;
         });
 
         alert(`✅ Berhasil import ${validRows.length} data anggota!`);
+        setActiveTab("data"); // Switch to Data tab to show imported members
 
       } catch (error) {
         console.error("Import error:", error);
@@ -791,8 +761,9 @@ Yakin ingin memproses?`;
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota dari Excel</h3>
           <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
-            Upload file Excel dengan format kolom:<br/>
-            Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Agama, No HP, Alamat KTP, Alamat Domisili, Status Perkawinan, Nama Pasangan, Jumlah Anak, Nama Ibu Kandung, Nama Saudara Tidak Serumah, No HP Saudara, Pekerjaan, Pendapatan Perbulan, Status Rumah, Nama Referensi
+            Upload file Excel dengan format kolom (gunakan spasi atau underscore, contoh: &quot;nama_pasangan&quot; atau &quot;nama pasangan&quot;):<br/>
+            <strong>Wajib:</strong> Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Status Perkawinan, Alamat KTP, No HP, Pekerjaan, Pendapatan Perbulan<br/>
+            <strong>Opsional:</strong> Nama_Pasangan, Jumlah_Anak, Nama_Ibu_Kandung, Nama_Saudara_Tidak_Serumah, No_HP_Saudara, Hubungan_Saudara
           </p>
           
           <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center", marginBottom: 20 }}>
@@ -812,7 +783,7 @@ Yakin ingin memproses?`;
           </div>
 
           <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
-            <button 
+            <button
               onClick={() => {
                 const templateData = [{
                   "Tanggal Masuk": "15-01-2023",
@@ -823,16 +794,16 @@ Yakin ingin memproses?`;
                   "Tanggal Lahir": "20-05-1990",
                   "Jenis Kelamin": "Laki-laki",
                   "Status Perkawinan": "Kawin",
-                  "Nama Pasangan": "Siti Aminah",
-                  "Jumlah Anak": "2",
-                  "Nama Ibu Kandung": "Hj. Mariam",
-                  "Nama Saudara Tidak Serumah": "Ahmad",
-                  "No HP Saudara": "081234567891",
-                  "Hubungan Saudara": "Adik",
-                  "Alamat KTP": "Jl. Merdeka No. 10",
+                  "Nama_Pasangan": "Siti Aminah",
+                  "Jumlah_Anak": "2",
+                  "Nama_Ibu_Kandung": "Hj. Mariam",
+                  "Nama_Saudara_Tidak_Serumah": "Ahmad",
+                  "No_HP_Saudara": "081234567891",
+                  "Hubungan_Saudara": "Adik",
+                  "Alamat_KTP": "Jl. Merdeka No. 10",
                   "No HP": "081234567890",
                   "Pekerjaan": "PNS",
-                  "Pendapatan Perbulan": "5000000"
+                  "Pendapatan_Perbulan": "5000000"
                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
