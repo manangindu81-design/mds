@@ -3,6 +3,26 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
 
+// SHU Allocation categories with percentages
+const SHU_ALLOCATIONS = [
+  { key: "cadangan_umum", label: "Dana Cadangan Umum", percentage: 5 },
+  { key: "cadangan_resiko", label: "Dana Cadangan Resiko", percentage: 5 },
+  { key: "jasa_modal", label: "Jasa Modal", percentage: 55 },
+  { key: "jasa_transaksi", label: "Jasa Transaksi", percentage: 20 },
+  { key: "pengurus_pengawas", label: "Dana Pengurus/Pengawas", percentage: 5 },
+  { key: "kesejahteraan_karyawan", label: "Dana Kesejahteraan Karyawan", percentage: 5 },
+  { key: "pendidikan", label: "Dana Pendidikan", percentage: 2 },
+  { key: "sosial", label: "Dana Sosial", percentage: 2 },
+  { key: "pembangunan_daerah", label: "Dana Pembangunan Daerah Kerja", percentage: 1 },
+] as const;
+
+interface AllocationBreakdown {
+  category: string;
+  label: string;
+  percentage: number;
+  amount: number;
+}
+
 export default function SHUPage() {
   const { anggota, simpanan, transaksi } = useData();
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -68,12 +88,39 @@ export default function SHUPage() {
     };
   }, [selectedYear, transaksi]);
 
-  const shuDistribution = useMemo(() => {
+  // Calculate SHU allocation breakdown
+  const allocationBreakdown = useMemo((): AllocationBreakdown[] => {
+    const shuBersih = shuCalculation.shuBersih;
+    if (shuBersih <= 0) {
+      return SHU_ALLOCATIONS.map(alloc => ({
+        category: alloc.key,
+        label: alloc.label,
+        percentage: alloc.percentage,
+        amount: 0
+      }));
+    }
+    return SHU_ALLOCATIONS.map(alloc => ({
+      category: alloc.key,
+      label: alloc.label,
+      percentage: alloc.percentage,
+      amount: Math.round(shuBersih * (alloc.percentage / 100))
+    }));
+  }, [shuCalculation.shuBersih]);
+
+  // Calculate Jasa Modal & Jasa Transaksi distribution to members (75% of SHU)
+  const jasaDistribution = useMemo(() => {
     if (!anggota || anggota.length === 0) return [];
     
     const anggotaList = anggota || [];
     const simpananList = simpanan || [];
     
+    // Jasa Modal (55%) + Jasa Transaksi (20%) = 75%
+    const totalJasa = allocationBreakdown
+      .filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi")
+      .reduce((sum, a) => sum + a.amount, 0);
+
+    if (totalJasa <= 0) return [];
+
     // Calculate total simpanan per anggota
     const anggotaSimpananMap = new Map<number, number>();
     
@@ -85,14 +132,13 @@ export default function SHUPage() {
     });
 
     const totalSimpananSemua = Array.from(anggotaSimpananMap.values()).reduce((sum, val) => sum + val, 0);
-    const shuBersih = shuCalculation.shuBersih;
 
     const distribution: any[] = [];
-    if (totalSimpananSemua > 0 && shuBersih > 0) {
+    if (totalSimpananSemua > 0) {
       anggotaList.forEach((a: any) => {
         const simpananAnggota = anggotaSimpananMap.get(a.id) || 0;
         const proporsi = simpananAnggota / totalSimpananSemua;
-        const shuAnggota = Math.round(shuBersih * proporsi);
+        const shuAnggota = Math.round(totalJasa * proporsi);
         const persentase = proporsi * 100;
 
         distribution.push({
@@ -102,13 +148,15 @@ export default function SHUPage() {
           simpanan: simpananAnggota,
           proporsi,
           persentase,
-          shuAnggota
+          shuAnggota,
+          jasaModal: Math.round(shuAnggota * (55/75)),  // 55/75 = 73.33% of jasa
+          jasaTransaksi: Math.round(shuAnggota * (20/75)) // 20/75 = 26.67% of jasa
         });
       });
     }
 
     return distribution.sort((a, b) => b.shuAnggota - a.shuAnggota);
-  }, [anggota, simpanan, shuCalculation.shuBersih]);
+  }, [anggota, simpanan, allocationBreakdown]);
 
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
@@ -201,20 +249,109 @@ export default function SHUPage() {
           borderRadius: 12,
           textAlign: "center"
         }}>
-          <div style={{ fontSize: 13, opacity: 0.9 }}>SHU Bersih (Didistribusikan ke Anggota)</div>
+          <div style={{ fontSize: 13, opacity: 0.9 }}>SHU Bersih (Didistribusikan)</div>
           <div style={{ fontSize: 32, fontWeight: 700, marginTop: 4 }}>
             {formatRupiah(shuCalculation.shuBersih)}
           </div>
         </div>
       </div>
 
-      {/* SHU Distribution Table */}
+      {/* SHU Allocation Breakdown */}
+      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
+        <h3 style={{ fontSize: 18, color: "#1B4D3E", marginBottom: 24 }}>
+          📈 Alokasi SHU {selectedYear}
+        </h3>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          {allocationBreakdown.map((alloc) => (
+            <div key={alloc.category} style={{
+              background: alloc.category === "jasa_modal" || alloc.category === "jasa_transaksi" 
+                ? "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)"
+                : "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+              padding: 20,
+              borderRadius: 12,
+              border: `2px solid ${alloc.category === "jasa_modal" ? "#f59e0b" : alloc.category === "jasa_transaksi" ? "#3b82f6" : "#e5e7eb"}`,
+              position: "relative"
+            }}>
+              <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                {alloc.label}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#1B4D3E", marginBottom: 4 }}>
+                {formatRupiah(alloc.amount)}
+              </div>
+              <div style={{
+                display: "inline-block",
+                padding: "4px 12px",
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                background: alloc.category === "jasa_modal" || alloc.category === "jasa_transaksi"
+                  ? "#f59e0b"
+                  : "#1B4D3E",
+                color: "white"
+              }}>
+                {alloc.percentage}%
+              </div>
+              {alloc.category === "jasa_modal" || alloc.category === "jasa_transaksi" ? (
+                <div style={{ fontSize: 10, color: "#92400e", marginTop: 6 }}>
+                  {alloc.category === "jasa_modal" 
+                    ? "Distribusi ke anggota berdasarkan simpanan"
+                    : "Distribusi ke anggota berdasarkan transaksi"
+                  }
+                </div>
+              ) : (
+                <div style={{ fontSize: 10, color: "#6b7280", marginTop: 6 }}>
+                  Cadangan KSP
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Summary */}
+        <div style={{
+          marginTop: 24,
+          padding: 20,
+          background: "#f0f9ff",
+          borderRadius: 12,
+          border: "2px solid #1B4D3E"
+        }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, textAlign: "center" }}>
+            <div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Jasa ke Anggota</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#059669" }}>
+                {formatRupiah(allocationBreakdown.filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
+                <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
+                  (Jasa Modal 55% + Jasa Transaksi 20%)
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Cadangan & Dana</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#dc2626" }}>
+                {formatRupiah(allocationBreakdown.filter(a => a.category !== "jasa_modal" && a.category !== "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
+                <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
+                  (7 kategori: 25%)
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total SHU Bersih</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#1B4D3E" }}>
+                {formatRupiah(shuCalculation.shuBersih)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SHU Distribution to Members - Only Jasa Modal & Jasa Transaksi */}
       <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <div>
-            <h3 style={{ fontSize: 18, color: "#1B4D3E", marginBottom: 4 }}>📋 Distribusi SHU per Anggota</h3>
+            <h3 style={{ fontSize: 18, color: "#1B4D3E", marginBottom: 4 }}>📋 Distribusi Jasa ke Anggota</h3>
             <p style={{ fontSize: 12, color: "#6b7280" }}>
-              Berdasarkan proporsi saldo simpanan (Pokok + Wajib) hingga {selectedYear}
+              Berdasarkan proporsi saldo simpanan (Pokok + Wajib) - Total Jasa 75% dari SHU
             </p>
           </div>
           <div style={{ 
@@ -225,11 +362,11 @@ export default function SHUPage() {
             fontWeight: 600,
             color: "#92400e"
           }}>
-            Total: {formatRupiah(shuCalculation.shuBersih)}
+            Total Jasa: {formatRupiah(allocationBreakdown.filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
           </div>
         </div>
 
-        {shuDistribution.length > 0 ? (
+        {jasaDistribution.length > 0 ? (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
@@ -239,11 +376,13 @@ export default function SHUPage() {
                   <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama Anggota</th>
                   <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Saldo Simpanan</th>
                   <th style={{ padding: 12, textAlign: "center", borderBottom: "2px solid #ddd" }}>Proporsi</th>
-                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>SHU</th>
+                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jasa Modal (55%)</th>
+                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jasa Transaksi (20%)</th>
+                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Total Jasa</th>
                 </tr>
               </thead>
               <tbody>
-                {shuDistribution.map((item, index) => (
+                {jasaDistribution.map((item: any, index: number) => (
                   <tr key={item.id} style={{ borderBottom: "1px solid #eee" }}>
                     <td style={{ padding: 12, color: "#6b7280", fontSize: 12 }}>{index + 1}</td>
                     <td style={{ padding: 12, fontFamily: "monospace", fontSize: 12, color: "#1B4D3E" }}>
@@ -267,6 +406,12 @@ export default function SHUPage() {
                         {item.persentase.toFixed(2)}%
                       </span>
                     </td>
+                    <td style={{ padding: 12, textAlign: "right", fontWeight: 600, color: "#059669" }}>
+                      {formatRupiah(item.jasaModal)}
+                    </td>
+                    <td style={{ padding: 12, textAlign: "right", fontWeight: 600, color: "#3b82f6" }}>
+                      {formatRupiah(item.jasaTransaksi)}
+                    </td>
                     <td style={{ padding: 12, textAlign: "right", fontWeight: 700, color: "#1B4D3E", fontSize: 14 }}>
                       {formatRupiah(item.shuAnggota)}
                     </td>
@@ -277,13 +422,19 @@ export default function SHUPage() {
                 <tr style={{ background: "#f0f9ff", fontWeight: 600 }}>
                   <td colSpan={3} style={{ padding: 12, textAlign: "right" }}>TOTAL</td>
                   <td style={{ padding: 12, textAlign: "right", color: "#059669" }}>
-                    {formatRupiah(shuDistribution.reduce((sum, item) => sum + item.simpanan, 0))}
+                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + item.simpanan, 0))}
                   </td>
                   <td style={{ padding: 12, textAlign: "center" }}>
                     100%
                   </td>
+                  <td style={{ padding: 12, textAlign: "right", color: "#059669" }}>
+                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + (item.jasaModal || 0), 0))}
+                  </td>
+                  <td style={{ padding: 12, textAlign: "right", color: "#3b82f6" }}>
+                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + (item.jasaTransaksi || 0), 0))}
+                  </td>
                   <td style={{ padding: 12, textAlign: "right", color: "#1B4D3E", fontSize: 16 }}>
-                    {formatRupiah(shuDistribution.reduce((sum, item) => sum + item.shuAnggota, 0))}
+                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + item.shuAnggota, 0))}
                   </td>
                 </tr>
               </tfoot>
@@ -292,9 +443,9 @@ export default function SHUPage() {
         ) : (
           <div style={{ textAlign: "center", padding: 64, background: "#f9fafb", borderRadius: 12 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
-            <p style={{ color: "#6b7280", fontSize: 14 }}>Tidak ada data SHU untuk tahun {selectedYear}.</p>
+            <p style={{ color: "#6b7280", fontSize: 14 }}>Tidak ada data distribusi Jasa untuk tahun {selectedYear}.</p>
             <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 8 }}>
-              Belum ada transaksi pendapatan/beban di tahun tersebut.
+              SHU Bersih harus lebih dari 0 dan ada anggota dengan simpanan.
             </p>
           </div>
         )}
@@ -303,15 +454,30 @@ export default function SHUPage() {
       {/* Info Box */}
       <div style={{ background: "#f0f9ff", borderRadius: 16, padding: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginTop: 24 }}>
         <h4 style={{ fontSize: 14, marginBottom: 12, color: "#1e40af" }}>
-          ℹ️ Cara Perhitungan SHU
+          ℹ️ Cara Perhitungan & Alokasi SHU
         </h4>
-        <ul style={{ fontSize: 12, color: "#6b7280", marginLeft: 20, lineHeight: 1.8 }}>
-          <li><strong>Total Pendapatan</strong> = Bunga Pinjaman + Admin/Denda/Biaya Lain (dari transaksi tahun {selectedYear})</li>
-          <li><strong>Total Beban</strong> = Biaya operasional KSP (dari akun beban)</li>
-          <li><strong>SHU Bersih</strong> = Total Pendapatan - Total Beban</li>
-          <li><strong>Proporsi anggota</strong> = Saldo Simpanan (Pokok + Wajib) masing-masing / Total Simpanan Semua Anggota</li>
-          <li><strong>SHU per anggota</strong> = SHU Bersih × Proporsi Anggota</li>
-        </ul>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+          <div>
+            <strong style={{ fontSize: 12, display: "block", marginBottom: 8 }}>Perhitungan SHU:</strong>
+            <ul style={{ fontSize: 12, color: "#6b7280", marginLeft: 20, lineHeight: 1.8 }}>
+              <li><strong>Total Pendapatan</strong> = Bunga + Admin + Denda (transaksi {selectedYear})</li>
+              <li><strong>Total Beban</strong> = Biaya operasional KSP</li>
+              <li><strong>SHU Bersih</strong> = Pendapatan - Beban</li>
+            </ul>
+          </div>
+          <div>
+            <strong style={{ fontSize: 12, display: "block", marginBottom: 8 }}>Alokasi SHU:</strong>
+            <ul style={{ fontSize: 12, color: "#6b7280", marginLeft: 20, lineHeight: 1.8 }}>
+              <li><strong>Jasa Modal (55%)</strong> - Dibagikan ke anggota berdasarkan simpanan</li>
+              <li><strong>Jasa Transaksi (20%)</strong> - Dibagikan ke anggota berdasarkan simpanan</li>
+              <li><strong>Cadangan & Dana (25%)</strong> - 7 kategori untuk KSP</li>
+            </ul>
+          </div>
+        </div>
+        <div style={{ marginTop: 16, padding: 12, background: "#e0e7ff", borderRadius: 8, fontSize: 12 }}>
+          <strong>Bagian Anggota (75%):</strong> Dihitung dari proporsi saldo simpanan (Pokok + Wajib). 
+          Setiap anggota mendapat SHU = Total Jasa × (Saldo Simpanan Anggota ÷ Total Simpanan Semua Anggota)
+        </div>
       </div>
     </div>
   );
