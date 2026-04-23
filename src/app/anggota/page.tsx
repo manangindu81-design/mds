@@ -453,8 +453,15 @@ Yakin ingin memproses?`;
         telepon: formData.telepon,
         email: "",
         pekerjaan: formData.pekerjaan,
+        besarPenghasilan: formData.besarPenghasilan,
+        posisi: "",
+        pangkat: "",
+        Golongan: "",
+        statusPekerjaan: "",
+        lamaBekerja: "",
+        alamatTempatKerja: "",
         tempatKerja: "",
-        pendapatan: "",
+        pendapatan: formData.besarPenghasilan,
         tanggalJoin: tanggalMasuk,
         statusKeanggotaan: "Aktif",
       };
@@ -1150,28 +1157,21 @@ Yakin ingin memproses?`;
                   <div style={{ fontSize: 12, color: "#155724", marginBottom: 4 }}>Total Anggota</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#155724" }}>{anggota.length} Orang</div>
                 </div>
-                <div style={{ padding: 16, background: "#fee2e2", borderRadius: 10, textAlign: "center" }}>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Apakah Anda yakin ingin menghapus SEMUA data anggota? Tindakan ini tidak bisa dibatalkan!`)) {
-                        anggota.forEach(a => deleteAnggota(a.id));
-                        alert("Semua data anggota berhasil dihapus!");
-                      }
-                    }}
-                    style={{
-                      padding: "10px 20px",
-                      background: "#dc2626",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 8,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: "pointer"
-                    }}
-                  >
-                    🗑️ Hapus Semua Anggota
-                  </button>
-                </div>
+            <div style={{ padding: 16, background: "#fee2e2", borderRadius: 10, textAlign: "center" }}>
+              <div style={{ fontSize: 12, color: "#991b1b", marginBottom: 4 }}>⚠️ Hapus Semua Data</div>
+              <div style={{ fontSize: 11, color: "#991b1b", marginBottom: 8 }}>Menghapus SEMUA data: Anggota, Simpanan, Pinjaman, Transaksi</div>
+              <button
+                onClick={() => {
+                  if (confirm("Apakah Anda yakin ingin menghapus SEMUA data? Data tidak bisa dikembalikan.")) {
+                    clearAllData();
+                    alert("Semua data berhasil dihapus!");
+                  }
+                }}
+                style={{ padding: "10px 20px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+              >
+                🗑️ Hapus Semua
+              </button>
+            </div>
               </div>
             </div>
             )}

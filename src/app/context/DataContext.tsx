@@ -242,7 +242,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
    };
 
    const deleteAllPinjaman = () => {
+     // Also delete all angsuran for those pinjaman
      setPinjaman([]);
+     setAngsuran([]);
    };
 
    return (

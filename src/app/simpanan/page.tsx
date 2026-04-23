@@ -105,11 +105,20 @@ export default function SimpananPage() {
     e.preventDefault();
     if (validateForm()) {
       const jumlahNum = parseInt(formData.jumlah.replace(/\D/g, ""));
+
+      // Look up anggota by nomorAnggota (case-insensitive, trim spaces)
+      const nominated = anggota.find(a => a.nomorNBA?.trim().toLowerCase() === formData.nomorAnggota.trim().toLowerCase());
+
+      if (!nominated) {
+        alert(`Anggota dengan No. NBA "${formData.nomorAnggota}" tidak ditemukan.`);
+        return;
+      }
+
       const newSimpanan: SimpananType = {
         id: simpanan.length + 1,
-        idAnggota: 0,
-        nama: formData.nama,
-        nomorAnggota: formData.nomorAnggota,
+        idAnggota: nominated.id,
+        nama: nominated.nama,
+        nomorAnggota: nominated.nomorNBA,
         tanggal: formData.tanggal,
         jenisSimpanan: formData.jenisSimpanan,
         jumlah: jumlahNum,
@@ -117,7 +126,7 @@ export default function SimpananPage() {
         bunga: 0,
       };
       addSimpanan(newSimpanan);
-      
+
       const getAkun = (metode: string) => {
         if (metode === "tunai") return "Kas";
         if (metode === "bri-tigabinanga") return "Bank BRI Cab. Tigabinanga";
@@ -125,8 +134,7 @@ export default function SimpananPage() {
         if (metode === "bpr-logo-asri") return "Bank BPR Logo Asri";
         return "Kas";
       };
-      
-      // Mapping jenis simpanan ke kategori jurnal
+
       const getKategoriSimpanan = (jenis: string) => {
         switch (jenis) {
           case "pokok": return "Setoran Simpanan Pokok";
@@ -139,7 +147,7 @@ export default function SimpananPage() {
           default: return "Setoran Anggota";
         }
       };
-      
+
       addTransaksi({
         id: 0,
         noBukti: `SM-${formData.tanggal.replace(/-/g, "")}-${String(simpanan.length + 1).padStart(3, "0")}`,
@@ -147,13 +155,13 @@ export default function SimpananPage() {
         jam: "10:00",
         akun: getAkun(formData.metodePembayaran),
         kategori: getKategoriSimpanan(formData.jenisSimpanan),
-        uraian: `${formData.jenisSimpanan} - ${formData.nama}`,
+        uraian: `${formData.jenisSimpanan} - ${nominated.nama}`,
         debet: jumlahNum,
         kredit: 0,
         saldo: 0,
         operator: "Admin",
       });
-      
+
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
@@ -257,13 +265,14 @@ export default function SimpananPage() {
              <div style={{ fontSize: 12, color: "#7f1d1d", marginBottom: 16 }}>
                Menghapus semua data simpanan (pokok, wajib, sukarela, berjangka, dll). Tindakan ini tidak bisa dibatalkan.
              </div>
-             <button
-               onClick={() => {
-                 if (confirm(`Yakin ingin menghapus SEMUA data simpanan? Total ${simpanan.length} transaksi akan dihapus.`)) {
-                   simpanan.forEach(s => deleteSimpanan(s.id));
-                   alert("Semua data simpanan berhasil dihapus!");
-                 }
-               }}
+              <button
+                onClick={() => {
+                  if (confirm(`Yakin ingin menghapus SEMUA data simpanan? Total ${simpanan.length} transaksi akan dihapus.`)) {
+                    const idsToDelete = simpanan.map(s => s.id);
+                    idsToDelete.forEach(id => deleteSimpanan(id));
+                    alert("Semua data simpanan berhasil dihapus!");
+                  }
+                }}
                style={{ width: "100%", padding: 12, background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
              >
                🗑️ Hapus Semua Simpanan

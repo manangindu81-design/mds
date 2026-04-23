@@ -257,26 +257,26 @@ export default function TransaksiPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Akun Debet (Penerimaan)</label>
-                    <select value={formData.akunDebet} onChange={(e) => setFormData({ ...formData, akunDebet: e.target.value })} style={{ width: "100%", padding: "10px 14px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, background: "white" }}>
-                      <option value="">Pilih Akun...</option>
-                      {kategoriAkun.filter(a => a.jenis === "Aset").map(a => (
-                        <option key={a.kode} value={a.kode}>{a.kode} - {a.nama}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Akun Kredit (Sumber)</label>
-                    <select value={formData.akunKredit} onChange={(e) => setFormData({ ...formData, akunKredit: e.target.value })} style={{ width: "100%", padding: "10px 14px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, background: "white" }}>
-                      <option value="">Pilih Akun...</option>
-                      {kategoriAkun.map(a => (
-                        <option key={a.kode} value={a.kode}>{a.kode} - {a.nama}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                   <div>
+                     <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Akun Debet (Penerimaan)</label>
+                     <select value={formData.akunDebet} onChange={(e) => setFormData({ ...formData, akunDebet: e.target.value })} style={{ width: "100%", padding: "10px 14px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, background: "white" }}>
+                       <option value="">Pilih Akun...</option>
+                       {kategoriAkun.filter(a => a.jenis === "Aset").map(a => (
+                         <option key={a.kode} value={a.nama}>{a.nama}</option>
+                       ))}
+                     </select>
+                   </div>
+                   <div>
+                     <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Akun Kredit (Sumber)</label>
+                     <select value={formData.akunKredit} onChange={(e) => setFormData({ ...formData, akunKredit: e.target.value })} style={{ width: "100%", padding: "10px 14px", border: "2px solid #e5e7eb", borderRadius: 8, fontSize: 14, background: "white" }}>
+                       <option value="">Pilih Akun...</option>
+                       {kategoriAkun.map(a => (
+                         <option key={a.kode} value={a.nama}>{a.nama}</option>
+                       ))}
+                     </select>
+                   </div>
+                 </div>
 
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Uraian / Keterangan</label>
