@@ -55,6 +55,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Menu **Keluar** dengan 2 mode: Cari dari daftar + Input manual No. NBA, lengkap dengan preview simpanan dan biaya pengunduran
 - Menu **SHU** dengan alokasi 9 kategori (5-5-55-20-5-5-2-2-1%) dan distribusi per anggota (Jasa Modal 55% + Jasa Transaksi 20%)
 - **SHU sekarang menghitung dari transaksi, angsuran (bunga/denda), dan biaya admin pinjaman**, sehingga数据显示 nonzero untuk tahun-tahun aktif
+- **Hapus Simpanan Selection** (`/simpanan` → Data tab): fitur hapus transaksi simpanan berdasarkan jenis dengan checkbox. Bisa pilih satu atau lebih jenis (Pokok, Wajib, Sukarela, dll) dan hapus secara massal.
 
 ## Riwayat Perubahan
 
@@ -77,4 +78,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-23 | Add Kartu Simpanan page - per-anggota transaction history with real-time balance |
 | 2026-04-23 | Add SHU page with 9-category allocation (5-5-55-20-5-5-2-2-1%) and per-member distribution |
 | 2026-04-23 | Upgrade Keluar page - dual mode (search + manual input by No. NBA) with live simpanan preview |
-| 2026-04-23 | Fix SHU calculation: aggregates from transaksi, angsuran (bunga/denda), and pinjaman admin fees; robust date parsing; non-zero results | |
+| 2026-04-23 | Fix SHU calculation: aggregates from transaksi, angsuran (bunga/denda), and pinjaman admin fees; robust date parsing; non-zero results |
+| 2026-04-23 | Add selective delete feature: choose which simpanan types to delete (checkbox UI) in Data tab, avoiding full wipe | |
