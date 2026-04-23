@@ -606,9 +606,16 @@ export default function SimpananPage() {
                      <td style={{ border: "1px solid #fecaca", padding: 8 }}>25000</td>
                      <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Angka positif, tanpa Rp, koma, atau titik</td>
                    </tr>
-                 </tbody>
-               </table>
-               <p style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13, marginTop: 12, marginBottom: 6 }}>🔎 Validasi Import (Strict Mode):</p>
+                  </tbody>
+                </table>
+                <div style={{ background: "#fff3cd", border: "2px solid #f59e0b", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                  <p style={{ fontWeight: 700, color: "#92400e", marginBottom: 6, fontSize: 13 }}>ℹ️ Keterangan Duplikat No. NBA:</p>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#92400e", lineHeight: 1.7 }}>
+                    <li><strong>Simpanan Wajib & Bunga Harian (Sibuhar):</strong> Dapat memiliki beberapa transaksi pada tanggal berbeda. Duplikat hanya ditolak jika <em>No. NBA + Tanggal</em> sama (lebih dari satu transaksi pada hari yang sama).</li>
+                    <li><strong>Simpanan Pokok, Penarikan, Simapan, Sihat, Sihar:</strong> Setiap No. NBA hanya boleh muncul sekali (satu transaksi total).</li>
+                  </ul>
+                </div>
+                <p style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13, marginTop: 12, marginBottom: 6 }}>🔎 Validasi Import (Strict Mode):</p>
                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#1e40af", lineHeight: 1.8 }}>
                  <li><strong>Kolom wajib</strong> — Semua 5 kolom wajib diisi. Jika ada yang kosong → import DIBATALKAN.</li>
                  <li><strong>No. NBA unik</strong> — Setiap No. NBA hanya boleh muncul sekali. Duplikat → import DIBATALKAN.</li>
@@ -697,27 +704,65 @@ export default function SimpananPage() {
                        return;
                      }
 
-                     // Check for duplicate No. NBA within the import file (case-insensitive)
-                     const seenNoNBA = new Set<string>();
-                     const duplicates = new Set<string>();
-                     jsonData.forEach((row) => {
-                       const rawNoNBA = row[normalizedMap["no. nba"]];
-                       const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
-                       if (noNBA) {
-                         if (seenNoNBA.has(noNBA)) duplicates.add(noNBA);
-                         else seenNoNBA.add(noNBA);
-                       }
-                     });
-                     if (duplicates.size > 0) {
-                       alert(
-                         `❌ DUPLIKAT No. NBA TERDETEKSI:\n\n` +
-                         `No. NBA berikut muncul lebih dari sekali:\n` +
-                         `${Array.from(duplicates).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
-                         `Setiap No. NBA hanya boleh muncul satu kali di file import.\n` +
-                         `Silakan gabungkan atau hapus duplikat.`
-                       );
-                       return;
-                     }
+                      // Check for duplicate entries
+                      // For wajib & sibuhar: allow same No. NBA on different dates (multiple transactions allowed)
+                      // For other types (pokok, penarikan, etc.): No. NBA must be unique (only one transaction)
+                      const isRecurringType = importType === "wajib" || importType === "sibuhar";
+                      
+                      if (isRecurringType) {
+                        // For recurring types, check duplicate (No. NBA + Tanggal) combination
+                        const seenCombinations = new Set<string>();
+                        const duplicateEntries = new Set<string>();
+                        jsonData.forEach((row, idx) => {
+                          const rawNoNBA = row[normalizedMap["no. nba"]];
+                          const rawTgl = row[normalizedMap["tanggal transaksi"]];
+                          const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
+                          const tglRaw = String(rawTgl ?? "").trim();
+                          const tgl = validateExcelDate(tglRaw) || tglRaw; // use normalized date if possible
+                          
+                          if (noNBA && tgl) {
+                            const combo = `${noNBA}|${tgl}`;
+                            if (seenCombinations.has(combo)) {
+                              duplicateEntries.add(noNBA);
+                            } else {
+                              seenCombinations.add(combo);
+                            }
+                          }
+                        });
+                        if (duplicateEntries.size > 0) {
+                          alert(
+                            `❌ DUPLIKAT TRANSAKSI TERDETEKSI (${importType.toUpperCase()}):\n\n` +
+                            `No. NBA berikut memiliki lebih dari satu transaksi pada tanggal yang sama:\n` +
+                            `${Array.from(duplicateEntries).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
+                         `Untuk ${importType === "wajib" ? "Simpanan Wajib" : "Simpanan Bunga Harian (Sibuhar)"}, setiap No. NBA
+                         hanya diizinkan **satu transaksi per tanggal**.\n\n` +
+                         `Silakan gabungkan data dengan No. NBA dan tanggal yang sama, atau hapus duplikat.`
+                          );
+                          return;
+                        }
+                      } else {
+                        // For non-recurring types (pokok, penarikan, simapan, sihat, sihar), enforce strict No. NBA uniqueness
+                        const seenNoNBA = new Set<string>();
+                        const duplicates = new Set<string>();
+                        jsonData.forEach((row) => {
+                          const rawNoNBA = row[normalizedMap["no. nba"]];
+                          const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
+                          if (noNBA) {
+                            if (seenNoNBA.has(noNBA)) duplicates.add(noNBA);
+                            else seenNoNBA.add(noNBA);
+                          }
+                        });
+                         if (duplicates.size > 0) {
+                           alert(
+                             `❌ DUPLIKAT No. NBA TERDETEKSI:\n\n` +
+                             `No. NBA berikut muncul lebih dari sekali:\n` +
+                             `${Array.from(duplicates).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
+                             `Untuk jenis transaksi ini, setiap No. NBA hanya boleh muncul satu kali.\n` +
+                             `Silakan gabungkan atau hapus duplikat.`
+                           );
+                           return;
+                         }
+                      }
 
                      // Strict validation: collect ALL errors first, then abort if any exist
                      const validationErrors: Array<{
