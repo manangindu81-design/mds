@@ -12,6 +12,7 @@ const navItems = [
   { label: "Simpanan", href: "/simpanan", icon: "💰" },
   { label: "Kartu Simpanan", href: "/simpanan-kartu", icon: "💳" },
   { label: "Pinjaman", href: "/pinjaman", icon: "🏦" },
+  { label: "SHU", href: "/shu", icon: "💰" },
   { label: "Transaksi", href: "/transaksi", icon: "🧾" },
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
   { label: "Laporan", href: "/laporan", icon: "📑" },

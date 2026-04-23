@@ -33,6 +33,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | Simpanan | /simpanan | Input setoran/penarikan |
 | Kartu Simpanan | /simpanan-kartu | Riwayat simpanan per anggota |
 | Pinjaman | /pinjaman | Pengajuan & angsuran |
+| SHU | /shu | Perhitungan Sisa Hasil Usaha |
 | Transaksi | /transaksi | Kas masuk/keluar + jurnal |
 | Dashboard | /dashboard | Stats & tabel data |
 | Laporan | /laporan | Laporan keuangan |
