@@ -10,7 +10,6 @@ export default function AnggotaKeluarPage() {
    const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
    const [manualInput, setManualInput] = useState("");
    const [showDropdown, setShowDropdown] = useState(false);
-   const [inputFocused, setInputFocused] = useState(false);
 
    const filteredAnggota = useMemo(() => {
      const list =anggota || [];
@@ -229,13 +228,8 @@ Yakin ingin memproses?`;
               placeholder="Ketik nama, No. NBA, atau NIK..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => {
-                setInputFocused(true);
-                setShowDropdown(true);
-              }}
+              onFocus={() => setShowDropdown(true)}
               onBlur={() => {
-                setInputFocused(false);
-                // Delay to allow clicking on dropdown items
                 setTimeout(() => setShowDropdown(false), 200);
               }}
               onKeyDown={handleSearchKeyDown}
@@ -249,7 +243,7 @@ Yakin ingin memproses?`;
               }}
             />
             {/* Autocomplete Dropdown */}
-            {(showDropdown || searchQuery) && filteredAnggota.length > 0 && (
+            {showDropdown && filteredAnggota.length > 0 && (
               <div ref={dropdownRef} style={{
                 maxHeight: 300,
                 overflowY: "auto",
@@ -270,7 +264,6 @@ Yakin ingin memproses?`;
                       setSelectedAnggotaId(a.id);
                       setShowDropdown(false);
                       setSearchQuery(a.nomorNBA + " - " + a.nama);
-                      setInputFocused(false);
                     }}
                     style={{
                       padding: "12px 16px",
@@ -303,7 +296,7 @@ Yakin ingin memproses?`;
                 ))}
               </div>
             )}
-            {(showDropdown || searchQuery) && filteredAnggota.length === 0 && searchQuery && (
+            {showDropdown && filteredAnggota.length === 0 && searchQuery && (
               <div style={{
                 padding: 12,
                 textAlign: "center",
