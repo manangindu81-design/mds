@@ -109,27 +109,42 @@ export interface Transaksi {
   operator: string;
 }
 
+export interface Pengeluaran {
+  id: number;
+  tanggal: string;
+  kategori: string;
+  uraian: string;
+  jumlah: number;
+  metodePembayaran: string;
+  operator: string;
+}
+
 interface DataContextType {
   anggota: Anggota[];
   simpanan: Simpanan[];
   pinjaman: Pinjaman[];
   angsuran: Angsuran[];
   transaksi: Transaksi[];
+  pengeluaran: Pengeluaran[];
   addAnggota: (data: Anggota) => void;
   addSimpanan: (data: Simpanan) => void;
   addPinjaman: (data: Pinjaman) => void;
   addAngsuran: (data: Angsuran) => void;
   updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
+  addPengeluaran: (data: Pengeluaran) => void;
   updateAnggota: (id: number, data: Partial<Anggota>) => void;
-   deleteAnggota: (id: number) => void;
-   deletePinjaman: (id: number) => void;
-   deleteAllPinjaman: () => void;
-   clearAllData: () => void;
-   setSimpanan: React.Dispatch<React.SetStateAction<Simpanan[]>>;
-   deleteSimpanan: (id: number) => void;
-   deleteAllSimpanan: () => void;
- }
+  deleteAnggota: (id: number) => void;
+  deletePinjaman: (id: number) => void;
+  deleteAllPinjaman: () => void;
+  clearAllData: () => void;
+  setSimpanan: React.Dispatch<React.SetStateAction<Simpanan[]>>;
+  deleteSimpanan: (id: number) => void;
+  deleteAllSimpanan: () => void;
+  deletePengeluaran: (id: number) => void;
+  deleteAllPengeluaran: () => void;
+  setPengeluaran: React.Dispatch<React.SetStateAction<Pengeluaran[]>>;
+}
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -158,6 +173,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [pinjaman, setPinjaman] = useState<Pinjaman[]>(() => getLocalStorage("ksp_pinjaman"));
   const [angsuran, setAngsuran] = useState<Angsuran[]>(() => getLocalStorage("ksp_angsuran"));
   const [transaksi, setTransaksi] = useState<Transaksi[]>(() => getLocalStorage("ksp_transaksi"));
+  const [pengeluaran, setPengeluaran] = useState<Pengeluaran[]>(() => getLocalStorage("ksp_pengeluaran"));
 
   useEffect(() => {
     saveLocalStorage("ksp_anggota", anggota);
@@ -175,9 +191,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocalStorage("ksp_angsuran", angsuran);
   }, [angsuran]);
 
-  useEffect(() => {
-    saveLocalStorage("ksp_transaksi", transaksi);
-  }, [transaksi]);
+   useEffect(() => {
+     saveLocalStorage("ksp_transaksi", transaksi);
+   }, [transaksi]);
+
+   useEffect(() => {
+     saveLocalStorage("ksp_pengeluaran", pengeluaran);
+   }, [pengeluaran]);
 
   const addAnggota = (data: Anggota) => {
     setAnggota(prev => [...prev, { ...data, id: prev.length + 1 }]);
@@ -214,20 +234,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setAnggota(prev => prev.filter(a => a.id !== id));
   };
 
-  const clearAllData = () => {
-    setAnggota([]);
-    setSimpanan([]);
-    setPinjaman([]);
-    setAngsuran([]);
-    setTransaksi([]);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("ksp_anggota");
-      localStorage.removeItem("ksp_simpanan");
-      localStorage.removeItem("ksp_pinjaman");
-      localStorage.removeItem("ksp_angsuran");
-      localStorage.removeItem("ksp_transaksi");
-    }
-  };
+   const clearAllData = () => {
+     setAnggota([]);
+     setSimpanan([]);
+     setPinjaman([]);
+     setAngsuran([]);
+     setTransaksi([]);
+     setPengeluaran([]);
+     if (typeof window !== "undefined") {
+       localStorage.removeItem("ksp_anggota");
+       localStorage.removeItem("ksp_simpanan");
+       localStorage.removeItem("ksp_pinjaman");
+       localStorage.removeItem("ksp_angsuran");
+       localStorage.removeItem("ksp_transaksi");
+       localStorage.removeItem("ksp_pengeluaran");
+     }
+   };
 
   const deleteSimpanan = (id: number) => {
     setSimpanan(prev => prev.filter(s => s.id !== id));
@@ -241,34 +263,51 @@ export function DataProvider({ children }: { children: ReactNode }) {
      setPinjaman(prev => prev.filter(p => p.id !== id));
    };
 
-   const deleteAllPinjaman = () => {
-     // Also delete all angsuran for those pinjaman
-     setPinjaman([]);
-     setAngsuran([]);
+    const deleteAllPinjaman = () => {
+      // Also delete all angsuran for those pinjaman
+      setPinjaman([]);
+      setAngsuran([]);
+    };
+
+   const addPengeluaran = (data: Pengeluaran) => {
+     setPengeluaran(prev => [...prev, { ...data, id: prev.length + 1 }]);
    };
 
-   return (
-     <DataContext.Provider value={{
-       anggota,
-       simpanan,
-       pinjaman,
-       angsuran,
-       transaksi,
-       addAnggota,
-       addSimpanan,
-       addPinjaman,
-       addAngsuran,
-       updatePinjaman,
-       addTransaksi,
-       updateAnggota,
-       deleteAnggota,
-       deletePinjaman,
-       deleteAllPinjaman,
-       clearAllData,
-       setSimpanan,
-       deleteSimpanan,
-       deleteAllSimpanan,
-     }}>
+   const deletePengeluaran = (id: number) => {
+     setPengeluaran(prev => prev.filter(p => p.id !== id));
+   };
+
+   const deleteAllPengeluaran = () => {
+     setPengeluaran([]);
+   };
+
+    return (
+      <DataContext.Provider value={{
+        anggota,
+        simpanan,
+        pinjaman,
+        angsuran,
+        transaksi,
+        pengeluaran,
+        addAnggota,
+        addSimpanan,
+        addPinjaman,
+        addAngsuran,
+        updatePinjaman,
+        addTransaksi,
+        addPengeluaran,
+        updateAnggota,
+        deleteAnggota,
+        deletePinjaman,
+        deleteAllPinjaman,
+        clearAllData,
+        setSimpanan,
+        deleteSimpanan,
+        deleteAllSimpanan,
+        deletePengeluaran,
+        deleteAllPengeluaran,
+        setPengeluaran,
+      }}>
       {children}
     </DataContext.Provider>
   );

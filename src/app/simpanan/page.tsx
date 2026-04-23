@@ -166,11 +166,67 @@ export default function SimpananPage() {
       setTimeout(() => {
         setSubmitted(false);
         setFormData({ nama: "", nomorAnggota: "", tanggal: "", jenisSimpanan: "", jumlah: "", metodePembayaran: "", catatan: "" });
-      }, 3000);
-    }
-  };
+       }, 3000);
+     }
+   };
 
-  return (
+   const validateExcelDate = (value: any): string | null => {
+     if (!value && value !== 0) return null;
+
+     // Excel serial number (days since 1899-12-30)
+     if (typeof value === "number" && !isNaN(value) && isFinite(value)) {
+       const excelEpoch = new Date(1899, 11, 30);
+       const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+       if (isNaN(date.getTime())) return null;
+       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+     }
+
+     // String date
+     if (typeof value === "string") {
+       const str = value.trim();
+       if (!str) return null;
+
+       // Check if numeric string (Excel serial as string)
+       const numVal = Number(str);
+       if (!isNaN(numVal) && str.length < 10 && isFinite(numVal)) {
+         const excelEpoch = new Date(1899, 11, 30);
+         const date = new Date(excelEpoch.getTime() + numVal * 24 * 60 * 60 * 1000);
+         if (isNaN(date.getTime())) return null;
+         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+       }
+
+       // Parse DD-MM-YYYY or DD/MM/YYYY
+       const parts = str.split(/[-/]/);
+       if (parts.length === 3) {
+         const [p1, p2, p3] = parts;
+         // DD-MM-YYYY -> YYYY-MM-DD
+         if (p1.length <= 2 && p2.length <= 2 && p3.length === 4) {
+           const day = p1.padStart(2, "0");
+           const month = p2.padStart(2, "0");
+           const year = p3;
+           const testDate = new Date(`${year}-${month}-${day}`);
+           if (!isNaN(testDate.getTime())) {
+             return `${year}-${month}-${day}`;
+           }
+         }
+         // YYYY-MM-DD (already correct)
+         if (p1.length === 4 && p2.length <= 2 && p3.length <= 2) {
+           const year = p1;
+           const month = p2.padStart(2, "0");
+           const day = p3.padStart(2, "0");
+           const testDate = new Date(`${year}-${month}-${day}`);
+           if (!isNaN(testDate.getTime())) {
+             return `${year}-${month}-${day}`;
+           }
+         }
+       }
+       return null;
+     }
+
+     return null;
+   };
+
+   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
@@ -503,222 +559,401 @@ export default function SimpananPage() {
             </button>
           </div>
 
-          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-            <p style={{ fontWeight: 600, marginBottom: 8 }}>Format Kolom Excel:</p>
-            <table style={{ borderCollapse: "collapse", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>No. NBA</th>
-                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Nama Anggota</th>
-                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Tanggal Transaksi</th>
-                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Jenis Pembayaran</th>
-                  <th style={{ border: "1px solid #ddd", padding: 8, background: "#f9fafb" }}>Jumlah Transaksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>1</td>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Budi Santoso</td>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>15-01-2024</td>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>Tunai</td>
-                  <td style={{ border: "1px solid #ddd", padding: 8 }}>25000</td>
-                </tr>
-              </tbody>
-            </table>
-            <p style={{ marginTop: 8, fontSize: 12 }}>*) Jenis Pembayaran: Tunai, Transfer BRI Cab. Tigabinanga, Transfer BRI Cab. Berastagi, Transfer BPR Logo Asri, Penarikan</p>
-          </div>
+           <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+             <div style={{ background: "#fef2f2", border: "2px solid #fecaca", borderRadius: 10, padding: 16, marginBottom: 16 }}>
+               <p style={{ fontWeight: 800, color: "#991b1b", marginBottom: 10, fontSize: 14 }}>⚠️ IMPORT DATA SIMPANAN — SEMUA KOLOM WAJIB DIISI</p>
+               <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: 10 }}>
+                 <thead>
+                   <tr>
+                     <th style={{ border: "2px solid #dc2626", padding: 10, background: "#fee2e2", color: "#991b1b", fontWeight: 700, textAlign: "left" }}>Kolom *</th>
+                     <th style={{ border: "2px solid #dc2626", padding: 10, background: "#fee2e2", color: "#991b1b", fontWeight: 700, textAlign: "left" }}>Contoh Nilai</th>
+                     <th style={{ border: "2px solid #dc2626", padding: 10, background: "#fee2e2", color: "#991b1b", fontWeight: 700, textAlign: "left" }}>Catatan</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   <tr>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontWeight: 600 }}>No. NBA</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8 }}>1</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Harus sesuai No. NBA anggota terdaftar (case-insensitive)</td>
+                   </tr>
+                   <tr>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontWeight: 600 }}>Nama Anggota</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8 }}>Budi Santoso</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Hanya referensi, tidak dicek ke data anggota</td>
+                   </tr>
+                   <tr>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontWeight: 600 }}>Tanggal Transaksi</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8 }}>15-01-2024</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Format: DD-MM-YYYY atau tanggal Excel</td>
+                   </tr>
+                   <tr>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontWeight: 600 }}>Jenis Pembayaran</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8 }}>Tunai</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Tunai / Transfer BRI Tigabinanga / Transfer BRI Berastagi / Transfer BPR Logo Asri / Penarikan</td>
+                   </tr>
+                   <tr>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontWeight: 600 }}>Jumlah Transaksi</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8 }}>25000</td>
+                     <td style={{ border: "1px solid #fecaca", padding: 8, fontSize: 12 }}>Angka positif, tanpa Rp, koma, atau titik</td>
+                   </tr>
+                 </tbody>
+               </table>
+               <p style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13, marginTop: 12, marginBottom: 6 }}>🔎 Validasi Import (Strict Mode):</p>
+               <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#1e40af", lineHeight: 1.8 }}>
+                 <li><strong>Kolom wajib</strong> — Semua 5 kolom wajib diisi. Jika ada yang kosong → import DIBATALKAN.</li>
+                 <li><strong>No. NBA unik</strong> — Setiap No. NBA hanya boleh muncul sekali. Duplikat → import DIBATALKAN.</li>
+                 <li><strong>No. NBA valid</strong> — Harus cocok dengan data anggota yang sudah terdaftar.</li>
+                 <li><strong>Jumlah</strong> — Harus angka positif lebih dari 0.</li>
+                 <li><strong>Tanggal</strong> — Format DD-MM-YYYY (contoh: 15-01-2024) atau serial Excel.</li>
+                 <li><strong>Jenis Pembayaran</strong> — Tiket sesuai pilihan yang tersedia.</li>
+                 <li><strong>All-or-nothing</strong> — Jika 1 baris error, SEMUA data ditolak (tidak ada partial import).</li>
+               </ul>
+             </div>
+           </div>
 
-          <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center" }}>
-            <input
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                  try {
-                    const data = event.target?.result;
-                    if (!data) {
-                      alert("File tidak terbaca!");
-                      return;
-                    }
-                    
-                    const workbook = XLSX.read(data, { type: "binary" });
-                    if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-                      alert("Tidak ada sheet di file Excel!");
-                      return;
-                    }
-                    
-                    const sheetName = workbook.SheetNames[0];
-                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-                    
-                    if (!jsonData || jsonData.length === 0) {
-                      alert("Tidak ada data di file Excel!");
-                      return;
-                    }
-                    
-                    const sampleRow = jsonData[0] as Record<string, unknown>;
-                    const requiredColumns = ["No. NBA", "Nama Anggota", "Jumlah Transaksi"];
-                    const foundColumns = Object.keys(sampleRow);
-                    const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
-                    
-                    if (missingColumns.length > 0) {
-                      alert(`Kolom wajib tidak ditemukan: ${missingColumns.join(", ")}\nKolom yang ada: ${foundColumns.join(", ")}`);
-                      return;
-                    }
-                    
-                    let count = 0;
-                    const errors: { row: number; noNBA: string; nama: string; error: string }[] = [];
-                    
-                    jsonData.forEach((row: any, index: number) => {
-                      const rowNum = index + 1;
-                      const noNBA = row["No. NBA"];
-                      const nama = row["Nama Anggota"];
-                      const jmlRaw = row["Jumlah Transaksi"];
-                      const tglRaw = row["Tanggal Transaksi"];
-                      const jenisBayar = row["Jenis Pembayaran"] || "";
-                      
-                      if (!noNBA && !nama) {
-                        errors.push({ row: rowNum, noNBA: "-", nama: "-", error: "No. NBA dan Nama Anggota kosong" });
-                        return;
-                      }
-                      
-                      // Validate No NBA exists
-                      const noNBAString = String(noNBA);
-                      const anggotaFound = anggota.find(a => {
-                        const anggotaNBA = String((a as any).nomorNBA || "");
-                        return anggotaNBA === noNBAString || anggotaNBA === `NBA-${noNBAString.padStart(3, "0")}` || anggotaNBA === `NBA-${noNBAString}`;
-                      });
-                      
-                      if (!anggotaFound) {
-                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama || "-", error: "No. NBA tidak ditemukan di data anggota" });
-                        return;
-                      }
-                      
-                      // Validate jumlah
-                      let jumlah = 0;
-                      if (typeof jmlRaw === "number") {
-                        jumlah = jmlRaw;
-                      } else if (typeof jmlRaw === "string") {
-                        jumlah = parseInt(jmlRaw.replace(/\.0$/, "").replace(/[^0-9]/g, "")) || 0;
-                      }
-                      
-                      if (jumlah <= 0) {
-                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jumlah harus lebih dari 0" });
-                        return;
-                      }
-                      
-                      // Validate metode
-                      const validMetode = ["tunai", "tigabinanga", "berastagi", "penarikan"];
-                      const metodeMatch = validMetode.find(m => jenisBayar.toLowerCase().includes(m));
-                      if (!metodeMatch && jenisBayar) {
-                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Jenis Pembayaran tidak valid (pilih: Tunai, Transfer BRI Tigabinanga, Transfer BRI Berastagi, Penarikan)" });
-                        return;
-                      }
-                      
-                      // Parse tanggal
-                      let tanggal = "";
-                      if (tglRaw) {
-                        const tglNum = Number(tglRaw);
-                        if (!isNaN(tglNum)) {
-                          const excelEpoch = new Date(1899, 11, 30);
-                          const date = new Date(excelEpoch.getTime() + tglNum * 24 * 60 * 60 * 1000);
-                          tanggal = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-                        } else if (typeof tglRaw === "string") {
-                          const parts = tglRaw.split(/[-/]/);
-                          if (parts.length === 3 && parts[2].length === 4) {
-                            tanggal = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-                          }
-                        }
-                      }
-                      
-                      if (!tanggal) {
-                        errors.push({ row: rowNum, noNBA: noNBAString, nama: nama, error: "Format Tanggal tidak valid (gunakan DD-MM-YYYY)" });
-                        return;
-                      }
-                      
-                      const isPenarikan = importType.startsWith("penarikan");
-                      const jenisSimpanan = isPenarikan ? importType.replace("penarikan-", "") : importType;
-                      
-                      let metode = "tunai";
-                      if (jenisBayar.toLowerCase().includes("tigabinanga")) metode = "bri-tigabinanga";
-                      else if (jenisBayar.toLowerCase().includes("berastagi")) metode = "bri-berastagi";
-                      else if (jenisBayar.toLowerCase().includes("tarik")) metode = "penarikan";
-                      
-                      const jumlahFinal = isPenarikan ? -jumlah : jumlah;
-                      const metodeFinal = isPenarikan ? "tunai" : metode;
-                      
-                      count++;
-                      
-                      addSimpanan({
-                        id: 0,
-                        idAnggota: anggotaFound.id,
-                        nama: nama || anggotaFound.nama,
-                        nomorAnggota: noNBA,
-                        tanggal: tanggal,
-                        jenisSimpanan: jenisSimpanan,
-                        jumlah: jumlahFinal,
-                        metode: metodeFinal,
-                        bunga: 0,
-                      });
-                      
-                      const akun = metodeFinal === "tunai" ? "Kas" : 
-                                   metodeFinal === "bri-tigabinanga" ? "Bank BRI Cab. Tigabinanga" :
-                                   metodeFinal === "bri-berastagi" ? "Bank BRI Cab. Berastagi" :
-                                   metodeFinal === "bpr-logo-asri" ? "Bank BPR Logo Asri" : "Kas";
-                      
-                      addTransaksi({
-                        id: 0,
-                        noBukti: `BK-${tanggal.replace(/-/g, "")}-${String(count).padStart(3, "0")}`,
-                        tanggal: tanggal,
-                        jam: "09:00",
-                        akun: akun,
-                        kategori: isPenarikan ? `Penarikan Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}` : `Setoran Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}`,
-                        uraian: `${isPenarikan ? "Penarikan" : "Setoran"} Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)} ${nama || anggotaFound.nama}`,
-                        debet: isPenarikan ? 0 : jumlah,
-                        kredit: isPenarikan ? jumlah : 0,
-                        saldo: 0,
-                        operator: "Admin",
-                      });
+           <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center" }}>
+             <input
+               type="file"
+               accept=".xlsx, .xls, .csv"
+               onChange={(e) => {
+                 const file = e.target.files?.[0];
+                 if (!file) {
+                   alert("Pilih file Excel terlebih dahulu!");
+                   return;
+                 }
 
-                      if (isPenarikan) {
-                        addTransaksi({
-                          id: 0,
-                          noBukti: `PD-${tanggal.replace(/-/g, "")}-${String(count).padStart(3, "0")}`,
-                          tanggal: tanggal,
-                          jam: "09:00",
-                          akun: "Pendapatan Pengunduran Diri Anggota",
-                          kategori: "Pendapatan Pengunduran Diri",
-                          uraian: `Pendapatan Pengunduran Diri ${nama || anggotaFound.nama}`,
-                          debet: 0,
-                          kredit: jumlah,
-                          saldo: 0,
-                          operator: "Admin",
-                        });
-                      }
-                    });
-                    
-                    if (errors.length > 0) {
-                      const errorMsg = errors.slice(0, 10).map(e => 
-                        `Baris ${e.row} (${e.noNBA}): ${e.nama} - ${e.error}`
-                      ).join("\n");
-                      
-                      const moreMsg = errors.length > 10 ? `\n...dan ${errors.length - 10} error lainnya` : "";
-                      alert(`Import selesai dengan ${errors.length} error:\n\n${errorMsg}${moreMsg}\n\nData valid: ${count} berhasil diimport.`);
-                    } else {
-                      alert(`Berhasil import ${count} transaksi simpanan!`);
-                    }
-                  } catch (error) {
-                    alert("Gagal import data. Pastikan format Excel benar.");
-                  }
-                };
-                reader.readAsBinaryString(file);
-              }}
-              style={{ display: "none" }}
-              id="fileInputSimpanan"
-            />
+                 const reader = new FileReader();
+                 reader.onload = (event) => {
+                   try {
+                     const data = event.target?.result;
+                     if (!data) {
+                       alert("File tidak dapat dibaca!");
+                       return;
+                     }
+
+                     const workbook = XLSX.read(data, { type: "binary" });
+                     if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                       alert("File Excel tidak memiliki sheet!");
+                       return;
+                     }
+
+                     const sheetName = workbook.SheetNames[0];
+                     const sheet = workbook.Sheets[sheetName];
+                     if (!sheet) {
+                       alert("Sheet tidak ditemukan!");
+                       return;
+                     }
+
+                     const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, unknown>[];
+                     if (!jsonData || jsonData.length === 0) {
+                       alert("File Excel tidak berisi data!");
+                       return;
+                     }
+
+                     // Define required columns (normalized: lowercase, spaces instead of underscores)
+                     const requiredCols = [
+                       "no. nba", "nama anggota", "tanggal transaksi", "jumlah transaksi", "jenis pembayaran"
+                     ];
+
+                     const sampleRow = jsonData[0];
+                     const rawColumns = Object.keys(sampleRow);
+
+                     // Normalize column names: lowercase, trim, replace underscores with spaces
+                     const normalize = (col: string) => col.toLowerCase().trim().replace(/_/g, " ");
+                     const normalizedMap: Record<string, string> = {};
+                     rawColumns.forEach(col => {
+                       normalizedMap[normalize(col)] = col;
+                     });
+
+                     // Check for missing required columns
+                     const missingRequired = requiredCols.filter(key => !normalizedMap[key]);
+                     if (missingRequired.length > 0) {
+                       const missingNames = missingRequired.map(k => {
+                         const names: Record<string, string> = {
+                           "no. nba": "No. NBA",
+                           "nama anggota": "Nama Anggota",
+                           "tanggal transaksi": "Tanggal Transaksi",
+                           "jumlah transaksi": "Jumlah Transaksi",
+                           "jenis pembayaran": "Jenis Pembayaran"
+                         };
+                         return names[k] || k;
+                       });
+                       alert(
+                         `❌ KOLOM WAJIB TIDAK DITEMUKAN:\n\n` +
+                         `${missingNames.join(", ")}\n\n` +
+                         `Kolom yang ada di file Anda:\n${rawColumns.join(", ")}\n\n` +
+                         `Silakan download template yang benar dan sesuaikan kolomnya.`
+                       );
+                       return;
+                     }
+
+                     // Check for duplicate No. NBA within the import file (case-insensitive)
+                     const seenNoNBA = new Set<string>();
+                     const duplicates = new Set<string>();
+                     jsonData.forEach((row) => {
+                       const rawNoNBA = row[normalizedMap["no. nba"]];
+                       const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
+                       if (noNBA) {
+                         if (seenNoNBA.has(noNBA)) duplicates.add(noNBA);
+                         else seenNoNBA.add(noNBA);
+                       }
+                     });
+                     if (duplicates.size > 0) {
+                       alert(
+                         `❌ DUPLIKAT No. NBA TERDETEKSI:\n\n` +
+                         `No. NBA berikut muncul lebih dari sekali:\n` +
+                         `${Array.from(duplicates).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
+                         `Setiap No. NBA hanya boleh muncul satu kali di file import.\n` +
+                         `Silakan gabungkan atau hapus duplikat.`
+                       );
+                       return;
+                     }
+
+                     // Strict validation: collect ALL errors first, then abort if any exist
+                     const validationErrors: Array<{
+                       row: number;
+                       field: string;
+                       value: string;
+                       message: string;
+                     }> = [];
+
+                     jsonData.forEach((row, idx) => {
+                       const rowNum = idx + 2; // +2 because header is row 1
+                       const get = (colKey: string) => {
+                         const normKey = normalize(colKey);
+                         const actualKey = normalizedMap[normKey];
+                         return actualKey ? row[actualKey] : undefined;
+                       };
+
+                       const noNBA = String(get("no. nba") ?? "").trim();
+                       const nama = String(get("nama anggota") ?? "").trim();
+                       const jmlRaw = get("jumlah transaksi");
+                       const tglRaw = get("tanggal transaksi");
+                       const jenisBayar = String(get("jenis pembayaran") ?? "").trim();
+
+                       // Required field checks
+                       if (!noNBA) {
+                         validationErrors.push({ row: rowNum, field: "No. NBA", value: "", message: "wajib diisi (kosong)" });
+                       }
+                       if (!nama) {
+                         validationErrors.push({ row: rowNum, field: "Nama Anggota", value: "", message: "wajib diisi (kosong)" });
+                       }
+
+                       // Validate anggota exists (skip if noNBA is empty)
+                       if (noNBA) {
+                         const anggotaFound = anggota.find(a => {
+                           const aNBA = String(a.nomorNBA || "").trim().toLowerCase();
+                           return aNBA === noNBA.toLowerCase() || aNBA === `nba-${noNBA.padStart(3, "0")}` || aNBA === `nba-${noNBA}`;
+                         });
+                         if (!anggotaFound) {
+                           validationErrors.push({ row: rowNum, field: "No. NBA", value: noNBA, message: "tidak ditemukan di data anggota" });
+                         }
+                       }
+
+                       // Validate jumlah
+                       let jumlah = 0;
+                       if (jmlRaw === undefined || jmlRaw === null || jmlRaw === "") {
+                         validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: "", message: "wajib diisi (kosong)" });
+                       } else {
+                         if (typeof jmlRaw === "number") {
+                           jumlah = Math.floor(jmlRaw);
+                         } else if (typeof jmlRaw === "string") {
+                           const cleaned = jmlRaw.replace(/\./g, "").replace(/[^0-9]/g, "");
+                           if (cleaned.length === 0) {
+                             validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: "format tidak valid (harus angka)" });
+                           } else {
+                             jumlah = parseInt(cleaned);
+                           }
+                         } else {
+                           validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: "tipe data tidak valid" });
+                         }
+
+                         if (jumlah > 0 && jumlah <= 0) {
+                           validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: `harus > 0 (saat ini: ${jumlah})` });
+                         }
+                       }
+
+                       // Validate tanggal (required)
+                       const tanggal = validateExcelDate(tglRaw);
+                       if (!tanggal) {
+                         validationErrors.push({ row: rowNum, field: "Tanggal Transaksi", value: String(tglRaw ?? ""), message: "format tidak valid (gunakan DD-MM-YYYY)" });
+                       }
+
+                       // Validate jenis pembayaran (required)
+                       if (!jenisBayar) {
+                         validationErrors.push({ row: rowNum, field: "Jenis Pembayaran", value: "", message: "wajib dipilih (kosong)" });
+                       } else {
+                         const validMetode = ["tunai", "bri-tigabinanga", "bri-berastagi", "bpr-logo-asri", "penarikan"];
+                         const isValidMetode = validMetode.some(m => jenisBayar.toLowerCase().includes(m));
+                         if (!isValidMetode) {
+                           validationErrors.push({ row: rowNum, field: "Jenis Pembayaran", value: jenisBayar, message: `tidak dikenali. Gunakan: Tunai / Transfer BRI Cab. Tigabinanga / Transfer BRI Cab. Berastagi / Transfer BPR Logo Asri / Penarikan` });
+                         }
+                       }
+                     });
+
+                     // STRICT MODE: If ANY errors, abort entire import
+                     if (validationErrors.length > 0) {
+                       const errorsByRow: Record<number, typeof validationErrors> = {};
+                       validationErrors.forEach(err => {
+                         if (!errorsByRow[err.row]) errorsByRow[err.row] = [];
+                         errorsByRow[err.row].push(err);
+                       });
+
+                       const errorLines: string[] = [];
+                       Object.entries(errorsByRow).slice(0, 50).forEach(([rowNum, errors]) => {
+                         errorLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━`);
+                         errorLines.push(`📍 BARIS ${rowNum}:`);
+                         errors.forEach(err => {
+                           const emoji = err.field.includes("No. NBA") || err.field.includes("Nama") ? "🔴" :
+                                        err.field.includes("Jumlah") ? "💢" : "⚠️";
+                           errorLines.push(`  ${emoji} ${err.field}: "${err.value}" → ${err.message}`);
+                         });
+                       });
+
+                       const moreCount = validationErrors.length - 50;
+                       const moreMsg = moreCount > 0 ? `\n\n...dan ${moreCount} error lainnya pada baris lain` : "";
+
+                       alert(
+                         `❌ IMPORT DIBATALKAN\n\n` +
+                         `Terdapat ${validationErrors.length} kesalahan ditemukan:\n` +
+                         errorLines.join("\n") +
+                         `\n\n━━━━━━━━━━━━━━━━━━━━━━━━${moreMsg}\n\n` +
+                         `📌 PERIKSA LAGI:\n` +
+                         `1. Semua kolom wajib diisi: No. NBA, Nama Anggota, Tanggal Transaksi, Jumlah Transaksi, Jenis Pembayaran\n` +
+                         `2. No. NBA harus sesuai dengan data anggota\n` +
+                         `3. Tanggal format DD-MM-YYYY (contoh: 15-01-2024)\n` +
+                         `4. Jumlah: angka positif tanpa Rp atau tanda ribuan\n` +
+                         `5. Jenis Pembayaran: Tunai / Transfer BRI Cab. Tigabinanga / Transfer BRI Cab. Berastagi / Transfer BPR Logo Asri / Penarikan\n\n` +
+                         `Download template, perbaiki data, lalu coba lagi.`
+                       );
+                       return;
+                     }
+
+                     // All validation passed — show summary and confirm
+                     const totalRows = jsonData.length;
+                     const totalJumlah = jsonData.reduce((sum, row) => {
+                       const jmlRaw = row["Jumlah Transaksi"];
+                       let jml = 0;
+                       if (typeof jmlRaw === "number") jml = Math.abs(jmlRaw);
+                       else if (typeof jmlRaw === "string") jml = parseInt(jmlRaw.replace(/\./g, "").replace(/[^0-9]/g, "")) || 0;
+                       return sum + jml;
+                     }, 0);
+
+                     const isPenarikan = importType.startsWith("penarikan");
+                     const jenisLabel = isPenarikan
+                       ? importType === "penarikan-pokok" ? "Penarikan Simpanan Pokok"
+                         : importType === "penarikan-wajib" ? "Penarikan Simpanan Wajib"
+                         : "Penarikan Simpanan"
+                       : importType === "pokok" ? "Setoran Simpanan Pokok"
+                       : importType === "wajib" ? "Setoran Simpanan Wajib"
+                       : "Setoran Simpanan";
+
+                     const confirmMsg = `Yakin mengimpor ${totalRows} transaksi?\n\n` +
+                       `Jenis: ${jenisLabel}\n` +
+                       `Total Jumlah: Rp ${totalJumlah.toLocaleString("id-ID")}\n\n` +
+                       `Data akan ditambahkan ke sistem. Tindakan ini tidak bisa dibatalkan.`;
+
+                     if (!confirm(confirmMsg)) return;
+
+                     // Proceed with import
+                     jsonData.forEach((row, index) => {
+                       const noNBA = String(row["No. NBA"]).trim();
+                       const nama = row["Nama Anggota"];
+                       const jmlRaw = row["Jumlah Transaksi"];
+                       const tglRaw = row["Tanggal Transaksi"];
+                       const jenisBayar = String(row["Jenis Pembayaran"] || "").trim();
+
+                       const anggotaFound = anggota.find(a => String(a.nomorNBA).trim().toLowerCase() === noNBA.toLowerCase());
+                       if (!anggotaFound) return; // Should not happen after validation
+
+                       let jumlah = 0;
+                       if (typeof jmlRaw === "number") jumlah = Math.floor(jmlRaw);
+                       else jumlah = parseInt(String(jmlRaw).replace(/\./g, "").replace(/[^0-9]/g, "")) || 0;
+
+                       const tanggal = validateExcelDate(tglRaw)!;
+                       const jenisSimpanan = isPenarikan ? importType.replace("penarikan-", "") : importType;
+
+                       let metode = "tunai";
+                       const bayarLower = jenisBayar.toLowerCase();
+                       if (bayarLower.includes("tigabinanga")) metode = "bri-tigabinanga";
+                       else if (bayarLower.includes("berastagi")) metode = "bri-berastagi";
+                       else if (bayarLower.includes("bpr")) metode = "bpr-logo-asri";
+
+                       const jumlahFinal = isPenarikan ? -Math.abs(jumlah) : Math.abs(jumlah);
+                       const metodeFinal = isPenarikan ? "tunai" : metode;
+
+                       addSimpanan({
+                         id: 0,
+                         idAnggota: anggotaFound.id,
+                         nama: anggotaFound.nama,
+                         nomorAnggota: anggotaFound.nomorNBA,
+                         tanggal: tanggal,
+                         jenisSimpanan: jenisSimpanan,
+                         jumlah: jumlahFinal,
+                         metode: metodeFinal,
+                         bunga: 0,
+                       });
+
+                       const akunMap: Record<string, string> = {
+                         "tunai": "Kas",
+                         "bri-tigabinanga": "Bank BRI Cab. Tigabinanga",
+                         "bri-berastagi": "Bank BRI Cab. Berastagi",
+                         "bpr-logo-asri": "Bank BPR Logo Asri",
+                         "penarikan": "Kas"
+                       };
+                       const akun = akunMap[metodeFinal] || "Kas";
+
+                       const kategori = isPenarikan
+                         ? `Penarikan Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}`
+                         : `Setoran Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)}`;
+                       const uraian = `${isPenarikan ? "Penarikan" : "Setoran"} Simpanan ${jenisSimpanan.charAt(0).toUpperCase() + jenisSimpanan.slice(1)} — ${anggotaFound.nama}`;
+                       const noBukti = `${isPenarikan ? "PD" : "BK"}-${tanggal.replace(/-/g, "")}-${String(simpanan.length + index + 1).padStart(3, "0")}`;
+
+                       addTransaksi({
+                         id: 0,
+                         noBukti: noBukti,
+                         tanggal: tanggal,
+                         jam: "09:00",
+                         akun: akun,
+                         kategori: kategori,
+                         uraian: uraian,
+                         debet: isPenarikan ? 0 : Math.abs(jumlah),
+                         kredit: isPenarikan ? Math.abs(jumlah) : 0,
+                         saldo: 0,
+                         operator: "Admin",
+                       });
+
+                       if (isPenarikan) {
+                         addTransaksi({
+                           id: 0,
+                           noBukti: `PP-${tanggal.replace(/-/g, "")}-${String(simpanan.length + index + 1).padStart(3, "0")}`,
+                           tanggal: tanggal,
+                           jam: "09:00",
+                           akun: "Pendapatan Pengunduran Diri Anggota",
+                           kategori: "Pendapatan Pengunduran Diri",
+                           uraian: `Pendapatan Pengunduran Diri — ${anggotaFound.nama}`,
+                           debet: 0,
+                           kredit: Math.abs(jumlah),
+                           saldo: 0,
+                           operator: "Admin",
+                         });
+                       }
+                     });
+
+                     alert(`✅ Berhasil import ${totalRows} transaksi simpanan!`);
+                     setActiveTab("data");
+
+                   } catch (error) {
+                     console.error("Import error:", error);
+                     alert("Gagal import data. Pastikan file Excel tidak rusak dan format benar.");
+                   }
+                 };
+                 reader.readAsBinaryString(file);
+                 if (e.target) (e.target as HTMLInputElement).value = "";
+               }}
+               style={{ display: "none" }}
+               id="fileInputSimpanan"
+             />
             <label htmlFor="fileInputSimpanan" style={{ cursor: "pointer", display: "block" }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>📁</div>
               <div style={{ fontSize: 16, fontWeight: 600, color: "#1B4D3E" }}>Klik untuk upload file Excel</div>
