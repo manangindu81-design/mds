@@ -62,7 +62,9 @@ export default function AnggotaKeluarPage() {
       alert("Tanggal pengunduran wajib diisi!");
       return;
     }
+    console.log(`[Keluar] Updating anggota ${id} dengan tanggalPengunduran:`, editTanggalKeluar);
     updateAnggota(id, {
+      statusKeanggotaan: "Non-Aktif",
       tanggalPengunduran: editTanggalKeluar
     });
     setEditingId(null);

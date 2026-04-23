@@ -205,9 +205,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setTransaksi(prev => [...prev, { ...data, id: prev.length + 1 }]);
   };
 
-  const updateAnggota = (id: number, data: Partial<Anggota>) => {
-    setAnggota(prev => prev.map(a => a.id === id ? { ...a, ...data } : a));
-  };
+   const updateAnggota = (id: number, data: Partial<Anggota>) => {
+     console.log(`[DataContext] updateAnggota id=${id}`, data);
+     setAnggota(prev => prev.map(a => a.id === id ? { ...a, ...data } : a));
+   };
 
   const deleteAnggota = (id: number) => {
     setAnggota(prev => prev.filter(a => a.id !== id));
