@@ -68,58 +68,9 @@ export default function AnggotaPage() {
   
   const nonAktifAnggota = useMemo(() => {
     return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
-  }, [anggota]);
-  
-  // Parse Excel date serial or string to DD-MM-YYYY
-  const parseExcelDate = (value: any, defaultDate?: string): string => {
-    if (value === undefined || value === null || value === "") {
-      return defaultDate || new Date().toISOString().split("T")[0];
-    }
-    
-    // Check if it's a number (Excel serial date)
-    const numValue = Number(value);
-    if (!isNaN(numValue) && typeof value !== "boolean") {
-      // Handle Excel serial number (starting from Dec 30, 1899)
-      const excelEpoch = new Date(1899, 11, 30);
-      const date = new Date(excelEpoch.getTime() + numValue * 24 * 60 * 60 * 1000);
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    }
-    
-    // Handle string dates
-    if (typeof value === "string") {
-      const str = value.trim();
-      if (!str) return defaultDate || new Date().toISOString().split("T")[0];
-      
-      // Check if it's a numeric string (like "45272")
-      const numericStr = Number(str);
-      if (!isNaN(numericStr)) {
-        const excelEpoch = new Date(1899, 11, 30);
-        const date = new Date(excelEpoch.getTime() + numericStr * 24 * 60 * 60 * 1000);
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      }
-      
-      const parts = str.split(/[-/]/);
-      if (parts.length === 3) {
-        const [p1, p2, p3] = parts;
-        // Format DD-MM-YYYY -> YYYY-MM-DD
-        if (str.includes("-") && p1.length <= 2 && p3.length === 4) {
-          return `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
-        }
-        // Format YYYY-MM-DD -> YYYY-MM-DD (already correct)
-        if (str.includes("-") && p1.length === 4 && p3.length <= 2) {
-          return `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
-        }
-        // Format YYYY/MM/DD -> YYYY-MM-DD
-        if (str.includes("/") && p1.length === 4) {
-          return `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
-        }
-      }
-      return str;
-    }
-    
-    return defaultDate || new Date().toISOString().split("T")[0];
-  };
-    const fileInputRef = useRef<HTMLInputElement>(null);
+   }, [anggota]);
+   
+   const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState<any>({});
 
