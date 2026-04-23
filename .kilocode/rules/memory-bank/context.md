@@ -75,4 +75,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-20 | Add search functionality to all pages (anggota, simpanan, pinjaman, transaksi) |
 | 2026-04-20 | Add Keluar page for member resignation with auto simpanan withdrawal (Rp 50.000 fee) |
 | 2026-04-23 | Add Kartu Simpanan page - per-anggota transaction history with real-time balance |
-| 2026-04-23 | Add SHU (Sisa Hasil Usaha) page - yearly calculation with dropdown (2023-current) | |
+| 2026-04-23 | Add SHU page with 9-category allocation (5-5-55-20-5-5-2-2-1%) and per-member distribution | |
