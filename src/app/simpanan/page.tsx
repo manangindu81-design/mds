@@ -43,6 +43,17 @@ const getKategoriSimpanan = (jenis: string) => {
   }
 };
 
+const allJenisSimpanan: { value: string; label: string }[] = [
+  { value: "pokok", label: "Simpanan Pokok" },
+  { value: "wajib", label: "Simpanan Wajib" },
+  { value: "sukarela", label: "Simpanan Sukarela" },
+  { value: "sibuhar", label: "Sibuhar (3%/th)" },
+  { value: "simapan", label: "Simapan (5%/th)" },
+  { value: "sihat", label: "Sihat (6%/th)" },
+  { value: "sihar", label: "Sihar (4%/th)" },
+  { value: "berjangka", label: "Simpanan Berjangka" },
+];
+
 export default function SimpananPage() {
   const { simpanan, addSimpanan, addTransaksi, anggota, deleteSimpanan } = useData();
   const [activeTab, setActiveTab] = useState<"input" | "data" | "import" | "kartu" | "jurnal">("input");
@@ -66,6 +77,8 @@ export default function SimpananPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteFilter, setDeleteFilter] = useState<Set<string>>(new Set());
+  const [showDeleteOptions, setShowDeleteOptions] = useState(false);
   const filteredSimpanan = useMemo(() => {
     if (!searchQuery) return simpanan;
     const q = searchQuery.toLowerCase();
@@ -275,6 +288,85 @@ export default function SimpananPage() {
                   onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                   style={{ width: "100%", padding: 10, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }}
                 />
+              </div>
+              <div style={{ marginBottom: 16, padding: 16, background: "#fef2f2", borderRadius: 12, border: "2px solid #fecaca" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#991b1b" }}>
+                    🗑️ Hapus Transaksi Simpanan Berdasarkan Jenis
+                  </div>
+                  <button
+                    onClick={() => setShowDeleteOptions(!showDeleteOptions)}
+                    style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
+                  >
+                    {showDeleteOptions ? "⊖ Tutup" : "+ Pilih Jenis"}
+                  </button>
+                </div>
+
+                {showDeleteOptions && (
+                  <div>
+                    <div style={{ fontSize: 11, color: "#7f1d1d", marginBottom: 12 }}>
+                      Pilih satu atau lebih jenis simpanan yang akan dihapus:
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8, marginBottom: 16 }}>
+                      {allJenisSimpanan.map(jenis => {
+                        const count = simpanan.filter(s => s.jenisSimpanan === jenis.value).length;
+                        if (count === 0) return null;
+                        const isChecked = deleteFilter.has(jenis.value);
+                        return (
+                          <label key={jenis.value} style={{ display: "flex", alignItems: "center", gap: 8, padding: 8, background: "white", borderRadius: 6, border: "1px solid #e5e7eb", cursor: "pointer" }}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                const newFilter = new Set(deleteFilter);
+                                if (e.target.checked) {
+                                  newFilter.add(jenis.value);
+                                } else {
+                                  newFilter.delete(jenis.value);
+                                }
+                                setDeleteFilter(newFilter);
+                              }}
+                              style={{ width: 16, height: 16 }}
+                            />
+                            <span style={{ fontSize: 13, color: "#374151" }}>{jenis.label}</span>
+                            <span style={{ fontSize: 11, color: "#6b7280", marginLeft: "auto" }}>({count})</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    {deleteFilter.size > 0 && (
+                      <div style={{ padding: 12, background: "#fee2e2", borderRadius: 8, marginBottom: 12 }}>
+                        <div style={{ fontSize: 12, color: "#991b1b", marginBottom: 4 }}>
+                          Akan dihapus: {Array.from(deleteFilter).map(j => allJenisSimpanan.find(a => a.value === j)?.label).join(", ")}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#dc2626" }}>
+                          Total transaksi: {simpanan.filter(s => deleteFilter.has(s.jenisSimpanan)).length} data
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        if (deleteFilter.size === 0) {
+                          alert("Pilih minimal satu jenis simpanan untuk dihapus!");
+                          return;
+                        }
+                        const toDelete = simpanan.filter(s => deleteFilter.has(s.jenisSimpanan));
+                        const confirmMsg = `Yakin menghapus ${toDelete.length} transaksi simpanan dari:\n${Array.from(deleteFilter).map(j => `  • ${allJenisSimpanan.find(a => a.value === j)?.label}`).join("\n")}\n\nTindakan ini tidak bisa dibatalkan!`;
+                        if (!confirm(confirmMsg)) return;
+
+                        toDelete.forEach(s => deleteSimpanan(s.id));
+                        setDeleteFilter(new Set());
+                        setShowDeleteOptions(false);
+                        alert(`Berhasil menghapus ${toDelete.length} transaksi simpanan!`);
+                      }}
+                      style={{ width: "100%", padding: 12, background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      🗑️ Hapus {deleteFilter.size > 0 ? `${simpanan.filter(s => deleteFilter.has(s.jenisSimpanan)).length} Transaksi Terpilih` : "Transaksi Terpilih"}
+                    </button>
+                  </div>
+                )}
               </div>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
