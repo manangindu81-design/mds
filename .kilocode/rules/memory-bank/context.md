@@ -21,8 +21,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - [x] Dashboard enhancement: Quick Actions, Trend Charts, Jatuh Tempo, Aktivitas Terbaru
 - [x] Add "Hapus Semua" buttons in Anggota, Simpanan, and Pinjaman pages with confirmation
  - [x] All buttons now fully functional: anggota registration saves pendapatan; simpanan resolves anggota from No. NBA; transaksi uses account names; pinjaman delete cascades to angsuran; bulk deletes avoid array mutation
- - [x] Add Pengeluaran page with 15 expense categories (bunga simpanan types, gaji, operasional, insentif)
  - [x] Add strict Simpanan Excel import validation (all-or-nothing, 5 required columns, duplicate detection, detailed error reporting)
+ - [x] Add Pengeluaran page with 15 expense categories (bunga simpanan types, gaji, operasional, insentif)
+ - [x] Improve Simpanan import UI: replace button group with dropdown selector for 6 simpanan types (Pokok, Wajib, Sibuhar, Simapan, Sihat, Sihar) plus Penarikan options, with clear icons and layout
 
 ## Struktur Aplikasi
 
@@ -96,4 +97,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-23 | Add missing Tempat Lahir column to anggota table and reorder columns to match Excel template layout; remove debug logs |
 | 2026-04-23 | Fix all buttons: simpanan input now resolves idAnggota from No. NBA; anggota registration saves pendapatan; transaksi stores account name (not kode); deleteAllPinjaman cascades to angsuran; prevent array mutation in forEach delete loops |
 | 2026-04-23 | Fix all critical buttons: simpanan now resolves idAnggota from No. NBA; anggota registration saves pendapatan; transaksi stores account name (not code); cascading delete for pinjaman→angsuran; prevent array mutation in bulk delete loops |
-| 2026-04-23 | **Add Pengeluaran module**: 15 expense categories (bunga simpanan types, gaji, operasional, insentif), full CRUD with search/pagination/delete, localStorage persistence; **strict Simpanan import validation** (all-or-nothing, 5 required columns, duplicate No. NBA detection, row-level error details) | |
+| 2026-04-23 | **Add Pengeluaran module**: 15 expense categories (bunga simpanan types, gaji, operasional, insentif), full CRUD with search/pagination/delete, localStorage persistence; **strict Simpanan import validation** (all-or-nothing, 5 required columns, duplicate No. NBA detection, row-level error details) |
+| 2026-04-23 | **Improve Simpanan import UI**: replace button group with dropdown selector for 6 simpanan types (Pokok, Wajib, Sibuhar, Simapan, Sihat, Sihar) plus Penarikan options, clear icons, 2-column grid layout, adaptive template download | |
