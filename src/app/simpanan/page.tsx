@@ -646,12 +646,25 @@ export default function SimpananPage() {
                       </tbody>
                     </table>
 
-                    <button 
-                      onClick={() => window.print()}
-                      style={{ marginTop: 20, padding: "12px 24px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
-                    >
-                      🖨️ Cetak Kartu Simpanan
-                    </button>
+                    <div style={{ marginTop: 20, display: "flex", gap: 12 }}>
+                      <button 
+                        onClick={() => window.print()}
+                        style={{ flex: 1, padding: "12px 24px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                      >
+                        🖨️ Cetak Kartu Simpanan
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (confirm(`Apakah Anda yakin ingin menghapus SEMUA data simpanan? Tindakan ini tidak bisa dibatalkan!`)) {
+                            simpanan.forEach(s => deleteSimpanan(s.id));
+                            alert("Semua data simpanan berhasil dihapus!");
+                          }
+                        }}
+                        style={{ flex: 1, padding: "12px 24px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+                      >
+                        🗑️ Hapus Semua Simpanan
+                      </button>
+                    </div>
                   </div>
                 );
               })()}

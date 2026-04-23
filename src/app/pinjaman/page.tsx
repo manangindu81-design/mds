@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
 
 export default function PinjamanPage() {
-  const { anggota, pinjaman, angsuran, addPinjaman, addAngsuran, updatePinjaman, addTransaksi } = useData();
+  const { anggota, pinjaman, angsuran, addPinjaman, addAngsuran, updatePinjaman, addTransaksi, deleteAllPinjaman } = useData();
   const [activeTab, setActiveTab] = useState<"pencairan" | "daftar" | "angsuran">("pencairan");
   const [searchQuery, setSearchQuery] = useState("");
   const filteredPinjaman = useMemo(() => {
@@ -429,16 +429,44 @@ export default function PinjamanPage() {
                   style={{ width: "100%", padding: 10, borderRadius: 8, border: "2px solid #ddd", fontSize: 14 }}
                 />
               </div>
-              {filteredPinjaman.length === 0 ? <div style={{ textAlign: "center", padding: 48 }}><p>{searchQuery ? "Tidak ada data yang cocok." : "Belum ada peminjam."}</p></div> : (
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-                  <thead><tr><th>#</th><th>Nama</th><th>No. Perjanjian</th><th>Plafon</th><th>Outstanding</th><th>Tenor</th><th>Jatuh Tempo</th><th>Status</th></tr></thead>
-                  <tbody>{filteredPinjaman.map((p, i) => (
-                    <tr key={p.id}><td>{i+1}</td><td>{p.nama}</td><td>{p.noPerjanjian || "-"}</td><td>{formatRupiahNum(p.jumlah)}</td><td style={{ color: "#e74c3c" }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td><td>{p.tenor} bln</td><td>{p.tanggalJatuhTempo || "-"}</td><td><span style={{ padding: "4px 8px", borderRadius: 12, fontSize: 11, background: p.status==="Disetujui"?"#d4edda":"#fff3cd" }}>{p.status}</span></td></tr>
-                  ))}</tbody>
-                </table>
-              )}
-            </div>
-          )}
+               {filteredPinjaman.length === 0 ? <div style={{ textAlign: "center", padding: 48 }}><p>{searchQuery ? "Tidak ada data yang cocok." : "Belum ada peminjam."}</p></div> : (
+                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                   <thead><tr><th>#</th><th>Nama</th><th>No. Perjanjian</th><th>Plafon</th><th>Outstanding</th><th>Tenor</th><th>Jatuh Tempo</th><th>Status</th></tr></thead>
+                   <tbody>{filteredPinjaman.map((p, i) => (
+                     <tr key={p.id}><td>{i+1}</td><td>{p.nama}</td><td>{p.noPerjanjian || "-"}</td><td>{formatRupiahNum(p.jumlah)}</td><td style={{ color: "#e74c3c" }}>{formatRupiahNum(p.outstanding || p.jumlah)}</td><td>{p.tenor} bln</td><td>{p.tanggalJatuhTempo || "-"}</td><td><span style={{ padding: "4px 8px", borderRadius: 12, fontSize: 11, background: p.status==="Disetujui"?"#d4edda":"#fff3cd" }}>{p.status}</span></td></tr>
+                   ))}</tbody>
+                 </table>
+               )}
+               
+               {pinjaman.length > 0 && (
+                 <div style={{ marginTop: 24, padding: 20, background: "#fee2e2", borderRadius: 12, textAlign: "center" }}>
+                   <div style={{ fontSize: 12, color: "#991b1b", marginBottom: 12 }}>
+                     Perhatian: Hapus data pinjaman akan menghapus semua riwayat pinjaman beserta angsurannya.
+                   </div>
+                   <button
+                     onClick={() => {
+                       if (confirm(`Apakah Anda yakin ingin menghapus SEMUA data pinjaman? Tindakan ini tidak bisa dibatalkan!`)) {
+                         deleteAllPinjaman();
+                         alert("Semua data pinjaman berhasil dihapus!");
+                       }
+                     }}
+                     style={{
+                       padding: "12px 32px",
+                       background: "#dc2626",
+                       color: "white",
+                       border: "none",
+                       borderRadius: 8,
+                       fontSize: 14,
+                       fontWeight: 600,
+                       cursor: "pointer"
+                     }}
+                   >
+                     🗑️ Hapus Semua Pinjaman
+                   </button>
+                 </div>
+               )}
+             </div>
+           )}
 
           {activeTab === "angsuran" && (
             <div className="card" style={{ padding: 40 }}>

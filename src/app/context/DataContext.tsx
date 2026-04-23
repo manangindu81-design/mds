@@ -122,12 +122,14 @@ interface DataContextType {
   updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
   updateAnggota: (id: number, data: Partial<Anggota>) => void;
-  deleteAnggota: (id: number) => void;
-  clearAllData: () => void;
-  setSimpanan: React.Dispatch<React.SetStateAction<Simpanan[]>>;
-  deleteSimpanan: (id: number) => void;
-  deleteAllSimpanan: () => void;
-}
+   deleteAnggota: (id: number) => void;
+   deletePinjaman: (id: number) => void;
+   deleteAllPinjaman: () => void;
+   clearAllData: () => void;
+   setSimpanan: React.Dispatch<React.SetStateAction<Simpanan[]>>;
+   deleteSimpanan: (id: number) => void;
+   deleteAllSimpanan: () => void;
+ }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -230,30 +232,40 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSimpanan(prev => prev.filter(s => s.id !== id));
   };
 
-  const deleteAllSimpanan = () => {
-    setSimpanan([]);
-  };
+   const deleteAllSimpanan = () => {
+     setSimpanan([]);
+   };
 
-  return (
-    <DataContext.Provider value={{
-      anggota,
-      simpanan,
-      pinjaman,
-      angsuran,
-      transaksi,
-      addAnggota,
-      addSimpanan,
-      addPinjaman,
-      addAngsuran,
-      updatePinjaman,
-      addTransaksi,
-      updateAnggota,
-      deleteAnggota,
-      clearAllData,
-      setSimpanan,
-      deleteSimpanan,
-      deleteAllSimpanan,
-    }}>
+   const deletePinjaman = (id: number) => {
+     setPinjaman(prev => prev.filter(p => p.id !== id));
+   };
+
+   const deleteAllPinjaman = () => {
+     setPinjaman([]);
+   };
+
+   return (
+     <DataContext.Provider value={{
+       anggota,
+       simpanan,
+       pinjaman,
+       angsuran,
+       transaksi,
+       addAnggota,
+       addSimpanan,
+       addPinjaman,
+       addAngsuran,
+       updatePinjaman,
+       addTransaksi,
+       updateAnggota,
+       deleteAnggota,
+       deletePinjaman,
+       deleteAllPinjaman,
+       clearAllData,
+       setSimpanan,
+       deleteSimpanan,
+       deleteAllSimpanan,
+     }}>
       {children}
     </DataContext.Provider>
   );
