@@ -24,7 +24,7 @@ interface AllocationBreakdown {
 }
 
 export default function SHUPage() {
-  const { anggota, simpanan, transaksi } = useData();
+  const { anggota, simpanan, transaksi, pinjaman, angsuran } = useData();
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
   const currentYear = new Date().getFullYear();
@@ -37,68 +37,122 @@ export default function SHUPage() {
     return result.sort((a, b) => b - a);
   }, [currentYear]);
 
-  const shuCalculation = useMemo(() => {
-    const yearStr = String(selectedYear);
-    
-    // Filter transaksi untuk tahun terpilih
-    const yearlyTransaksi = (transaksi || []).filter(t => {
-      const tgl = t.tanggal;
-      return tgl && tgl.startsWith(yearStr);
-    });
+   const shuCalculation = useMemo(() => {
+     const yearStr = String(selectedYear);
+     
+     // Helper to extract 4-digit year from date string (supports YYYY-MM-DD, DD/MM/YYYY, etc.)
+     const extractYear = (dateStr: string): string | null => {
+       const match = dateStr.match(/\d{4}/);
+       return match ? match[0] : null;
+     };
+     
+     // Filter transaksi untuk tahun terpilih
+     const yearlyTransaksi = (transaksi || []).filter(t => {
+       const tgl = t.tanggal;
+       if (!tgl) return false;
+       const year = extractYear(tgl);
+       return year === yearStr;
+     });
 
-    let totalBunga = 0;
-    let totalAdmin = 0;
-    let totalDenda = 0;
-    let totalBiaya = 0;
+     console.log(`[SHU ${selectedYear}] Total transaksi tahun ini:`, yearlyTransaksi.length);
+     if (yearlyTransaksi.length > 0) {
+       console.log('[SHU] Sample transaksi:', yearlyTransaksi.slice(0, 3).map(t => ({
+         tanggal: t.tanggal,
+         akun: t.akun,
+         kategori: t.kategori,
+         uraian: t.uraian,
+         debet: t.debet,
+         kredit: t.kredit
+       })));
+     }
 
-    yearlyTransaksi.forEach(t => {
-      const akun = t.akun || "";
-      const kategori = t.kategori || "";
-      const uraian = t.uraian || "";
-      const debet = t.debet || 0;
-      const kredit = t.kredit || 0;
+     let totalBunga = 0;    // Interest income from loans
+     let totalAdmin = 0;    // Admin fees
+     let totalDenda = 0;    // Penalties/fines
+     let totalBiaya = 0;    // Operating expenses
 
-      // Hitung semua pendapatan dari kategori Angsuran
-      if (kategori.includes("Angsuran")) {
-        // Split angsuran into components based on kategori
-        if (kategori.toLowerCase().includes("bunga") || uraian.toLowerCase().includes("bunga")) {
-          totalBunga += kredit;
-        } else if (kategori.toLowerCase().includes("admin") || uraian.toLowerCase().includes("admin")) {
-          totalAdmin += kredit;
-        } else if (kategori.toLowerCase().includes("denda") || uraian.toLowerCase().includes("denda")) {
-          totalDenda += kredit;
-        } else {
-          // Default split: if not specified, assume it's bunga (common case)
-          totalBunga += kredit;
-        }
-      }
-      // Other income sources
-      else if (kategori.toLowerCase().includes("bunga") || uraian.toLowerCase().includes("bunga")) {
-        totalBunga += kredit;
-      } else if (kategori.toLowerCase().includes("admin") || uraian.toLowerCase().includes("admin")) {
-        totalAdmin += kredit;
-      } else if (kategori.toLowerCase().includes("denda") || uraian.toLowerCase().includes("denda")) {
-        totalDenda += kredit;
-      }
+     // Income from transaksi entries
+     yearlyTransaksi.forEach(t => {
+       const akun = (t.akun || "").toLowerCase();
+       const kategori = (t.kategori || "").toLowerCase();
+       const uraian = (t.uraian || "").toLowerCase();
+       const debet = t.debet || 0;
+       const kredit = t.kredit || 0;
 
-      // Beban (expenses)
-      if (akun?.toLowerCase().includes("biaya") || kategori.toLowerCase().includes("biaya") || uraian.toLowerCase().includes("biaya")) {
-        totalBiaya += debet;
-      }
-    });
+       // Income detection: check for keywords in akun, kategori, uraian
+       const hasBunga = akun.includes("bunga") || kategori.includes("bunga") || uraian.includes("bunga");
+       const hasAdmin = akun.includes("admin") || kategori.includes("admin") || uraian.includes("admin");
+       const hasDenda = akun.includes("denda") || kategori.includes("denda") || uraian.includes("denda");
+       const hasPendapatan = akun.includes("pendapatan") || kategori.includes("pendapatan") || uraian.includes("pendapatan");
 
-    const totalPendapatan = totalBunga + totalAdmin + totalDenda;
-    const shuBersih = totalPendapatan - totalBiaya;
+       // Expense detection
+       const hasBeban = akun.includes("beban") || kategori.includes("beban") || uraian.includes("beban");
+       const hasBiaya = akun.includes("biaya") || kategori.includes("biaya") || uraian.includes("biaya");
 
-    return {
-      totalBunga,
-      totalAdmin,
-      totalDenda,
-      totalPendapatan,
-      totalBiaya,
-      shuBersih
-    };
-  }, [selectedYear, transaksi]);
+       // Classify income (kredit side)
+       if (hasPendapatan || hasBunga || hasAdmin || hasDenda) {
+         if (hasBunga) {
+           totalBunga += kredit;
+         } else if (hasAdmin) {
+           totalAdmin += kredit;
+         } else if (hasDenda) {
+           totalDenda += kredit;
+         } else {
+           // Other income default to Bunga (or you could add separate category)
+           totalBunga += kredit;
+         }
+       }
+
+       // Classify expense (debet side)
+       if (hasBeban || hasBiaya) {
+         totalBiaya += debet;
+       }
+     });
+
+     // Income from angsuran (interest + penalties) — these are already part of loan repayments
+     const yearlyAngsuran = (angsuran || []).filter(a => {
+       const tgl = a.tanggal;
+       if (!tgl) return false;
+       const year = extractYear(tgl);
+       return year === yearStr;
+     });
+
+     let angsuranBungaTotal = 0;
+     let angsuranDendaTotal = 0;
+     yearlyAngsuran.forEach(a => {
+       angsuranBungaTotal += (a.angsuranBunga || 0);
+       angsuranDendaTotal += (a.denda || 0);
+     });
+     totalBunga += angsuranBungaTotal;
+     totalDenda += angsuranDendaTotal;
+
+     // Income from loan admin fees (one-time at disbursement) — use pinjaman.tanggalRealisasi
+     const yearlyPinjaman = (pinjaman || []).filter(p => {
+       const tgl = p.tanggalRealisasi;
+       if (!tgl) return false;
+       const year = extractYear(tgl);
+       return year === yearStr;
+     });
+     let pinjamanAdminTotal = 0;
+     yearlyPinjaman.forEach(p => {
+       pinjamanAdminTotal += (p.biayaAdmin || 0);
+     });
+     totalAdmin += pinjamanAdminTotal;
+
+     const totalPendapatan = totalBunga + totalAdmin + totalDenda;
+     const shuBersih = totalPendapatan - totalBiaya;
+
+     console.log(`[SHU ${selectedYear}] Bunga: ${totalBunga}, Admin: ${totalAdmin}, Denda: ${totalDenda}, Beban: ${totalBiaya}, SHU Bersih: ${shuBersih}`);
+
+     return {
+       totalBunga,
+       totalAdmin,
+       totalDenda,
+       totalPendapatan,
+       totalBiaya,
+       shuBersih
+     };
+   }, [selectedYear, transaksi, angsuran, pinjaman]);
 
   // Calculate SHU allocation breakdown
   const allocationBreakdown = useMemo((): AllocationBreakdown[] => {

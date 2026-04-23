@@ -54,6 +54,7 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Menu **Kartu Simpanan** dengan pencarian anggota (No. NBA/Nama/NIK) dan riwayat transaksi real-time
 - Menu **Keluar** dengan 2 mode: Cari dari daftar + Input manual No. NBA, lengkap dengan preview simpanan dan biaya pengunduran
 - Menu **SHU** dengan alokasi 9 kategori (5-5-55-20-5-5-2-2-1%) dan distribusi per anggota (Jasa Modal 55% + Jasa Transaksi 20%)
+- **SHU sekarang menghitung dari transaksi, angsuran (bunga/denda), dan biaya admin pinjaman**, sehingga数据显示 nonzero untuk tahun-tahun aktif
 
 ## Riwayat Perubahan
 
@@ -75,4 +76,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-20 | Add Keluar page for member resignation with auto simpanan withdrawal (Rp 50.000 fee) |
 | 2026-04-23 | Add Kartu Simpanan page - per-anggota transaction history with real-time balance |
 | 2026-04-23 | Add SHU page with 9-category allocation (5-5-55-20-5-5-2-2-1%) and per-member distribution |
-| 2026-04-23 | Upgrade Keluar page - dual mode (search + manual input by No. NBA) with live simpanan preview | |
+| 2026-04-23 | Upgrade Keluar page - dual mode (search + manual input by No. NBA) with live simpanan preview |
+| 2026-04-23 | Fix SHU calculation: aggregates from transaksi, angsuran (bunga/denda), and pinjaman admin fees; robust date parsing; non-zero results | |
