@@ -28,12 +28,14 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | Menu | URL | Fitur |
 |------|-----|-------|
 | Beranda | / | Landing page |
-| Simpanan | /simpanan | Input setoran |
-| Pinjaman | /pinjaman | Input pinjaman + kalkulasi |
-| Anggota | /anggota | Pendaftaran |
-| Dashboard | /dashboard | Stats & tabel data |
+| Anggota | /anggota | Pendaftaran & Edit |
+| Keluar | /anggota-keluar | Pengunduran diri anggota |
+| Simpanan | /simpanan | Input setoran/penarikan |
+| Kartu Simpanan | /simpanan-kartu | Riwayat simpanan per anggota |
+| Pinjaman | /pinjaman | Pengajuan & angsuran |
 | Transaksi | /transaksi | Kas masuk/keluar + jurnal |
-| Data Anggota | /data-anggota | Daftar lengkap |
+| Dashboard | /dashboard | Stats & tabel data |
+| Laporan | /laporan | Laporan keuangan |
 
 ## Teknik
 
@@ -50,6 +52,8 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - Dashboard sudah lengkap: Quick Actions, Trend Chart 6 bulan, Jatuh Tempo warnings, Aktivitas terbaru
 - Edit anggota berfungsi dengan baik
 - Import Excel anggota berfungsi dengan mapping kolom yang benar
+- Menu **Kartu Simpanan** menampilkan riwayat transaksi per anggota (real-time)
+- Menu **Keluar** untuk pengunduran diri dengan withdrawal otomatis
 
 ## Riwayat Perubahan
 
@@ -68,4 +72,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-16 | Verify all menus connected to DataContext and synchronized |
 | 2026-04-17 | Add dashboard enhancements: Quick Actions, Trend Charts (Simpanan vs Pinjaman 6 bulan), Peringatan Jatuh Tempo (7 hari), Aktivitas Terbaru |
 | 2026-04-20 | Add search functionality to all pages (anggota, simpanan, pinjaman, transaksi) |
-| 2026-04-20 | Add Keluar tab for member resignation with auto simpanan withdrawal (Rp 50.000 fee) | |
+| 2026-04-20 | Add Keluar page for member resignation with auto simpanan withdrawal (Rp 50.000 fee) |
+| 2026-04-23 | Add Kartu Simpanan page - per-anggota transaction history with real-time balance | |
