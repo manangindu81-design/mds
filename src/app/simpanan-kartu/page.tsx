@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useData, Anggota } from "../context/DataContext";
 
@@ -7,26 +7,47 @@ export default function SimpananKartuPage() {
   const { anggota, simpanan } = useData();
   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const anggotaList = useMemo(() => anggota || [], [anggota]);
 
-   const filteredAnggotaList = useMemo(() => {
-     if (!searchQuery.trim()) return anggotaList;
-     const q = searchQuery.toLowerCase().trim();
-     return (anggotaList || []).filter((a: Anggota) => {
-       const nama = a.nama ? String(a.nama).toLowerCase() : "";
-       const nomorNBA = a.nomorNBA ? String(a.nomorNBA).toLowerCase() : "";
-       const nik = a.nik ? String(a.nik) : "";
-       const matchNama = nama.includes(q);
-       const matchNBA = nomorNBA.includes(q);
-       const matchNIK = nik.includes(q);
-       return matchNama || matchNBA || matchNIK;
-     });
-   }, [anggotaList, searchQuery]);
+  const filteredAnggotaList = useMemo(() => {
+    if (!searchQuery.trim()) return anggotaList;
+    const q = searchQuery.toLowerCase().trim();
+    return (anggotaList || []).filter((a: Anggota) => {
+      const nama = a.nama ? String(a.nama).toLowerCase() : "";
+      const nomorNBA = a.nomorNBA ? String(a.nomorNBA).toLowerCase() : "";
+      const nik = a.nik ? String(a.nik) : "";
+      const matchNama = nama.includes(q);
+      const matchNBA = nomorNBA.includes(q);
+      const matchNIK = nik.includes(q);
+      return matchNama || matchNBA || matchNIK;
+    });
+  }, [anggotaList, searchQuery]);
 
   const selectedAnggota = useMemo(() => {
     return anggotaList.find((a: Anggota) => a.id === selectedAnggotaId);
   }, [anggotaList, selectedAnggotaId]);
+
+  // Auto-select first match on Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && filteredAnggotaList.length > 0) {
+      setSelectedAnggotaId(filteredAnggotaList[0].id);
+      setShowDropdown(false);
+    }
+  };
+
+  // Close dropdown when clicking outside
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const simpananHistory = useMemo(() => {
     if (!selectedAnggotaId) return [];
@@ -67,58 +88,102 @@ export default function SimpananKartuPage() {
         </Link>
       </div>
 
-      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
-        <div style={{ marginBottom: 24 }}>
-          <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#1B4D3E", fontSize: 14 }}>
-            Cari Anggota (No. NBA, Nama, atau NIK)
-          </label>
-          <input
-            type="text"
-            placeholder="Ketik untuk mencari..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSelectedAnggotaId(0); // Reset selection when searching
-            }}
-            style={{
-              width: "100%",
-              padding: 12,
-              borderRadius: 8,
-              border: "2px solid #1B4D3E",
-              fontSize: 14,
-              marginBottom: 12
-            }}
-          />
-          
-          <div style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8 }}>
-            <select
-              value={selectedAnggotaId}
-              onChange={(e) => setSelectedAnggotaId(Number(e.target.value))}
+       <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
+         <div style={{ marginBottom: 24, position: "relative" }}>
+           <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#1B4D3E", fontSize: 14 }}>
+             Cari Anggota (No. NBA, Nama, atau NIK)
+           </label>
+            <input
+              type="text"
+              placeholder="Ketik untuk mencari..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSelectedAnggotaId(0);
+              }}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              onKeyDown={handleSearchKeyDown}
+              autoComplete="off"
+              autoFocus
               style={{
                 width: "100%",
                 padding: 12,
-                border: "none",
+                borderRadius: 8,
+                border: "2px solid #1B4D3E",
                 fontSize: 14,
-                background: "white",
-                cursor: "pointer",
-                minHeight: "200px"
+                marginBottom: 12
               }}
-            >
-              <option value={0}>-- Pilih Anggota -- ({filteredAnggotaList.length} ditemukan)</option>
-              {filteredAnggotaList.map((a: Anggota) => (
-                <option key={a.id} value={a.id}>
-                  {a.nomorNBA} - {a.nama} (NIK: {a.nik})
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {filteredAnggotaList.length === 0 && searchQuery && (
-            <div style={{ padding: 12, textAlign: "center", color: "#6b7280", fontSize: 13 }}>
-              Tidak ada anggota ditemukan
-            </div>
-          )}
-        </div>
+            />
+           {/* Autocomplete Dropdown */}
+           {showDropdown && filteredAnggotaList.length > 0 && (
+             <div ref={dropdownRef} style={{
+               maxHeight: 300,
+               overflowY: "auto",
+               border: "2px solid #1B4D3E",
+               borderRadius: 8,
+               background: "white",
+               boxShadow: "0 4px 15px rgba(0,0,0,0.15)",
+               zIndex: 1000,
+               position: "absolute",
+               width: "calc(100% - 4px)",
+               top: "100%",
+               marginTop: 4
+             }}>
+               {filteredAnggotaList.map((a: Anggota) => (
+                 <div
+                   key={a.id}
+                   onClick={() => {
+                     setSelectedAnggotaId(a.id);
+                     setSearchQuery(a.nomorNBA + " - " + a.nama);
+                     setShowDropdown(false);
+                   }}
+                   style={{
+                     padding: "12px 16px",
+                     cursor: "pointer",
+                     borderBottom: "1px solid #f3f4f6",
+                     display: "flex",
+                     justifyContent: "space-between",
+                     alignItems: "center",
+                     transition: "background 0.15s"
+                   }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.background = "#f0f9ff";
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.background = "white";
+                   }}
+                 >
+                   <div>
+                     <div style={{ fontWeight: 600, fontSize: 14, color: "#1f2937" }}>
+                       {a.nomorNBA} - {a.nama}
+                     </div>
+                     <div style={{ fontSize: 12, color: "#6b7280" }}>
+                       NIK: {a.nik || "-"}
+                     </div>
+                   </div>
+                   {selectedAnggotaId === a.id && (
+                     <span style={{ color: "#1B4D3E", fontSize: 20 }}>✓</span>
+                   )}
+                 </div>
+               ))}
+             </div>
+           )}
+           {showDropdown && filteredAnggotaList.length === 0 && searchQuery && (
+             <div style={{
+               padding: 12,
+               textAlign: "center",
+               color: "#6b7280",
+               fontSize: 13,
+               border: "2px solid #e5e7eb",
+               borderRadius: 8,
+               background: "white",
+               marginTop: 4
+             }}>
+               Tidak ada anggota ditemukan
+             </div>
+           )}
+         </div>
 
         {selectedAnggota && (
           <div style={{
