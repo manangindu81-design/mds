@@ -583,7 +583,7 @@ Yakin ingin memproses?`;
           return;
         }
 
-        // Required columns (case-insensitive matching)
+        // Required columns (case-insensitive matching, supports space and underscore variants)
         const requiredMap: Record<string, string> = {
           "tanggal masuk": "Tanggal Masuk",
           "no. nba": "No. NBA",
@@ -602,16 +602,17 @@ Yakin ingin memproses?`;
         const sampleRow = jsonData[0];
         const actualColumns = Object.keys(sampleRow);
 
-        // Normalize column names (case-insensitive)
-        const normalizedActual = actualColumns.reduce((acc, col) => {
-          acc[col.toLowerCase().trim()] = col;
-          return acc;
-        }, {} as Record<string, string>);
+        // Normalize column names (case-insensitive, handle space/underscore)
+        const normalizedActual: Record<string, string> = {};
+        actualColumns.forEach(col => {
+          const key = col.toLowerCase().trim().replace(/_/g, " ");
+          normalizedActual[key] = col;
+        });
 
         // Check required columns (case-insensitive)
         const missingColumns: string[] = [];
         Object.entries(requiredMap).forEach(([key, displayName]) => {
-          if (!normalizedActual[key.toLowerCase()]) {
+          if (!normalizedActual[key]) {
             missingColumns.push(displayName);
           }
         });
@@ -628,7 +629,12 @@ Yakin ingin memproses?`;
         // Validation function
         const validateRow = (row: any, index: number): { isValid: boolean; errors: string[]; data?: any } => {
           const errors: string[] = [];
-          const get = (col: string) => row[normalizedActual[col.toLowerCase()] || col] ?? "";
+
+          // Helper to get column value (handles space/underscore variants)
+          const get = (col: string) => {
+            const normalizedKey = col.toLowerCase().replace(/_/g, " ");
+            return row[normalizedActual[normalizedKey] || col] ?? "";
+          };
 
           const nama = String(get("nama anggota") || "").trim();
           const nik = String(get("nomor identitas (ktp)") || get("nik") || "").replace(/\.0$/, "").trim();
@@ -680,13 +686,13 @@ Yakin ingin memproses?`;
               status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
               tempatLahir: String(get("tempat lahir") || "").trim(),
               tanggalLahir: tglLahir || "",
-              namaPasangan: String(get("nama pasangan") || "").trim(),
-              jumlahAnak: String(get("jumlah anak") || "").trim(),
-              namaIbuKandung: String(get("nama ibu kandung") || "").trim(),
-              namaSaudara: String(get("nama saudara tidak serumah") || "").trim(),
-              telpSaudara: String(get("no hp saudara") || "").replace(/\.0$/, "").trim(),
-              hubungan: String(get("hubungan saudara") || "").trim(),
-              alamat: String(get("alamat ktp") || get("alamat") || "").trim(),
+              namaPasangan: String(get("nama_pasangan") || "").trim(),
+              jumlahAnak: String(get("jumlah_anak") || "").trim(),
+              namaIbuKandung: String(get("nama_ibu_kandung") || "").trim(),
+              namaSaudara: String(get("nama_saudara_tidak_serumah") || "").trim(),
+              telpSaudara: String(get("no_hp_saudara") || "").replace(/\.0$/, "").trim(),
+              hubungan: String(get("hubungan_saudara") || "").trim(),
+              alamat: String(get("alamat_ktp") || get("alamat") || "").trim(),
               telepon: telepon,
               pekerjaan: String(get("pekerjaan") || "").trim(),
               pendapatan: String(get("pendapatan perbulan") || "").trim(),
