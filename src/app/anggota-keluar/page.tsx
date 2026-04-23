@@ -6,6 +6,9 @@ import { useData, Anggota } from "../context/DataContext";
 export default function AnggotaKeluarPage() {
   const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota } = useData();
   const [searchQuery, setSearchQuery] = useState("");
+  const [manualMode, setManualMode] = useState(false);
+  const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
+  const [manualInput, setManualInput] = useState("");
   
   const filteredAnggota = useMemo(() => {
     const list = anggota || [];
@@ -29,6 +32,16 @@ export default function AnggotaKeluarPage() {
   const nonAktifList = useMemo(() => {
     return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
   }, [anggota]);
+
+  // Find member by No. NBA for manual mode
+  const foundAnggota = useMemo(() => {
+    if (!manualInput.trim()) return null;
+    const q = manualInput.trim();
+    return (anggota || []).find((a: Anggota) => {
+      if (a.statusKeanggotaan === "Non-Aktif") return false;
+      return a.nomorNBA === q || a.nomorNBA.toLowerCase().includes(q.toLowerCase());
+    });
+  }, [anggota, manualInput]);
 
   const handlePengunduran = (id: number) => {
     const targetDate = new Date().toISOString().split("T")[0];
@@ -146,103 +159,297 @@ Yakin ingin memproses?`;
         </Link>
       </div>
 
-      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-        <div style={{ marginBottom: 24 }}>
-          <input 
-            type="text" 
-            placeholder="Cari berdasarkan No. NBA, Nama, atau NIK..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #dc2626", fontSize: 14 }}
-          />
-        </div>
+      {/* Mode Selection */}
+      <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
+        <button
+          onClick={() => setManualMode(false)}
+          style={{
+            flex: 1,
+            padding: "12px 20px",
+            background: !manualMode ? "#dc2626" : "#f3f4f6",
+            color: !manualMode ? "white" : "#374151",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          🔍 Cari dari Daftar Anggota
+        </button>
+        <button
+          onClick={() => setManualMode(true)}
+          style={{
+            flex: 1,
+            padding: "12px 20px",
+            background: manualMode ? "#dc2626" : "#f3f4f6",
+            color: manualMode ? "white" : "#374151",
+            border: "none",
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          ✏️ Input Manual (No. NBA)
+        </button>
+      </div>
 
-        {searchQuery && filteredAnggota.length === 0 && (
-          <div style={{ textAlign: "center", padding: 32, background: "#fef2f2", borderRadius: 12, marginBottom: 20 }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-            <p style={{ color: "#991b1b", fontSize: 14 }}>Tidak ada anggota aktif yang cocok dengan pencarian.</p>
-          </div>
-        )}
-
-        {filteredAnggota.length > 0 && (
-          <div style={{ background: "#fef2f2", borderRadius: 12, padding: 20, marginBottom: 20, border: "2px solid #fecaca" }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 12 }}>
-              ⚠️ Perhatian - Proses Pengunduran Diri
+      {!manualMode ? (
+        /* SEARCH MODE */
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#dc2626", fontSize: 14 }}>
+              Cari Anggota (No. NBA, Nama, atau NIK)
+            </label>
+            <input
+              type="text"
+              placeholder="Ketik untuk mencari anggota aktif..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 8,
+                border: "2px solid #dc2626",
+                fontSize: 14,
+                marginBottom: 12
+              }}
+            />
+            
+            <div style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8 }}>
+              <select
+                value={selectedAnggotaId}
+                onChange={(e) => {
+                  setSelectedAnggotaId(Number(e.target.value));
+                }}
+                style={{
+                  width: "100%",
+                  padding: 12,
+                  border: "none",
+                  fontSize: 14,
+                  background: "white",
+                  cursor: "pointer",
+                  minHeight: "200px"
+                }}
+              >
+                <option value={0}>-- Pilih Anggota -- ({filteredAnggota.length} aktif)</option>
+                {filteredAnggota.map((a: Anggota) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nomorNBA} - {a.nama} (NIK: {a.nik})
+                  </option>
+                ))}
+              </select>
             </div>
-            <ul style={{ fontSize: 12, color: "#b91c1c", marginLeft: 20, lineHeight: 1.8 }}>
-              <li>Simpanan Pokok & Wajib akan otomatis dicairkan</li>
-              <li>Biaya Pengunduran Diri Rp 50.000 akan dipotong</li>
-              <li>Status anggota diubah menjadi Non-Aktif</li>
-              <li>Data tidak bisa dikembalikan setelah diproses</li>
-            </ul>
+            
+            {filteredAnggota.length === 0 && searchQuery && (
+              <div style={{ padding: 12, textAlign: "center", color: "#6b7280", fontSize: 13 }}>
+                Tidak ada anggota aktif ditemukan
+              </div>
+            )}
           </div>
-        )}
 
-        <div style={{ maxHeight: 400, overflowY: "auto" }}>
-          {filteredAnggota.map((a: Anggota) => {
-            const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === a.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+          {/* Show selected member info and process button */}
+          {selectedAnggotaId > 0 && (() => {
+            const selected = (anggota || []).find((a: Anggota) => a.id === selectedAnggotaId);
+            if (!selected) return null;
+            
+            const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === selectedAnggotaId && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
             const totalSimpanan = aggSimpanan.reduce((sum: number, s: any) => sum + s.jumlah, 0);
             const pokok = aggSimpanan.filter((s: any) => s.jenisSimpanan === "pokok").reduce((sum: number, s: any) => sum + s.jumlah, 0);
             const wajib = aggSimpanan.filter((s: any) => s.jenisSimpanan === "wajib").reduce((sum: number, s: any) => sum + s.jumlah, 0);
             
             return (
-              <div key={a.id} style={{ padding: 16, border: "2px solid #e5e7eb", borderRadius: 10, marginBottom: 12, background: "#fff" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: "#1f2937" }}>{a.nama}</div>
-                    <div style={{ fontSize: 12, color: "#6b7280" }}>
-                      No. NBA: <span style={{ fontFamily: "monospace" }}>{a.nomorNBA || "-"}</span> | NIK: {a.nik || "-"}
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handlePengunduran(a.id)}
-                    style={{ padding: "8px 16px", background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-                  >
-                    🚪 Proses Keluar
-                  </button>
+              <div style={{ 
+                background: "#fef2f2", 
+                borderRadius: 12, 
+                padding: 20, 
+                marginTop: 20, 
+                border: "2px solid #fecaca" 
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 12 }}>
+                  ⚠️ Konfirmasi Pengunduran
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, padding: 12, background: "#f9fafb", borderRadius: 8 }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Simpanan Pokok</div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#1f2937", marginBottom: 4 }}>{selected.nama}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    No. NBA: {selected.nomorNBA || "-"} | NIK: {selected.nik || "-"}
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+                  <div style={{ textAlign: "center", padding: 12, background: "#fef3c7", borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: "#92400e" }}>Simpanan Pokok</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "#059669" }}>Rp {pokok.toLocaleString("id-ID")}</div>
                   </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Simpanan Wajib</div>
+                  <div style={{ textAlign: "center", padding: 12, background: "#dbeafe", borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: "#1e40af" }}>Simpanan Wajib</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "#059669" }}>Rp {wajib.toLocaleString("id-ID")}</div>
                   </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 11, color: "#6b7280" }}>Total</div>
+                  <div style={{ textAlign: "center", padding: 12, background: "#dcfce7", borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: "#166534" }}>Total</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: "#059669" }}>Rp {totalSimpanan.toLocaleString("id-ID")}</div>
                   </div>
                 </div>
+                <div style={{ 
+                  padding: 12, 
+                  background: "#fee2e2", 
+                  borderRadius: 8, 
+                  marginBottom: 16, 
+                  fontSize: 13, 
+                  color: "#991b1b",
+                  textAlign: "center"
+                }}>
+                  <strong>Biaya Pengunduran: Rp 50.000</strong>
+                </div>
+                <button
+                  onClick={() => handlePengunduran(selectedAnggotaId)}
+                  style={{
+                    width: "100%",
+                    padding: 14,
+                    background: "#dc2626",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 8,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    cursor: "pointer"
+                  }}
+                >
+                  🚪 Proses Keluar
+                </button>
               </div>
             );
-          })}
+          })()}
         </div>
-
-        {nonAktifList.length > 0 && (
-          <div style={{ marginTop: 32 }}>
-            <h4 style={{ fontSize: 14, color: "#6b7280", marginBottom: 16, borderBottom: "1px solid #e5e7eb", paddingBottom: 8 }}>
-              Riwayat Anggota Non-Aktif ({nonAktifList.length})
-            </h4>
-            <div style={{ maxHeight: 200, overflowY: "auto" }}>
-              {nonAktifList.slice(0, 10).map((a: Anggota) => (
-                <div key={a.id} style={{ padding: 10, borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#6b7280" }}>{a.nama}</div>
-                    <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                      {a.nomorNBA || "-"} | Tanggal: {a.tanggalPengunduran || "-"}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: 11, padding: "4px 8px", background: "#f3f4f6", borderRadius: 4, color: "#9ca3af" }}>
-                    Non-Aktif
-                  </span>
+      ) : (
+        /* MANUAL INPUT MODE */
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#dc2626", fontSize: 14 }}>
+              Masukkan No. NBA Anggota
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: 001, NBA-001, atau ketik nama di bawah..."
+              value={manualInput}
+              onChange={(e) => setManualInput(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 8,
+                border: "2px solid #dc2626",
+                fontSize: 14,
+                marginBottom: 12
+              }}
+            />
+            
+            {foundAnggota && (
+              <div style={{
+                padding: 20,
+                background: "#f0fdf4",
+                borderRadius: 12,
+                border: "2px solid #22c55e",
+                marginTop: 16
+              }}>
+                <div style={{ fontSize: 12, color: "#166534", marginBottom: 4 }}>Anggota Ditemukan</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1f2937", marginBottom: 4 }}>{foundAnggota.nama}</div>
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
+                  No. NBA: {foundAnggota.nomorNBA} | NIK: {foundAnggota.nik}
                 </div>
-              ))}
-            </div>
+                
+                {/* Show simpanan */}
+                {(() => {
+                  const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === foundAnggota.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+                  const totalSimpanan = aggSimpanan.reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                  const pokok = aggSimpanan.filter((s: any) => s.jenisSimpanan === "pokok").reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                  const wajib = aggSimpanan.filter((s: any) => s.jenisSimpanan === "wajib").reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                  
+                  return (
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontSize: 12, color: "#166534", marginBottom: 8 }}>Detail Simpanan</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                        <div style={{ textAlign: "center", padding: 8, background: "#fef3c7", borderRadius: 6 }}>
+                          <div style={{ fontSize: 10, color: "#92400e" }}>Pokok</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {pokok.toLocaleString("id-ID")}</div>
+                        </div>
+                        <div style={{ textAlign: "center", padding: 8, background: "#dbeafe", borderRadius: 6 }}>
+                          <div style={{ fontSize: 10, color: "#1e40af" }}>Wajib</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {wajib.toLocaleString("id-ID")}</div>
+                        </div>
+                        <div style={{ textAlign: "center", padding: 8, background: "#dcfce7", borderRadius: 6 }}>
+                          <div style={{ fontSize: 10, color: "#166534" }}>Total</div>
+                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {totalSimpanan.toLocaleString("id-ID")}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                
+                <button
+                  onClick={() => handlePengunduran(foundAnggota.id)}
+                  style={{
+                    width: "100%",
+                    padding: 14,
+                    background: "#dc2626",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 8,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    marginTop: 16
+                  }}
+                >
+                  🚪 Proses Keluar Anggota Ini
+                </button>
+              </div>
+            )}
+            
+            {manualInput && !foundAnggota && (
+              <div style={{ padding: 12, textAlign: "center", color: "#991b1b", fontSize: 13, marginTop: 12 }}>
+                ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* List of recently processed (non-active) members */}
+      {nonAktifList.length > 0 && (
+        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+          <h3 style={{ fontSize: 16, marginBottom: 20, color: "#6b7280" }}>
+            Riwayat Anggota Yang Telah Keluar ({nonAktifList.length})
+          </h3>
+          <div style={{ maxHeight: 300, overflowY: "auto" }}>
+            {nonAktifList.map((a: Anggota) => (
+              <div key={a.id} style={{
+                padding: 12,
+                borderBottom: "1px solid #f3f4f6",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#6b7280" }}>{a.nama}</div>
+                  <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                    {a.nomorNBA || "-"} | Tanggal: {a.tanggalPengunduran || "-"}
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: 11,
+                  padding: "4px 10px",
+                  background: "#fee2e2",
+                  borderRadius: 4,
+                  color: "#dc2626",
+                  fontWeight: 600
+                }}>
+                  Non-Aktif
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
