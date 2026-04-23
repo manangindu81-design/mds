@@ -98,8 +98,12 @@ export default function SimpananKartuPage() {
               placeholder="Ketik untuk mencari..."
               value={searchQuery}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
+                const value = e.target.value;
+                setSearchQuery(value);
                 setSelectedAnggotaId(0);
+                if (value.trim()) {
+                  setShowDropdown(true);
+                }
               }}
               onFocus={() => setShowDropdown(true)}
               onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -115,8 +119,8 @@ export default function SimpananKartuPage() {
                 marginBottom: 12
               }}
             />
-           {/* Autocomplete Dropdown */}
-           {showDropdown && filteredAnggotaList.length > 0 && (
+            {/* Autocomplete Dropdown */}
+            {(showDropdown || searchQuery.trim()) && filteredAnggotaList.length > 0 && (
              <div ref={dropdownRef} style={{
                maxHeight: 300,
                overflowY: "auto",
@@ -168,8 +172,8 @@ export default function SimpananKartuPage() {
                  </div>
                ))}
              </div>
-           )}
-           {showDropdown && filteredAnggotaList.length === 0 && searchQuery && (
+            )}
+            {(showDropdown || searchQuery.trim()) && filteredAnggotaList.length === 0 && searchQuery && (
              <div style={{
                padding: 12,
                textAlign: "center",
