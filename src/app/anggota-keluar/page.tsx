@@ -10,6 +10,10 @@ export default function AnggotaKeluarPage() {
   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
   const [manualInput, setManualInput] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [exitDate, setExitDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTanggalKeluar, setEditTanggalKeluar] = useState("");
 
@@ -94,7 +98,7 @@ export default function AnggotaKeluarPage() {
   }, [anggota, manualInput]);
 
   const handlePengunduran = (id: number) => {
-    const targetDate = new Date().toISOString().split("T")[0];
+    const targetDate = exitDate; // Use selected exit date
     const biayaPengunduran = 50000;
     const agg = (anggota || []).find((a: Anggota) => a.id === id);
     if (!agg) return;
@@ -109,6 +113,8 @@ Simpanan Wajib: Rp ${aggSimpanan.filter((s: any) => s.jenisSimpanan === "wajib")
 Total Simpanan: Rp ${totalSimpanan.toLocaleString("id-ID")}
 
 Biaya Pengunduran Diri: Rp ${biayaPengunduran.toLocaleString("id-ID")}
+
+Tanggal Pengunduran: ${targetDate}
 
 Yakin ingin memproses?`;
     if (!confirm(confirmMsg)) return;
@@ -282,6 +288,7 @@ Yakin ingin memproses?`;
                       setSelectedAnggotaId(a.id);
                       setShowDropdown(false);
                       setSearchQuery(a.nomorNBA + " - " + a.nama);
+                      setExitDate(new Date().toISOString().split('T')[0]); // Reset to today
                     }}
                     style={{
                       padding: "12px 16px",
@@ -425,33 +432,55 @@ Yakin ingin memproses?`;
                 <div style={{ fontSize: 12, color: "#6b7280" }}>
                   No. NBA: {foundAnggota.nomorNBA} | NIK: {foundAnggota.nik}
                 </div>
-                {(() => {
-                  const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === foundAnggota.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
-                  const totalSimpanan = aggSimpanan.reduce((sum: number, s: any) => sum + s.jumlah, 0);
-                  const pokok = aggSimpanan.filter((s: any) => s.jenisSimpanan === "pokok").reduce((sum: number, s: any) => sum + s.jumlah, 0);
-                  const wajib = aggSimpanan.filter((s: any) => s.jenisSimpanan === "wajib").reduce((sum: number, s: any) => sum + s.jumlah, 0);
-                  return (
-                    <div style={{ marginTop: 16 }}>
-                      <div style={{ fontSize: 12, color: "#166534", marginBottom: 8 }}>Detail Simpanan</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                        <div style={{ textAlign: "center", padding: 8, background: "#fef3c7", borderRadius: 6 }}>
-                          <div style={{ fontSize: 10, color: "#92400e" }}>Pokok</div>
-                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {pokok.toLocaleString("id-ID")}</div>
-                        </div>
-                        <div style={{ textAlign: "center", padding: 8, background: "#dbeafe", borderRadius: 6 }}>
-                          <div style={{ fontSize: 10, color: "#1e40af" }}>Wajib</div>
-                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {wajib.toLocaleString("id-ID")}</div>
-                        </div>
-                        <div style={{ textAlign: "center", padding: 8, background: "#dcfce7", borderRadius: 6 }}>
-                          <div style={{ fontSize: 10, color: "#166534" }}>Total</div>
-                          <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {totalSimpanan.toLocaleString("id-ID")}</div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-                <button
-                  onClick={() => handlePengunduran(foundAnggota.id)}
+                 {(() => {
+                   const aggSimpanan = simpananList.filter((s: any) => s.idAnggota === foundAnggota.id && (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+                   const totalSimpanan = aggSimpanan.reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                   const pokok = aggSimpanan.filter((s: any) => s.jenisSimpanan === "pokok").reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                   const wajib = aggSimpanan.filter((s: any) => s.jenisSimpanan === "wajib").reduce((sum: number, s: any) => sum + s.jumlah, 0);
+                   return (
+                     <div style={{ marginTop: 16 }}>
+                       <div style={{ fontSize: 12, color: "#166534", marginBottom: 8 }}>Detail Simpanan</div>
+                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                         <div style={{ textAlign: "center", padding: 8, background: "#fef3c7", borderRadius: 6 }}>
+                           <div style={{ fontSize: 10, color: "#92400e" }}>Pokok</div>
+                           <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {pokok.toLocaleString("id-ID")}</div>
+                         </div>
+                         <div style={{ textAlign: "center", padding: 8, background: "#dbeafe", borderRadius: 6 }}>
+                           <div style={{ fontSize: 10, color: "#1e40af" }}>Wajib</div>
+                           <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {wajib.toLocaleString("id-ID")}</div>
+                         </div>
+                         <div style={{ textAlign: "center", padding: 8, background: "#dcfce7", borderRadius: 6 }}>
+                           <div style={{ fontSize: 10, color: "#166534" }}>Total</div>
+                           <div style={{ fontSize: 12, fontWeight: 600 }}>Rp {totalSimpanan.toLocaleString("id-ID")}</div>
+                         </div>
+                       </div>
+
+                       <div style={{ marginTop: 16 }}>
+                         <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, color: "#dc2626" }}>
+                           📅 Tanggal Pengunduran
+                         </label>
+                         <input
+                           type="date"
+                           value={exitDate}
+                           onChange={(e) => setExitDate(e.target.value)}
+                           style={{
+                             width: "100%",
+                             padding: 10,
+                             borderRadius: 8,
+                             border: "2px solid #dc2626",
+                             fontSize: 14,
+                             marginBottom: 8
+                           }}
+                         />
+                         <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>
+                           Biaya pengunduran: Rp 50.000 (dipotong dari total simpanan)
+                         </div>
+                       </div>
+                     </div>
+                   );
+                 })()}
+                 <button
+                   onClick={() => handlePengunduran(foundAnggota.id)}
                   style={{
                     width: "100%",
                     padding: 14,
