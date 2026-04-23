@@ -20,7 +20,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - [x] Fix JSX syntax error di anggota/page.tsx - edit functionality works now
 - [x] Dashboard enhancement: Quick Actions, Trend Charts, Jatuh Tempo, Aktivitas Terbaru
 - [x] Add "Hapus Semua" buttons in Anggota, Simpanan, and Pinjaman pages with confirmation
-- [x] All buttons now fully functional: anggota registration saves pendapatan; simpanan resolves anggota from No. NBA; transaksi uses account names; pinjaman delete cascades to angsuran; bulk deletes avoid array mutation
+ - [x] All buttons now fully functional: anggota registration saves pendapatan; simpanan resolves anggota from No. NBA; transaksi uses account names; pinjaman delete cascades to angsuran; bulk deletes avoid array mutation
+ - [x] Add Pengeluaran page with 15 expense categories (bunga simpanan types, gaji, operasional, insentif)
+ - [x] Add strict Simpanan Excel import validation (all-or-nothing, 5 required columns, duplicate detection, detailed error reporting)
 
 ## Struktur Aplikasi
 
@@ -29,11 +31,12 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | Beranda | / | Landing page |
 | Anggota | /anggota | Pendaftaran & Edit |
 | Keluar | /anggota-keluar | Pengunduran diri anggota |
-| Simpanan | /simpanan | Input setoran/penarikan |
+| Simpanan | /simpanan | Input setoran/penarikan + Import Excel |
 | Kartu Simpanan | /simpanan-kartu | Riwayat simpanan per anggota |
 | Pinjaman | /pinjaman | Pengajuan & angsuran |
 | SHU | /shu | Perhitungan Sisa Hasil Usaha |
 | Transaksi | /transaksi | Kas masuk/keluar + jurnal |
+| Pengeluaran | /pengeluaran | Pencatatan biaya & pengeluaran (15 kategori) |
 | Dashboard | /dashboard | Stats & tabel data |
 | Laporan | /laporan | Laporan keuangan |
 
@@ -58,10 +61,11 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
   - Transaksi: akun disimpan sebagai nama (kode) untuk laporan
   - Hapus/Mass delete: semua tombol hapus bekerja dengan benar, cascading delete untuk pinjaman→angsuran
 - Edit anggota berfungsi dengan baik
-- Import Excel anggota berfungsi dengan mapping kolom yang benar
+- Import Excel anggota & simpanan berfungsi dengan validasi ketat (all-or-nothing, detection duplikat)
 - Menu **Kartu Simpanan** dengan pencarian anggota (No. NBA/Nama/NIK) dan riwayat transaksi real-time
 - Menu **Keluar** dengan 2 mode: Cari dari daftar + Input manual No. NBA, lengkap dengan preview simpanan dan biaya pengunduran
 - Menu **SHU** dengan alokasi 9 kategori (5-5-55-20-5-5-2-2-1%) dan distribusi per anggota (Jasa Modal 55% + Jasa Transaksi 20%)
+- Menu **Pengeluaran** dengan 15 kategori biaya (bunga simpanan, gaji, operasional, insentif) dan validasi input lengkap
 - **SHU menghitung dari transaksi, angsuran (bunga/denda), dan biaya admin pinjaman**, menghasilkan nonzero untuk tahun-tahun aktif
 - **Hapus Simpanan Selection** (`/simpanan` → Data tab): pilih jenis simpanan via checkbox, hapus massal dengan konfirmasi detail
 
@@ -91,4 +95,5 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-23 | Enhance Excel import for anggota: normalize column names (space/underscore), snake_case template, auto-switch to Data tab after success, fix empty date rejection |
 | 2026-04-23 | Add missing Tempat Lahir column to anggota table and reorder columns to match Excel template layout; remove debug logs |
 | 2026-04-23 | Fix all buttons: simpanan input now resolves idAnggota from No. NBA; anggota registration saves pendapatan; transaksi stores account name (not kode); deleteAllPinjaman cascades to angsuran; prevent array mutation in forEach delete loops |
-| 2026-04-23 | Fix all critical buttons: simpanan now resolves idAnggota from No. NBA; anggota registration saves pendapatan; transaksi stores account name (not code); cascading delete for pinjaman→angsuran; prevent array mutation in bulk delete loops | |
+| 2026-04-23 | Fix all critical buttons: simpanan now resolves idAnggota from No. NBA; anggota registration saves pendapatan; transaksi stores account name (not code); cascading delete for pinjaman→angsuran; prevent array mutation in bulk delete loops |
+| 2026-04-23 | **Add Pengeluaran module**: 15 expense categories (bunga simpanan types, gaji, operasional, insentif), full CRUD with search/pagination/delete, localStorage persistence; **strict Simpanan import validation** (all-or-nothing, 5 required columns, duplicate No. NBA detection, row-level error details) | |
