@@ -1,8 +1,46 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { useData, Anggota as AnggotaType } from "../context/DataContext";
 import * as XLSX from "xlsx";
+
+// Helper function outside component for date display formatting
+const displayDate = (date: string) => {
+  if (!date) return "-";
+  if (date.includes("-") && date.length === 10) {
+    const [year, month, day] = date.split("-");
+    return `${day}-${month}-${year}`;
+  }
+  return date;
+};
+
+const parseExcelDate = (value: any): string | null => {
+  if (!value || value === "") return null;
+
+  if (typeof value === "number") {
+    const excelEpoch = new Date(1899, 11, 30);
+    const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+
+  if (typeof value === "string") {
+    const str = value.trim();
+    if (!str) return null;
+
+    const parts = str.split(/[-/]/);
+    if (parts.length === 3) {
+      const [p1, p2, p3] = parts;
+      if (p1.length <= 2 && p3.length === 4) {
+        return `${p3}-${p2.padStart(2, "0")}-${p1.padStart(2, "0")}`;
+      }
+      if (p1.length === 4 && p3.length <= 2) {
+        return `${p1}-${p2.padStart(2, "0")}-${p3.padStart(2, "0")}`;
+      }
+    }
+    return str;
+  }
+
+  return null;
+};
 
 export default function AnggotaPage() {
   const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota, simpanan } = useData();
@@ -73,34 +111,26 @@ export default function AnggotaPage() {
     
     return defaultDate || new Date().toISOString().split("T")[0];
   };
-   const fileInputRef = useRef<HTMLInputElement>(null);
-   const [editingId, setEditingId] = useState<number | null>(null);
-   const [editForm, setEditForm] = useState<any>({});
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editForm, setEditForm] = useState<any>({});
 
-   const formatDate = (date: string) => {
-     if (!date) return "";
-     if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
-       return date;
-     }
-     if (date.includes("-") && date.length === 10 && date.substring(6,10).length === 4) {
-       const parts = date.split("-");
-       return `${parts[2]}-${parts[1]}-${parts[0]}`;
-     }
-     const d = new Date(date);
-     if (isNaN(d.getTime())) return "";
-     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-   };
+    // Format date to YYYY-MM-DD (for form inputs)
+    const formatDate = (date: string) => {
+      if (!date) return "";
+      if (date.includes("-") && date.length === 10 && date.substring(0, 4).length === 4) {
+        return date;
+      }
+      if (date.includes("-") && date.length === 10 && date.substring(6, 10).length === 4) {
+        const parts = date.split("-");
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "";
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
 
-   const displayDate = (date: string) => {
-     if (!date) return "-";
-     if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
-       const parts = date.split("-");
-       return `${parts[2]}-${parts[1]}-${parts[0]}`;
-     }
-     return date;
-   };
-
-   const handlePengunduran = (id: number) => {
+    const handlePengunduran = (id: number) => {
     const targetDate = new Date().toISOString().split("T")[0];
     const biayaPengunduran = 50000;
     
@@ -201,63 +231,37 @@ Yakin ingin memproses?`;
     alert(`Anggota "${agg.nama}" telah mengundurkan diri.\n\nSimpanan Pokok & Wajib: ${aggSimpanan.length} transaksi\nTotal Simpanan: Rp ${totalSimpanan.toLocaleString("id-ID")}\nBiaya Pengunduran: Rp ${biayaPengunduran.toLocaleString("id-ID")}`);
   };
   
-  // When editingId changes, populate editForm with the selected anggota data
-  useEffect(() => {
-    if (editingId) {
-      const selected = anggota.find(a => a.id === editingId);
-      if (selected) {
-        setEditForm({
-          nik: String(selected.nik || ""),
-          nama: String(selected.nama || ""),
-          tempatLahir: String(selected.tempatLahir || ""),
-          tanggalLahir: formatDate(String(selected.tanggalLahir || "")),
-          jkelamin: String(selected.jkelamin || ""),
-          status: String(selected.status || ""),
-          namaPasangan: String((selected as any).namaPasangan || ""),
-          jumlahAnak: String((selected as any).jumlahAnak || ""),
-          namaIbuKandung: String((selected as any).namaIbuKandung || ""),
-          namaSaudara: String((selected as any).namaSaudara || ""),
-          telpSaudara: String((selected as any).telpSaudara || ""),
-          hubungan: String((selected as any).hubungan || ""),
-          pekerjaan: String(selected.pekerjaan || ""),
-          alamat: String(selected.alamat || ""),
-          telepon: String(selected.telepon || ""),
-          email: String((selected as any).email || ""),
-          tempatKerja: String((selected as any).tempatKerja || ""),
-          pendapatan: String(selected.pendapatan || ""),
-        });
-      }
-    }
-  }, [editingId, anggota]);
-  
-  const formatDate = (date: string) => {
-    if (!date) return "";
-    // Handle YYYY-MM-DD format (for edit form input)
-    if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
-      return date;
-    }
-    // Handle DD-MM-YYYY format (convert to YYYY-MM-DD for edit form)
-    if (date.includes("-") && date.length === 10 && date.substring(6,10).length === 4) {
-      const parts = date.split("-");
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    // Fallback
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "";
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  };
-
-  const displayDate = (date: string) => {
-    if (!date) return "-";
-    // If YYYY-MM-DD, convert to DD-MM-YYYY for display
-    if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
-      const parts = date.split("-");
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-    return date;
-  };
-  
-  const noNBA = String(anggota.length + 1);
+   // When editingId changes, populate editForm with the selected anggota data
+   useEffect(() => {
+     if (editingId) {
+       const selected = anggota.find(a => a.id === editingId);
+       if (selected) {
+         // eslint-disable-next-line react-hooks/set-state-in-effect
+         setEditForm({
+           nik: String(selected.nik || ""),
+           nama: String(selected.nama || ""),
+           tempatLahir: String(selected.tempatLahir || ""),
+           tanggalLahir: formatDate(String(selected.tanggalLahir || "")),
+           jkelamin: String(selected.jkelamin || ""),
+           status: String(selected.status || ""),
+           namaPasangan: String((selected as any).namaPasangan || ""),
+           jumlahAnak: String((selected as any).jumlahAnak || ""),
+           namaIbuKandung: String((selected as any).namaIbuKandung || ""),
+           namaSaudara: String((selected as any).namaSaudara || ""),
+           telpSaudara: String((selected as any).telpSaudara || ""),
+           hubungan: String((selected as any).hubungan || ""),
+           pekerjaan: String(selected.pekerjaan || ""),
+           alamat: String(selected.alamat || ""),
+           telepon: String(selected.telepon || ""),
+           email: String((selected as any).email || ""),
+           tempatKerja: String((selected as any).tempatKerja || ""),
+           pendapatan: String(selected.pendapatan || ""),
+         });
+       }
+     }
+    }, [editingId, anggota]);
+   
+   const noNBA = String(anggota.length + 1);
   const tanggalMasuk = formatDate(new Date().toISOString().split("T")[0]);
   
   const optionsHubungan = [
@@ -428,6 +432,7 @@ Yakin ingin memproses?`;
      if (editingId) {
        const selected = anggota.find(a => a.id === editingId);
        if (selected) {
+         // eslint-disable-next-line react-hooks/set-state-in-effect
          setEditForm({
            nik: String(selected.nik || ""),
            nama: String(selected.nama || ""),
