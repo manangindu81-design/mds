@@ -107,19 +107,26 @@ export default function SHUPage() {
     }));
   }, [shuCalculation.shuBersih]);
 
-  // Calculate Jasa Modal & Jasa Transaksi distribution to members (75% of SHU)
-  const jasaDistribution = useMemo(() => {
+  // Calculate SHU per anggota with full allocation breakdown
+  const shuDistribution = useMemo(() => {
     if (!anggota || anggota.length === 0) return [];
     
     const anggotaList = anggota || [];
     const simpananList = simpanan || [];
     
-    // Jasa Modal (55%) + Jasa Transaksi (20%) = 75%
-    const totalJasa = allocationBreakdown
-      .filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi")
-      .reduce((sum, a) => sum + a.amount, 0);
-
-    if (totalJasa <= 0) return [];
+    // Derive total SHU from allocationBreakdown sum
+    const totalSHU = allocationBreakdown.reduce((sum, a) => sum + a.amount, 0);
+    if (totalSHU <= 0) return [];
+    
+    // Create allocation map for quick lookup
+    const allocationMap = new Map<string, {label: string, percentage: number, amount: number}>();
+    allocationBreakdown.forEach(alloc => {
+      allocationMap.set(alloc.category, {
+        label: alloc.label,
+        percentage: alloc.percentage,
+        amount: alloc.amount
+      });
+    });
 
     // Calculate total simpanan per anggota
     const anggotaSimpananMap = new Map<number, number>();
@@ -138,8 +145,29 @@ export default function SHUPage() {
       anggotaList.forEach((a: any) => {
         const simpananAnggota = anggotaSimpananMap.get(a.id) || 0;
         const proporsi = simpananAnggota / totalSimpananSemua;
-        const shuAnggota = Math.round(totalJasa * proporsi);
         const persentase = proporsi * 100;
+
+        // Calculate allocation breakdown per anggota
+        const allocDetail: Record<string, {label: string, percentage: number, totalAmount: number, received: number}> = {};
+        let totalTerima = 0;
+        
+        SHU_ALLOCATIONS.forEach(alloc => {
+          const allocData = allocationMap.get(alloc.key);
+          const amount = allocData ? allocData.amount : 0;
+          const isDistributable = alloc.key === "jasa_modal" || alloc.key === "jasa_transaksi";
+          const received = isDistributable ? Math.round(amount * proporsi) : 0;
+          
+          allocDetail[alloc.key] = {
+            label: alloc.label,
+            percentage: alloc.percentage,
+            totalAmount: amount,
+            received
+          };
+          
+          if (isDistributable) {
+            totalTerima += received;
+          }
+        });
 
         distribution.push({
           id: a.id,
@@ -148,14 +176,13 @@ export default function SHUPage() {
           simpanan: simpananAnggota,
           proporsi,
           persentase,
-          shuAnggota,
-          jasaModal: Math.round(shuAnggota * (55/75)),  // 55/75 = 73.33% of jasa
-          jasaTransaksi: Math.round(shuAnggota * (20/75)) // 20/75 = 26.67% of jasa
+          ...allocDetail,
+          totalTerima
         });
       });
     }
 
-    return distribution.sort((a, b) => b.shuAnggota - a.shuAnggota);
+    return distribution.sort((a, b) => b.totalTerima - a.totalTerima);
   }, [anggota, simpanan, allocationBreakdown]);
 
   const formatRupiah = (num: number) => {
@@ -366,75 +393,113 @@ export default function SHUPage() {
           </div>
         </div>
 
-        {jasaDistribution.length > 0 ? (
+        {shuDistribution.length > 0 ? (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ background: "#f9fafb" }}>
-                  <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
-                  <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
-                  <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama Anggota</th>
-                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Saldo Simpanan</th>
-                  <th style={{ padding: 12, textAlign: "center", borderBottom: "2px solid #ddd" }}>Proporsi</th>
-                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jasa Modal (55%)</th>
-                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Jasa Transaksi (20%)</th>
-                  <th style={{ padding: 12, textAlign: "right", borderBottom: "2px solid #ddd" }}>Total Jasa</th>
+                  <th style={{ padding: 8, textAlign: "left", borderBottom: "2px solid #ddd", fontSize: 11 }}>#</th>
+                  <th style={{ padding: 8, textAlign: "left", borderBottom: "2px solid #ddd", fontSize: 11 }}>No. NBA</th>
+                  <th style={{ padding: 8, textAlign: "left", borderBottom: "2px solid #ddd", fontSize: 11 }}>Nama</th>
+                  <th style={{ padding: 8, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 11, color: "#059669" }}>Simpanan</th>
+                  <th style={{ padding: 4, textAlign: "center", borderBottom: "2px solid #ddd", fontSize: 10 }}>Prop</th>
+                  {/* Distributable to members */}
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#059669" }}>Jasa<br/>Mod</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#3b82f6" }}>Jasa<br/>Trans</th>
+                  {/* KSP reserves - not distributable */}
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Cad<br/>Umum</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Cad<br/>Resiko</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Peng<br/>Pengawas</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Kesej</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Pend</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}>Sos</th>
+                  <th style={{ padding: 4, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 10, color: "#dc2626" }}> Pemb</th>
+                  <th style={{ padding: 8, textAlign: "right", borderBottom: "2px solid #ddd", fontSize: 11, color: "#1B4D3E" }}>Total<br/>Terima</th>
                 </tr>
               </thead>
               <tbody>
-                {jasaDistribution.map((item: any, index: number) => (
+                {shuDistribution.map((item: any, index: number) => (
                   <tr key={item.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: 12, color: "#6b7280", fontSize: 12 }}>{index + 1}</td>
-                    <td style={{ padding: 12, fontFamily: "monospace", fontSize: 12, color: "#1B4D3E" }}>
+                    <td style={{ padding: 8, color: "#6b7280", fontSize: 11, verticalAlign: "middle" }}>{index + 1}</td>
+                    <td style={{ padding: 8, fontFamily: "monospace", fontSize: 11, color: "#1B4D3E", verticalAlign: "middle" }}>
                       {item.nomorNBA}
                     </td>
-                    <td style={{ padding: 12, fontWeight: 500, color: "#1f2937" }}>
+                    <td style={{ padding: 8, fontWeight: 500, color: "#1f2937", fontSize: 11, verticalAlign: "middle" }}>
                       {item.nama}
                     </td>
-                    <td style={{ padding: 12, textAlign: "right", fontWeight: 600, color: "#059669" }}>
+                    <td style={{ padding: 8, textAlign: "right", fontWeight: 600, color: "#059669", fontSize: 11, verticalAlign: "middle" }}>
                       {formatRupiah(item.simpanan)}
                     </td>
-                    <td style={{ padding: 12, textAlign: "center" }}>
+                    <td style={{ padding: 4, textAlign: "center", verticalAlign: "middle" }}>
                       <span style={{
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        fontSize: 11,
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                        fontSize: 10,
                         fontWeight: 600,
                         background: "#e0e7ff",
                         color: "#4338ca"
                       }}>
-                        {item.persentase.toFixed(2)}%
+                        {item.persentase.toFixed(1)}%
                       </span>
                     </td>
-                    <td style={{ padding: 12, textAlign: "right", fontWeight: 600, color: "#059669" }}>
-                      {formatRupiah(item.jasaModal)}
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#059669", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.jasa_modal?.received || 0)}
                     </td>
-                    <td style={{ padding: 12, textAlign: "right", fontWeight: 600, color: "#3b82f6" }}>
-                      {formatRupiah(item.jasaTransaksi)}
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#3b82f6", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.jasa_transaksi?.received || 0)}
                     </td>
-                    <td style={{ padding: 12, textAlign: "right", fontWeight: 700, color: "#1B4D3E", fontSize: 14 }}>
-                      {formatRupiah(item.shuAnggota)}
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.cadangan_umum?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.cadangan_resiko?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.pengurus_pengawas?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.kesejahteraan_karyawan?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.pendidikan?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.sosial?.received || 0)}
+                    </td>
+                    <td style={{ padding: 4, textAlign: "right", fontWeight: 500, color: "#dc2626", fontSize: 10, verticalAlign: "middle" }}>
+                      {formatRupiah(item.pembangunan_daerah?.received || 0)}
+                    </td>
+                    <td style={{ padding: 8, textAlign: "right", fontWeight: 700, color: "#1B4D3E", fontSize: 12, verticalAlign: "middle" }}>
+                      {formatRupiah(item.totalTerima)}
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr style={{ background: "#f0f9ff", fontWeight: 600 }}>
-                  <td colSpan={3} style={{ padding: 12, textAlign: "right" }}>TOTAL</td>
-                  <td style={{ padding: 12, textAlign: "right", color: "#059669" }}>
-                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + item.simpanan, 0))}
+                  <td colSpan={3} style={{ padding: 8, textAlign: "right", fontSize: 11 }}>TOTAL</td>
+                  <td style={{ padding: 8, textAlign: "right", color: "#059669", fontSize: 11 }}>
+                    {formatRupiah(shuDistribution.reduce((sum: number, item: any) => sum + item.simpanan, 0))}
                   </td>
-                  <td style={{ padding: 12, textAlign: "center" }}>
+                  <td style={{ padding: 4, textAlign: "center", fontSize: 10 }}>
                     100%
                   </td>
-                  <td style={{ padding: 12, textAlign: "right", color: "#059669" }}>
-                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + (item.jasaModal || 0), 0))}
+                  {/* Distributable to members */}
+                  <td style={{ padding: 4, textAlign: "right", color: "#059669", fontSize: 10 }}>
+                    {formatRupiah(allocationBreakdown.find(a => a.category === "jasa_modal")?.amount || 0)}
                   </td>
-                  <td style={{ padding: 12, textAlign: "right", color: "#3b82f6" }}>
-                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + (item.jasaTransaksi || 0), 0))}
+                  <td style={{ padding: 4, textAlign: "right", color: "#3b82f6", fontSize: 10 }}>
+                    {formatRupiah(allocationBreakdown.find(a => a.category === "jasa_transaksi")?.amount || 0)}
                   </td>
-                  <td style={{ padding: 12, textAlign: "right", color: "#1B4D3E", fontSize: 16 }}>
-                    {formatRupiah(jasaDistribution.reduce((sum: number, item: any) => sum + item.shuAnggota, 0))}
+                  {/* Non-distributable: show — (KSP reserves) */}
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 4, textAlign: "right", color: "#dc2626", fontSize: 10 }}>—</td>
+                  <td style={{ padding: 8, textAlign: "right", color: "#1B4D3E", fontSize: 12 }}>
+                    {formatRupiah(allocationBreakdown.filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
                   </td>
                 </tr>
               </tfoot>
@@ -443,7 +508,7 @@ export default function SHUPage() {
         ) : (
           <div style={{ textAlign: "center", padding: 64, background: "#f9fafb", borderRadius: 12 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>📊</div>
-            <p style={{ color: "#6b7280", fontSize: 14 }}>Tidak ada data distribusi Jasa untuk tahun {selectedYear}.</p>
+            <p style={{ color: "#6b7280", fontSize: 14 }}>Tidak ada data distribusi SHU untuk tahun {selectedYear}.</p>
             <p style={{ color: "#9ca3af", fontSize: 12, marginTop: 8 }}>
               SHU Bersih harus lebih dari 0 dan ada anggota dengan simpanan.
             </p>
