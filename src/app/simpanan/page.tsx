@@ -233,11 +233,33 @@ export default function SimpananPage() {
             <textarea value={formData.catatan} onChange={(e) => setFormData({ ...formData, catatan: e.target.value })} rows={3} style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #ddd", fontSize: 14, resize: "vertical" }} placeholder="Catatan tambahan (opsional)" />
           </div>
 
-          <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>Simpan Data</button>
-        </form>
-        </div>
-        </div>
-        )}
+           <button type="submit" style={{ width: "100%", padding: 14, background: "#1B4D3E", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer" }}>Simpan Data</button>
+         </form>
+
+         {simpanan.length > 0 && (
+           <div style={{ marginTop: 32, padding: 20, background: "#fef2f2", borderRadius: 12, border: "2px solid #fecaca" }}>
+             <div style={{ fontSize: 13, fontWeight: 600, color: "#991b1b", marginBottom: 12 }}>
+               ⚠️ Hapus Semua Data Simpanan
+             </div>
+             <div style={{ fontSize: 12, color: "#7f1d1d", marginBottom: 16 }}>
+               Menghapus semua data simpanan (pokok, wajib, sukarela, berjangka, dll). Tindakan ini tidak bisa dibatalkan.
+             </div>
+             <button
+               onClick={() => {
+                 if (confirm(`Yakin ingin menghapus SEMUA data simpanan? Total ${simpanan.length} transaksi akan dihapus.`)) {
+                   simpanan.forEach(s => deleteSimpanan(s.id));
+                   alert("Semua data simpanan berhasil dihapus!");
+                 }
+               }}
+               style={{ width: "100%", padding: 12, background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+             >
+               🗑️ Hapus Semua Simpanan
+             </button>
+           </div>
+         )}
+       </div>
+     </div>
+   )}
 
         {activeTab === "data" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
@@ -293,17 +315,39 @@ export default function SimpananPage() {
                 </tbody>
               </table>
 
-              {filteredSimpanan.length > itemsPerPage && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: "8px 16px", background: currentPage === 1 ? "#ddd" : "#1B4D3E", color: currentPage === 1 ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: 13 }}>← Prev</button>
-                <span style={{ padding: "8px 16px", fontSize: 13 }}>Halaman {currentPage} dari {Math.ceil(filteredSimpanan.length / itemsPerPage)}</span>
-                <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredSimpanan.length / itemsPerPage), p + 1))} disabled={currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage)} style={{ padding: "8px 16px", background: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}>Next →</button>
-              </div>
-            )}
-            </>
-          )}
-        </div>
-      )}
+               {filteredSimpanan.length > itemsPerPage && (
+                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: 20, gap: 8 }}>
+                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: "8px 16px", background: currentPage === 1 ? "#ddd" : "#1B4D3E", color: currentPage === 1 ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage === 1 ? "not-allowed" : "pointer", fontSize: 13 }}>← Prev</button>
+                   <span style={{ padding: "8px 16px", fontSize: 13 }}>Halaman {currentPage} dari {Math.ceil(filteredSimpanan.length / itemsPerPage)}</span>
+                   <button onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredSimpanan.length / itemsPerPage), p + 1))} disabled={currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage)} style={{ padding: "8px 16px", background: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#ddd" : "#1B4D3E", color: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "#888" : "white", border: "none", borderRadius: 6, cursor: currentPage >= Math.ceil(filteredSimpanan.length / itemsPerPage) ? "not-allowed" : "pointer", fontSize: 13 }}>Next →</button>
+                 </div>
+               )}
+
+               {simpanan.length > 0 && (
+                 <div style={{ marginTop: 24, padding: 16, background: "#fef2f2", borderRadius: 12, border: "2px solid #fecaca" }}>
+                   <div style={{ fontSize: 12, fontWeight: 600, color: "#991b1b", marginBottom: 8 }}>
+                     ⚠️ Hapus Semua Data Simpanan
+                   </div>
+                   <div style={{ fontSize: 11, color: "#7f1d1d", marginBottom: 12 }}>
+                     Menghapus semua transaksi simpanan (Pokok, Wajib, Sukarela, Berjangka, dll). Tindakan ini permanen.
+                   </div>
+                   <button
+                     onClick={() => {
+                       if (confirm(`Yakin ingin menghapus SEMUA data simpanan? Total ${simpanan.length} transaksi akan dihapus.`)) {
+                         simpanan.forEach(s => deleteSimpanan(s.id));
+                         alert("Semua data simpanan berhasil dihapus!");
+                       }
+                     }}
+                     style={{ width: "100%", padding: 12, background: "#dc2626", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+                   >
+                     🗑️ Hapus Semua Simpanan
+                   </button>
+                 </div>
+               )}
+             </>
+           )}
+         </div>
+       )}
 
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
