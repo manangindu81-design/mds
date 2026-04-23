@@ -937,51 +937,52 @@ Yakin ingin memproses?`;
           ) : (
             <>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: "#f9fafb" }}>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis Kelamin</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status Kawin</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pasangan</th>
-                  <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Anak</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Telepon</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Saudara</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Hub Saudara</th>
-                  <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
-                  <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Pendapatan</th>
-                  <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
-                </tr>
-              </thead>
-<tbody>
-                {filteredAnggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
-                  <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
-                    <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
-                    <td style={{ padding: 10, fontFamily: "monospace" }}>{a.nomorNBA || "-"}</td>
-                    <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
-                    <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
-                    <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.namaPasangan || "-"}</td>
-                    <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{a.jumlahAnak || "0"}</td>
-                    <td style={{ padding: 10 }}>{a.telepon}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.alamat || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.namaSaudara || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.hubungan || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan || "-"}</td>
-                    <td style={{ padding: 10, fontSize: 11, textAlign: "right" }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
-                    <td style={{ padding: 10, textAlign: "center" }}>
+               <thead>
+                 <tr style={{ background: "#f9fafb" }}>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tempat Lahir</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis Kelamin</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status Kawin</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pasangan</th>
+                   <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Anak</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Telepon</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Saudara</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Hub Saudara</th>
+                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
+                   <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Pendapatan</th>
+                   <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 {filteredAnggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
+                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
+                     <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
+                     <td style={{ padding: 10, fontFamily: "monospace" }}>{a.nomorNBA || "-"}</td>
+                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
+                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.tempatLahir || "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
+                     <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.namaPasangan || "-"}</td>
+                     <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{a.jumlahAnak || "0"}</td>
+                     <td style={{ padding: 10 }}>{a.telepon}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.alamat || "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.namaSaudara || "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.hubungan || "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan || "-"}</td>
+                     <td style={{ padding: 10, fontSize: 11, textAlign: "right" }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
+                     <td style={{ padding: 10, textAlign: "center" }}>
                       {editingId === a.id ? (
                         <button 
                           onClick={() => {
-                            console.log("Saving:", editForm);
                             updateAnggota(a.id, editForm);
                             setEditingId(null);
                             setEditForm({});
@@ -993,8 +994,7 @@ Yakin ingin memproses?`;
                       ) : (
                         <button 
                           onClick={() => {
-                            console.log("DEBUG - anggota data:", a);
-                             const formData = {
+                            const formData = {
                                nik: String(a.nik || ""),
                                nama: String(a.nama || ""),
                                tempatLahir: String(a.tempatLahir || ""),
