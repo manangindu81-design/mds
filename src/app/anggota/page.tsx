@@ -73,11 +73,34 @@ export default function AnggotaPage() {
     
     return defaultDate || new Date().toISOString().split("T")[0];
   };
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<any>({});
-  
-  const handlePengunduran = (id: number) => {
+   const fileInputRef = useRef<HTMLInputElement>(null);
+   const [editingId, setEditingId] = useState<number | null>(null);
+   const [editForm, setEditForm] = useState<any>({});
+
+   const formatDate = (date: string) => {
+     if (!date) return "";
+     if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
+       return date;
+     }
+     if (date.includes("-") && date.length === 10 && date.substring(6,10).length === 4) {
+       const parts = date.split("-");
+       return `${parts[2]}-${parts[1]}-${parts[0]}`;
+     }
+     const d = new Date(date);
+     if (isNaN(d.getTime())) return "";
+     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+   };
+
+   const displayDate = (date: string) => {
+     if (!date) return "-";
+     if (date.includes("-") && date.length === 10 && date.substring(0,4).length === 4) {
+       const parts = date.split("-");
+       return `${parts[2]}-${parts[1]}-${parts[0]}`;
+     }
+     return date;
+   };
+
+   const handlePengunduran = (id: number) => {
     const targetDate = new Date().toISOString().split("T")[0];
     const biayaPengunduran = 50000;
     
@@ -395,8 +418,39 @@ Yakin ingin memproses?`;
      statusKeanggotaan: "Aktif",
      tanggalPengunduran: "",
    });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+   const [submitted, setSubmitted] = useState(false);
+
+
+
+   // When editingId changes, populate editForm with the selected anggota data
+   useEffect(() => {
+     if (editingId) {
+       const selected = anggota.find(a => a.id === editingId);
+       if (selected) {
+         setEditForm({
+           nik: String(selected.nik || ""),
+           nama: String(selected.nama || ""),
+           tempatLahir: String(selected.tempatLahir || ""),
+           tanggalLahir: formatDate(String(selected.tanggalLahir || "")),
+           jkelamin: String(selected.jkelamin || ""),
+           status: String(selected.status || ""),
+           namaPasangan: String((selected as any).namaPasangan || ""),
+           jumlahAnak: String((selected as any).jumlahAnak || ""),
+           namaIbuKandung: String((selected as any).namaIbuKandung || ""),
+           namaSaudara: String((selected as any).namaSaudara || ""),
+           telpSaudara: String((selected as any).telpSaudara || ""),
+           hubungan: String((selected as any).hubungan || ""),
+           pekerjaan: String(selected.pekerjaan || ""),
+           alamat: String(selected.alamat || ""),
+           telepon: String(selected.telepon || ""),
+           email: String((selected as any).email || ""),
+           tempatKerja: String((selected as any).tempatKerja || ""),
+           pendapatan: String(selected.pendapatan || ""),
+         });
+       }
+     }
+    }, [editingId, anggota]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -453,44 +507,38 @@ Yakin ingin memproses?`;
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    const parseExcelDate = (value: any, defaultDate?: string): string => {
-      if (!value || value === "") {
-        return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
-      }
-      
+
+    const parseExcelDate = (value: any): string | null => {
+      if (!value || value === "") return null;
+
       if (typeof value === "number") {
         const excelEpoch = new Date(1899, 11, 30);
         const date = new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
         return `${String(date.getDate()).padStart(2, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`;
       }
-      
+
       if (typeof value === "string") {
         const str = value.trim();
-        if (!str) return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
-        
+        if (!str) return null;
+
         const parts = str.split(/[-/]/);
         if (parts.length === 3) {
           const [p1, p2, p3] = parts;
-          // Format DD-MM-YYYY -> DD-MM-YYYY
-          if (str.includes("-") && p1.length <= 2 && p3.length === 4) {
+          // DD-MM-YYYY or DD/MM/YYYY
+          if (p1.length <= 2 && p3.length === 4) {
             return `${p1.padStart(2, "0")}-${p2.padStart(2, "0")}-${p3}`;
           }
-          // Format YYYY-MM-DD -> DD-MM-YYYY
-          if (str.includes("-") && p1.length === 4 && p3.length <= 2) {
-            return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
-          }
-          // Format YYYY/MM/DD -> DD-MM-YYYY
-          if (str.includes("/") && p1.length === 4) {
+          // YYYY-MM-DD or YYYY/MM/DD -> convert to DD-MM-YYYY
+          if (p1.length === 4 && p3.length <= 2) {
             return `${p3.padStart(2, "0")}-${p2.padStart(2, "0")}-${p1}`;
           }
         }
         return str;
       }
-      
-      return defaultDate || new Date().toISOString().split("T")[0].split("-").reverse().join("-");
+
+      return null;
     };
-    
+
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -499,134 +547,212 @@ Yakin ingin memproses?`;
           alert("File tidak terbaca!");
           return;
         }
-        
+
         const workbook = XLSX.read(data, { type: "binary" });
-        
+
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
           alert("Tidak ada sheet di file Excel!");
           return;
         }
-        
+
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        
+
         if (!sheet) {
           alert("Sheet tidak ditemukan!");
           return;
         }
-        
+
         const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
-        
+
         if (!jsonData || jsonData.length === 0) {
           alert("Tidak ada data di file Excel!");
           return;
         }
-        
+
+        // Required columns (case-insensitive matching)
+        const requiredMap: Record<string, string> = {
+          "tanggal masuk": "Tanggal Masuk",
+          "no. nba": "No. NBA",
+          "nama anggota": "Nama Anggota",
+          "nomor identitas (ktp)": "Nomor Identitas (KTP)",
+          "jenis kelamin": "Jenis Kelamin",
+          "tempat lahir": "Tempat Lahir",
+          "tanggal lahir": "Tanggal Lahir",
+          "status perkawinan": "Status Perkawinan",
+          "alamat ktp": "Alamat KTP",
+          "no hp": "No HP",
+          "pekerjaan": "Pekerjaan",
+          "pendapatan perbulan": "Pendapatan Perbulan",
+        };
+
         const sampleRow = jsonData[0];
-        const requiredKeys = ["Nama Anggota", "Nomor Identitas (KTP)", "NIK"];
-        const hasAnyKey = requiredKeys.some(key => sampleRow[key] !== undefined);
-        
-        if (!hasAnyKey) {
-          alert(`Format Excel salah! Kolom yang ditemukan: ${Object.keys(sampleRow).join(", ")}\n\nPastikan menggunakan nama kolom yang sama dengan template.`);
-          return;
-        }
-        
-        const requiredColumns = ["Nama Anggota", "Nomor Identitas (KTP)"];
-        const foundColumns = Object.keys(sampleRow);
-        const missingColumns = requiredColumns.filter(col => !foundColumns.includes(col));
-        
+        const actualColumns = Object.keys(sampleRow);
+
+        // Normalize column names (case-insensitive)
+        const normalizedActual = actualColumns.reduce((acc, col) => {
+          acc[col.toLowerCase().trim()] = col;
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Check required columns (case-insensitive)
+        const missingColumns: string[] = [];
+        Object.entries(requiredMap).forEach(([key, displayName]) => {
+          if (!normalizedActual[key.toLowerCase()]) {
+            missingColumns.push(displayName);
+          }
+        });
+
         if (missingColumns.length > 0) {
-          alert(`Kolom wajib tidak ditemukan: ${missingColumns.join(", ")}\nKolom yang ada: ${foundColumns.join(", ")}`);
+          alert(
+            `Kolom wajib tidak ditemukan:\n${missingColumns.join("\n")}\n\n` +
+            `Kolom yang ada di file Anda:\n${actualColumns.join(", ")}\n\n` +
+            `Silakan download template yang benar.`
+          );
           return;
         }
-        
-        let count = 0;
-        const errors: { row: number; nama: string; errors: string[] }[] = [];
-        
-        jsonData.forEach((row: any, index: number) => {
-          const rowNum = index + 1;
-          const rowErrors: string[] = [];
-          
-          const nama = String(row["Nama Anggota"] || "").trim();
-          const nik = String(row["Nomor Identitas (KTP)"] || row["NIK"] || "").replace(/\.0$/, "").trim();
-          const jk = String(row["Jenis Kelamin"] || "").trim();
-          const statusKawin = String(row["Status Perkawinan"] || "").trim();
-          
-          if (!nama) rowErrors.push("Nama Anggota wajib diisi");
-          if (!nik) rowErrors.push("Nomor Identitas (KTP) wajib diisi");
-          else if (nik.length < 16) rowErrors.push("NIK harus 16 digit");
-          
-          if (jk && !jk.toLowerCase().includes("laki") && !jk.toLowerCase().includes("peremp")) {
-            rowErrors.push("Jenis Kelamin harus 'Laki-laki' atau 'Perempuan'");
+
+        // Validation function
+        const validateRow = (row: any, index: number): { isValid: boolean; errors: string[]; data?: any } => {
+          const errors: string[] = [];
+          const get = (col: string) => row[normalizedActual[col.toLowerCase()] || col] ?? "";
+
+          const nama = String(get("nama anggota") || "").trim();
+          const nik = String(get("nomor identitas (ktp)") || get("nik") || "").replace(/\.0$/, "").trim();
+          const jk = String(get("jenis kelamin") || "").trim();
+          const statusKawin = String(get("status perkawinan") || "").trim();
+          const tglMasukRaw = get("tanggal masuk");
+          const tglLahirRaw = get("tanggal lahir");
+          const telepon = String(get("no hp") || "").replace(/\.0$/, "").trim();
+
+          if (!nama) errors.push("Nama Anggota wajib diisi");
+          if (!nik) errors.push("Nomor Identitas (KTP) wajib diisi");
+          else if (nik.length < 16) errors.push("NIK harus minimal 16 digit (saat ini: " + nik.length + ")");
+
+          if (jk) {
+            const jkLower = jk.toLowerCase();
+            if (!jkLower.includes("laki") && !jkLower.includes("peremp")) {
+              errors.push("Jenis Kelamin harus 'Laki-laki' atau 'Perempuan'");
+            }
+          } else {
+            errors.push("Jenis Kelamin wajib diisi");
           }
-          
-          if (statusKawin && !statusKawin.toLowerCase().includes("kawin") && !statusKawin.toLowerCase().includes("belum") && !statusKawin.toLowerCase().includes("cerai")) {
-            rowErrors.push("Status Perkawinan harus 'Kawin', 'Belum Kawin', atau 'Cerai'");
+
+          if (statusKawin) {
+            const skLower = statusKawin.toLowerCase();
+            if (!skLower.includes("kawin") && !skLower.includes("belum") && !skLower.includes("cerai")) {
+              errors.push("Status Perkawinan harus 'Kawin', 'Belum Kawin', atau 'Cerai'");
+            }
+          } else {
+            errors.push("Status Perkawinan wajib diisi");
           }
-          
-          if (rowErrors.length > 0) {
-            errors.push({ row: rowNum, nama: nama || "-", errors: rowErrors });
-            return;
-          }
-          
-          const tglMasukRaw = row["Tanggal Masuk"];
-          const tglLahirRaw = row["Tanggal Lahir"];
+
           const tglMasuk = parseExcelDate(tglMasukRaw);
           const tglLahir = parseExcelDate(tglLahirRaw);
-          
-          if (!tglMasuk || tglMasuk === "-") rowErrors.push("Format Tanggal Masuk tidak valid (gunakan DD-MM-YYYY)");
-          if (!tglLahir || tglLahir === "-") rowErrors.push("Format Tanggal Lahir tidak valid (gunakan DD-MM-YYYY)");
-          
-          if (rowErrors.length > 0) {
-            errors.push({ row: rowNum, nama: nama, errors: rowErrors });
-            return;
+
+          if (!tglMasuk) errors.push("Format Tanggal Masuk tidak valid (gunakan DD-MM-YYYY)");
+          if (!tglLahir) errors.push("Format Tanggal Lahir tidak valid (gunakan DD-MM-YYYY)");
+
+          if (telepon && !/^\d+$/.test(telepon)) {
+            errors.push("No HP harus angka saja");
           }
-          
-          count++;
-          
-          const noNBA = row["No. NBA"] || String(count);
+
+          return {
+            isValid: errors.length === 0,
+            errors,
+            data: {
+              nama,
+              nik,
+              jk: jk.toLowerCase().includes("laki") ? "laki" : "perempuan",
+              status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
+              tempatLahir: String(get("tempat lahir") || "").trim(),
+              tanggalLahir: tglLahir || "",
+              namaPasangan: String(get("nama pasangan") || "").trim(),
+              jumlahAnak: String(get("jumlah anak") || "").trim(),
+              namaIbuKandung: String(get("nama ibu kandung") || "").trim(),
+              namaSaudara: String(get("nama saudara tidak serumah") || "").trim(),
+              telpSaudara: String(get("no hp saudara") || "").replace(/\.0$/, "").trim(),
+              hubungan: String(get("hubungan saudara") || "").trim(),
+              alamat: String(get("alamat ktp") || get("alamat") || "").trim(),
+              telepon: telepon,
+              pekerjaan: String(get("pekerjaan") || "").trim(),
+              pendapatan: String(get("pendapatan perbulan") || "").trim(),
+              tglMasuk: tglMasuk,
+            }
+          };
+        };
+
+        // Validate all rows first
+        const results = jsonData.map((row, idx) => validateRow(row, idx + 1));
+        const validRows = results.filter(r => r.isValid);
+        const invalidRows = results.filter(r => !r.isValid);
+
+        if (invalidRows.length > 0) {
+          // Show detailed error report
+          const errorReport = invalidRows.slice(0, 20).map(r => {
+            const rowNum = jsonData.findIndex((row, i) => results[i] === r) + 2; // +2 because header is row 1, and index starts at 0
+            return `Baris ${rowNum}:\n  ${r.errors.join("\n  ")}`;
+          }).join("\n\n");
+
+          const moreMsg = invalidRows.length > 20 ? `\n...dan ${invalidRows.length - 20} baris error lainnya` : "";
+          alert(
+            `IMPORT GAGAL - Ada ${invalidRows.length} baris dengan error:\n\n` +
+            `${errorReport}${moreMsg}\n\n` +
+            `Total data valid: ${validRows.length} dari ${jsonData.length}\n` +
+            `Silakan perbaiki file Excel dan coba lagi.`
+          );
+          return;
+        }
+
+        // All rows valid, proceed with import
+        if (!confirm(`Yakin mengimpor ${validRows.length} data anggota?`)) return;
+
+        validRows.forEach((result, idx) => {
+          const data = result.data!;
+          const noNBA = String(jsonData[idx]["No. NBA"] || (idx + 1));
           const newAnggota: AnggotaType = {
-            id: count,
+            id: anggota.length + idx + 1,
             nomorNBA: noNBA,
-            nik: nik,
-            nama: nama,
-            tempatLahir: row["Tempat Lahir"] || "",
-            tanggalLahir: tglLahir,
-            jkelamin: jk.toLowerCase().includes("laki") ? "laki" : "perempuan",
-            status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
-            namaPasangan: row["Nama Pasangan"] || "",
-            jumlahAnak: row["Jumlah Anak"] || "",
-            namaIbuKandung: row["Nama Ibu Kandung"] || "",
-            namaSaudara: row["Nama Saudara Tidak Serumah"] || "",
-            telpSaudara: row["No HP Saudara"] || "",
-            hubungan: row["Hubungan Saudara"] || "",
-            alamat: row["Alamat KTP"] || row["Alamat"] || "",
-            telepon: String(row["No HP"] || "").replace(/\.0$/, ""),
-            pekerjaan: row["Pekerjaan"] || "",
-            besarPenghasilan: row["Pendapatan Perbulan"] || "",
-            tanggalJoin: tglMasuk,
+            nik: data.nik,
+            nama: data.nama,
+            tempatLahir: data.tempatLahir,
+            tanggalLahir: data.tanggalLahir,
+            jkelamin: data.jk,
+            status: data.status,
+            alamat: data.alamat,
+            rt: "",
+            rw: "",
+            kel: "",
+            kec: "",
+            kota: "",
+            telepon: data.telepon,
+            email: "",
+            pekerjaan: data.pekerjaan,
+            besarPenghasilan: data.pendapatan,
+            posisi: "",
+            pangkat: "",
+            Golongan: "",
+            statusPekerjaan: "",
+            lamaBekerja: "",
+            alamatTempatKerja: "",
+            tempatKerja: "",
+            pendapatan: data.pendapatan,
+            tanggalJoin: data.tglMasuk,
             statusKeanggotaan: "Aktif",
           };
           addAnggota(newAnggota);
         });
-        
-        if (errors.length > 0) {
-          const errorMsg = errors.slice(0, 10).map(e => 
-            `Baris ${e.row}: ${e.nama} - ${e.errors.join(", ")}`
-          ).join("\n");
-          
-          const moreMsg = errors.length > 10 ? `\n...dan ${errors.length - 10} error lainnya` : "";
-          alert(`Import selesai dengan ${errors.length} error:\n\n${errorMsg}${moreMsg}\n\nData yang valid: ${count} berhasil diimport.`);
-        } else {
-          alert(`Berhasil import ${count} data anggota!`);
-        }
+
+        alert(`✅ Berhasil import ${validRows.length} data anggota!`);
+
       } catch (error) {
-        alert("Gagal import data. Pastikan format Excel benar.");
+        console.error("Import error:", error);
+        alert("Gagal import data. Pastikan file Excel tidak rusak dan format benar.");
       }
     };
     reader.readAsBinaryString(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+   };
 
   return (
     <div>
