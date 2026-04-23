@@ -5,11 +5,19 @@ import * as XLSX from "xlsx";
 
 // Helper function outside component for date display formatting
 const displayDate = (date: string) => {
+  // 1. Cek jika data kosong
   if (!date) return "-";
-  if (date.includes("-") && date.length === 10) {
-    const [year, month, day] = date.split("-");
+
+  // 2. Pecah string berdasarkan tanda pisah "-"
+  const parts = date.split("-");
+
+  // 3. Validasi format YYYY-MM-DD (harus ada 3 bagian & tahun memiliki 4 digit)
+  if (parts.length === 3 && parts[0].length === 4) {
+    const [year, month, day] = parts;
     return `${day}-${month}-${year}`;
   }
+
+  // 4. Kembalikan string asli jika format tidak sesuai (misal sudah DD-MM-YYYY)
   return date;
 };
 
