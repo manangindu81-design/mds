@@ -58,19 +58,31 @@ export default function SHUPage() {
       const debet = t.debet || 0;
       const kredit = t.kredit || 0;
 
-      if (kategori.toLowerCase().includes("bunga")) {
+      // Hitung semua pendapatan dari kategori Angsuran
+      if (kategori.includes("Angsuran")) {
+        // Split angsuran into components based on kategori
+        if (kategori.toLowerCase().includes("bunga") || uraian.toLowerCase().includes("bunga")) {
+          totalBunga += kredit;
+        } else if (kategori.toLowerCase().includes("admin") || uraian.toLowerCase().includes("admin")) {
+          totalAdmin += kredit;
+        } else if (kategori.toLowerCase().includes("denda") || uraian.toLowerCase().includes("denda")) {
+          totalDenda += kredit;
+        } else {
+          // Default split: if not specified, assume it's bunga (common case)
+          totalBunga += kredit;
+        }
+      }
+      // Other income sources
+      else if (kategori.toLowerCase().includes("bunga") || uraian.toLowerCase().includes("bunga")) {
         totalBunga += kredit;
-      } else if (kategori.toLowerCase().includes("admin")) {
+      } else if (kategori.toLowerCase().includes("admin") || uraian.toLowerCase().includes("admin")) {
         totalAdmin += kredit;
-      } else if (kategori.toLowerCase().includes("denda")) {
+      } else if (kategori.toLowerCase().includes("denda") || uraian.toLowerCase().includes("denda")) {
         totalDenda += kredit;
-      } else if (akun === "Kas" && kredit > 0 && kategori.includes("Angsuran")) {
-        if (kategori.includes("Bunga")) totalBunga += kredit;
-        else if (kategori.includes("Admin")) totalAdmin += kredit;
-        else if (kategori.includes("Denda")) totalDenda += kredit;
       }
 
-      if (akun?.toLowerCase().includes("biaya")) {
+      // Beban (expenses)
+      if (akun?.toLowerCase().includes("biaya") || kategori.toLowerCase().includes("biaya") || uraian.toLowerCase().includes("biaya")) {
         totalBiaya += debet;
       }
     });
