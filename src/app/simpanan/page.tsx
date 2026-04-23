@@ -73,7 +73,7 @@ export default function SimpananPage() {
     noBukti: string; nama: string; jenisSimpanan: string; jumlah: number; metode: string; tanggal: string;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
-  const [importType, setImportType] = useState<"pokok" | "wajib" | "penarikan-pokok" | "penarikan-wajib">("wajib");
+   const [importType, setImportType] = useState<"pokok" | "wajib" | "sibuhar" | "simapan" | "sihat" | "sihar" | "penarikan-pokok" | "penarikan-wajib">("wajib");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
@@ -510,54 +510,64 @@ export default function SimpananPage() {
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 18, marginBottom: 20, color: "#1B4D3E" }}>📥 Import Simpanan dari Excel</h3>
           
-          <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
-            <button 
-              onClick={() => setImportType("pokok")}
-              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "pokok" ? "#1B4D3E" : "#e5e7eb", color: importType === "pokok" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-            >
-              🏦 Setoran Pokok
-            </button>
-            <button 
-              onClick={() => setImportType("wajib")}
-              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "wajib" ? "#1B4D3E" : "#e5e7eb", color: importType === "wajib" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-            >
-              💰 Setoran Wajib
-            </button>
-            <button 
-              onClick={() => setImportType("penarikan-pokok")}
-              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "penarikan-pokok" ? "#dc2626" : "#e5e7eb", color: importType === "penarikan-pokok" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-            >
-              ⬇️ Penarikan Pokok
-            </button>
-            <button 
-              onClick={() => setImportType("penarikan-wajib")}
-              style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: importType === "penarikan-wajib" ? "#dc2626" : "#e5e7eb", color: importType === "penarikan-wajib" ? "white" : "#374151", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-            >
-              ⬇️ Penarikan Wajib
-            </button>
-          </div>
+           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
+             <div>
+               <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#374151" }}>Jenis Transaksi Simpanan</label>
+               <select 
+                 value={importType} 
+                 onChange={(e) => setImportType((e.target as HTMLSelectElement).value as any)}
+                 style={{ width: "100%", padding: 12, borderRadius: 8, border: "2px solid #e5e7eb", fontSize: 15, background: "white" }}
+               >
+                 <option value="pokok">🏦 Setoran Simpanan Pokok</option>
+                 <option value="wajib">💰 Setoran Simpanan Wajib</option>
+                 <option value="sibuhar">📈 Setoran Simpanan Bunga Harian (Sibuhar)</option>
+                 <option value="simapan">🏫 Setoran Simpanan Masa Depan (Simapan)</option>
+                 <option value="sihat">👵 Setoran Simpanan Hari Tua (Sihat)</option>
+                 <option value="sihar">🎉 Setoran Simpanan Hari Raya (Sihar)</option>
+                 <option value="penarikan-pokok">⏬ Penarikan Simpanan Pokok</option>
+                 <option value="penarikan-wajib">⏬ Penarikan Simpanan Wajib</option>
+               </select>
+               <p style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
+                 Pilih jenis transaksi yang sesuai dengan file Excel Anda.
+               </p>
+             </div>
 
-          <div style={{ marginBottom: 24 }}>
-            <button 
-              onClick={() => {
-                const isPenarikan = importType.startsWith("penarikan");
-                const templateData = [{
-                  "No. NBA": "1",
-                  "Nama Anggota": "Budi Santoso",
-                  "Tanggal Transaksi": "15-01-2024",
-                  "Jenis Pembayaran": isPenarikan ? "Penarikan" : "Tunai",
-                  "Jumlah Transaksi": importType === "pokok" || importType === "penarikan-pokok" ? 100000 : 25000
-                }];
-                const ws = XLSX.utils.json_to_sheet(templateData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Template");
-                XLSX.writeFile(wb, `template_import_simpanan_${importType}_ksp.xlsx`);
-              }}
-              style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
-            >
-              📥 Download Template Excel
-            </button>
-          </div>
+             <div>
+               <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#374151" }}>Download Template</label>
+               <button 
+                 onClick={() => {
+                   const isPenarikan = importType.startsWith("penarikan");
+                   const templateData = [{
+                     "No. NBA": "1",
+                     "Nama Anggota": "Budi Santoso",
+                     "Tanggal Transaksi": "15-01-2024",
+                     "Jenis Pembayaran": isPenarikan ? "Penarikan" : "Tunai",
+                     "Jumlah Transaksi": importType === "pokok" || importType === "penarikan-pokok" ? 100000 : 25000
+                   }];
+                   const ws = XLSX.utils.json_to_sheet(templateData);
+                   const wb = XLSX.utils.book_new();
+                   XLSX.utils.book_append_sheet(wb, ws, "Template");
+                   XLSX.writeFile(wb, `template_import_simpanan_${importType}_ksp.xlsx`);
+                 }}
+                 style={{ 
+                   width: "100%", 
+                   padding: 14, 
+                   background: "#0d9488", 
+                   color: "white", 
+                   border: "none", 
+                   borderRadius: 8, 
+                   fontWeight: 600, 
+                   cursor: "pointer",
+                   fontSize: 15
+                 }}
+               >
+                 📥 Download Template Excel
+               </button>
+               <p style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
+                 Template sudah disesuaikan dengan jenis transaksi yang dipilih.
+               </p>
+             </div>
+           </div>
 
            <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
              <div style={{ background: "#fef2f2", border: "2px solid #fecaca", borderRadius: 10, padding: 16, marginBottom: 16 }}>
