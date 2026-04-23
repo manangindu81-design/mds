@@ -1,32 +1,52 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useData, Anggota } from "../context/DataContext";
 
 export default function AnggotaKeluarPage() {
   const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota } = useData();
   const [searchQuery, setSearchQuery] = useState("");
-  const [manualMode, setManualMode] = useState(false);
-  const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
-  const [manualInput, setManualInput] = useState("");
+   const [manualMode, setManualMode] = useState(false);
+   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
+   const [manualInput, setManualInput] = useState("");
+   const [showDropdown, setShowDropdown] = useState(false);
 
-  const filteredAnggota = useMemo(() => {
-    const list = anggota || [];
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) {
-      return list.filter((a: Anggota) => a.statusKeanggotaan !== "Non-Aktif");
-    }
-    return list.filter((a: Anggota) => {
-      if (a.statusKeanggotaan === "Non-Aktif") return false;
-      const nama = a.nama ? String(a.nama).toLowerCase() : "";
-      const nomorNBA = a.nomorNBA ? String(a.nomorNBA).toLowerCase() : "";
-      const nik = a.nik ? String(a.nik) : "";
-      const matchNama = nama.includes(q);
-      const matchNBA = nomorNBA.includes(q);
-      const matchNIK = nik.includes(q);
-      return matchNama || matchNBA || matchNIK;
-    });
-  }, [anggota, searchQuery]);
+   const filteredAnggota = useMemo(() => {
+     const list =anggota || [];
+     const q = searchQuery.toLowerCase().trim();
+     if (!q) {
+       return list.filter((a: Anggota) => a.statusKeanggotaan !== "Non-Aktif");
+     }
+     return list.filter((a: Anggota) => {
+       if (a.statusKeanggotaan === "Non-Aktif") return false;
+       const nama = a.nama ? String(a.nama).toLowerCase() : "";
+       const nomorNBA = a.nomorNBA ? String(a.nomorNBA).toLowerCase() : "";
+       const nik = a.nik ? String(a.nik) : "";
+       const matchNama = nama.includes(q);
+       const matchNBA = nomorNBA.includes(q);
+       const matchNIK = nik.includes(q);
+       return matchNama || matchNBA || matchNIK;
+     });
+   }, [anggota, searchQuery]);
+
+   // Auto-select first match on Enter
+   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+     if (e.key === "Enter" && filteredAnggota.length > 0) {
+       setSelectedAnggotaId(filteredAnggota[0].id);
+     }
+   };
+
+   // Close dropdown when clicking outside
+   const dropdownRef = useRef<HTMLDivElement>(null);
+   useEffect(() => {
+     const handleClickOutside = (event: MouseEvent) => {
+       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+         setShowDropdown(false);
+       }
+     };
+     document.addEventListener("mousedown", handleClickOutside);
+     return () => document.removeEventListener("mousedown", handleClickOutside);
+   }, []);
 
   const simpananList = useMemo(() => simpanan || [], [simpanan]);
 
@@ -208,6 +228,8 @@ Yakin ingin memproses?`;
               placeholder="Ketik untuk mencari anggota aktif..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={() => setShowDropdown(true)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -217,7 +239,7 @@ Yakin ingin memproses?`;
                 marginBottom: 12
               }}
             />
-            <div style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8 }}>
+            <div ref={dropdownRef} style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8, display: showDropdown ? "block" : "none" }}>
               <select
                 value={selectedAnggotaId}
                 onChange={(e) => {
