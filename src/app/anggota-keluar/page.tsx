@@ -10,6 +10,7 @@ export default function AnggotaKeluarPage() {
    const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
    const [manualInput, setManualInput] = useState("");
    const [showDropdown, setShowDropdown] = useState(false);
+   const [inputFocused, setInputFocused] = useState(false);
 
    const filteredAnggota = useMemo(() => {
      const list =anggota || [];
@@ -216,20 +217,28 @@ Yakin ingin memproses?`;
         </button>
       </div>
 
-      {!manualMode ? (
-        /* SEARCH MODE */
-        <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#dc2626", fontSize: 14 }}>
-              Cari Anggota (No. NBA, Nama, atau NIK)
-            </label>
+       {!manualMode ? (
+         /* SEARCH MODE */
+         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
+           <div style={{ marginBottom: 24, position: "relative" }}>
+             <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#dc2626", fontSize: 14 }}>
+               Cari Anggota (No. NBA, Nama, atau NIK)
+             </label>
             <input
               type="text"
-              placeholder="Ketik untuk mencari anggota aktif..."
+              placeholder="Ketik nama, No. NBA, atau NIK..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => {
+                setInputFocused(true);
+                setShowDropdown(true);
+              }}
+              onBlur={() => {
+                setInputFocused(false);
+                // Delay to allow clicking on dropdown items
+                setTimeout(() => setShowDropdown(false), 200);
+              }}
               onKeyDown={handleSearchKeyDown}
-              onFocus={() => setShowDropdown(true)}
               style={{
                 width: "100%",
                 padding: 12,
@@ -239,32 +248,72 @@ Yakin ingin memproses?`;
                 marginBottom: 12
               }}
             />
-            <div ref={dropdownRef} style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8, display: showDropdown ? "block" : "none" }}>
-              <select
-                value={selectedAnggotaId}
-                onChange={(e) => {
-                  setSelectedAnggotaId(Number(e.target.value));
-                }}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  border: "none",
-                  fontSize: 14,
-                  background: "white",
-                  cursor: "pointer",
-                  minHeight: "200px"
-                }}
-              >
-                <option value={0}>-- Pilih Anggota -- ({filteredAnggota.length} aktif)</option>
+            {/* Autocomplete Dropdown */}
+            {(showDropdown || searchQuery) && filteredAnggota.length > 0 && (
+              <div ref={dropdownRef} style={{
+                maxHeight: 300,
+                overflowY: "auto",
+                border: "2px solid #dc2626",
+                borderRadius: 8,
+                background: "white",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.15)",
+                zIndex: 1000,
+                position: "absolute",
+                width: "calc(100% - 4px)",
+                top: "100%",
+                marginTop: 4
+              }}>
                 {filteredAnggota.map((a: Anggota) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nomorNBA} - {a.nama} (NIK: {a.nik})
-                  </option>
+                  <div
+                    key={a.id}
+                    onClick={() => {
+                      setSelectedAnggotaId(a.id);
+                      setShowDropdown(false);
+                      setSearchQuery(a.nomorNBA + " - " + a.nama);
+                      setInputFocused(false);
+                    }}
+                    style={{
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #f3f4f6",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      transition: "background 0.15s"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "#fef2f2";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "white";
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "#1f2937" }}>
+                        {a.nomorNBA} - {a.nama}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>
+                        NIK: {a.nik || "-"} | Status: {a.statusKeanggotaan}
+                      </div>
+                    </div>
+                    {selectedAnggotaId === a.id && (
+                      <span style={{ color: "#dc2626", fontSize: 20 }}>✓</span>
+                    )}
+                  </div>
                 ))}
-              </select>
-            </div>
-            {filteredAnggota.length === 0 && searchQuery && (
-              <div style={{ padding: 12, textAlign: "center", color: "#6b7280", fontSize: 13 }}>
+              </div>
+            )}
+            {(showDropdown || searchQuery) && filteredAnggota.length === 0 && searchQuery && (
+              <div style={{
+                padding: 12,
+                textAlign: "center",
+                color: "#6b7280",
+                fontSize: 13,
+                border: "2px solid #e5e7eb",
+                borderRadius: 8,
+                background: "white",
+                marginTop: 4
+              }}>
                 Tidak ada anggota aktif ditemukan
               </div>
             )}
