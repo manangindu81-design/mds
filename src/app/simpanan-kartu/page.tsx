@@ -6,8 +6,20 @@ import { useData, Anggota } from "../context/DataContext";
 export default function SimpananKartuPage() {
   const { anggota, simpanan } = useData();
   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const anggotaList = useMemo(() => anggota || [], [anggota]);
+
+  const filteredAnggotaList = useMemo(() => {
+    if (!searchQuery.trim()) return anggotaList;
+    const q = searchQuery.toLowerCase().trim();
+    return anggotaList.filter((a: Anggota) => {
+      const matchNama = a.nama && a.nama.toLowerCase().includes(q);
+      const matchNBA = a.nomorNBA && a.nomorNBA.toLowerCase().includes(q);
+      const matchNIK = a.nik && a.nik.includes(q);
+      return matchNama || matchNBA || matchNIK;
+    });
+  }, [anggotaList, searchQuery]);
 
   const selectedAnggota = useMemo(() => {
     return anggotaList.find((a: Anggota) => a.id === selectedAnggotaId);
@@ -55,28 +67,54 @@ export default function SimpananKartuPage() {
       <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
         <div style={{ marginBottom: 24 }}>
           <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#1B4D3E", fontSize: 14 }}>
-            Pilih Anggota
+            Cari Anggota (No. NBA, Nama, atau NIK)
           </label>
-          <select
-            value={selectedAnggotaId}
-            onChange={(e) => setSelectedAnggotaId(Number(e.target.value))}
+          <input
+            type="text"
+            placeholder="Ketik untuk mencari..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSelectedAnggotaId(0); // Reset selection when searching
+            }}
             style={{
               width: "100%",
               padding: 12,
               borderRadius: 8,
               border: "2px solid #1B4D3E",
               fontSize: 14,
-              background: "white",
-              cursor: "pointer"
+              marginBottom: 12
             }}
-          >
-            <option value={0}>-- Pilih Anggota --</option>
-            {anggotaList.map((a: Anggota) => (
-              <option key={a.id} value={a.id}>
-                {a.nomorNBA} - {a.nama} ({a.nik})
-              </option>
-            ))}
-          </select>
+          />
+          
+          <div style={{ maxHeight: 200, overflowY: "auto", border: "2px solid #e5e7eb", borderRadius: 8 }}>
+            <select
+              value={selectedAnggotaId}
+              onChange={(e) => setSelectedAnggotaId(Number(e.target.value))}
+              style={{
+                width: "100%",
+                padding: 12,
+                border: "none",
+                fontSize: 14,
+                background: "white",
+                cursor: "pointer",
+                minHeight: "200px"
+              }}
+            >
+              <option value={0}>-- Pilih Anggota -- ({filteredAnggotaList.length} ditemukan)</option>
+              {filteredAnggotaList.map((a: Anggota) => (
+                <option key={a.id} value={a.id}>
+                  {a.nomorNBA} - {a.nama} (NIK: {a.nik})
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {filteredAnggotaList.length === 0 && searchQuery && (
+            <div style={{ padding: 12, textAlign: "center", color: "#6b7280", fontSize: 13 }}>
+              Tidak ada anggota ditemukan
+            </div>
+          )}
         </div>
 
         {selectedAnggota && (
