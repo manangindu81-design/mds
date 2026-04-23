@@ -375,24 +375,26 @@ Yakin ingin memproses?`;
     return [];
   };
   
-  const [formData, setFormData] = useState({
-    nik: "",
-    nama: "",
-    tempatLahir: "",
-    tanggalLahir: "",
-    jkelamin: "",
-    status: "",
-    namaPasangan: "",
-    jumlahAnak: "",
-    namaIbuKandung: "",
-    namaSaudara: "",
-    telpSaudara: "",
-    hubungan: "",
-    pekerjaan: "",
-    besarPenghasilan: "",
-    alamat: "",
-    telepon: "",
-  });
+   const [formData, setFormData] = useState({
+     nik: "",
+     nama: "",
+     tempatLahir: "",
+     tanggalLahir: "",
+     jkelamin: "",
+     status: "",
+     namaPasangan: "",
+     jumlahAnak: "",
+     namaIbuKandung: "",
+     namaSaudara: "",
+     telpSaudara: "",
+     hubungan: "",
+     pekerjaan: "",
+     besarPenghasilan: "",
+     alamat: "",
+     telepon: "",
+     statusKeanggotaan: "Aktif",
+     tanggalPengunduran: "",
+   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -443,7 +445,7 @@ Yakin ingin memproses?`;
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", alamat: "", telepon: "" });
+        setFormData({ nik: "", nama: "", tempatLahir: "", tanggalLahir: "", jkelamin: "", status: "", namaPasangan: "", jumlahAnak: "", namaIbuKandung: "", namaSaudara: "", telpSaudara: "", hubungan: "", pekerjaan: "", besarPenghasilan: "", alamat: "", telepon: "", statusKeanggotaan: "Aktif", tanggalPengunduran: "" });
       }, 3000);
     }
   };
@@ -925,26 +927,28 @@ Yakin ingin memproses?`;
                         <button 
                           onClick={() => {
                             console.log("DEBUG - anggota data:", a);
-                            const formData = {
-                              nik: String(a.nik || ""),
-                              nama: String(a.nama || ""),
-                              tempatLahir: String(a.tempatLahir || ""),
-                              tanggalLahir: formatDate(String(a.tanggalLahir || "")),
-                              jkelamin: String(a.jkelamin || ""),
-                              status: String(a.status || ""),
-                              namaPasangan: String(a.namaPasangan || ""),
-                              jumlahAnak: String(a.jumlahAnak || ""),
-                              namaIbuKandung: String(a.namaIbuKandung || ""),
-                              namaSaudara: String(a.namaSaudara || ""),
-                              telpSaudara: String(a.telpSaudara || ""),
-                              hubungan: String(a.hubungan || ""),
-                              pekerjaan: String(a.pekerjaan || ""),
-                              alamat: String(a.alamat || ""),
-                              telepon: String(a.telepon || ""),
-                              email: String(a.email || ""),
-                              tempatKerja: String(a.tempatKerja || ""),
-                              pendapatan: String(a.pendapatan || ""),
-                            };
+                             const formData = {
+                               nik: String(a.nik || ""),
+                               nama: String(a.nama || ""),
+                               tempatLahir: String(a.tempatLahir || ""),
+                               tanggalLahir: formatDate(String(a.tanggalLahir || "")),
+                               jkelamin: String(a.jkelamin || ""),
+                               status: String(a.status || ""),
+                               namaPasangan: String(a.namaPasangan || ""),
+                               jumlahAnak: String(a.jumlahAnak || ""),
+                               namaIbuKandung: String(a.namaIbuKandung || ""),
+                               namaSaudara: String(a.namaSaudara || ""),
+                               telpSaudara: String(a.telpSaudara || ""),
+                               hubungan: String(a.hubungan || ""),
+                               pekerjaan: String(a.pekerjaan || ""),
+                               alamat: String(a.alamat || ""),
+                               telepon: String(a.telepon || ""),
+                               email: String(a.email || ""),
+                               tempatKerja: String(a.tempatKerja || ""),
+                               pendapatan: String(a.pendapatan || ""),
+                               statusKeanggotaan: String(a.statusKeanggotaan || "Aktif"),
+                               tanggalPengunduran: formatDate(String(a.tanggalPengunduran || "")),
+                             };
                             setEditForm(formData);
                             setEditingId(a.id);
                           }}
@@ -1025,15 +1029,19 @@ Yakin ingin memproses?`;
                 </div>
 
                 <h4 style={{ fontSize: 13, marginBottom: 10, borderBottom: "1px solid #d97706", paddingBottom: 4, color: "#92400e" }}>Data Diri</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>NIK (KTP)</label><input type="text" value={editForm.nik || ""} onChange={e => setEditForm({...editForm, nik: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Lengkap</label><input type="text" value={editForm.nama || ""} onChange={e => setEditForm({...editForm, nama: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tempat Lahir</label><input type="text" value={editForm.tempatLahir || ""} onChange={e => setEditForm({...editForm, tempatLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tanggal Lahir</label><input type="date" value={editForm.tanggalLahir || ""} onChange={e => setEditForm({...editForm, tanggalLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Jenis Kelamin</label><select value={editForm.jkelamin || ""} onChange={e => setEditForm({...editForm, jkelamin: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="laki">Laki-laki</option><option value="perempuan">Perempuan</option></select></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Status</label><select value={editForm.status || ""} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Ibu Kandung</label><input type="text" value={editForm.namaIbuKandung || ""} onChange={e => setEditForm({...editForm, namaIbuKandung: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
-                  <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Telepon</label><input type="tel" value={editForm.telepon || ""} onChange={e => setEditForm({...editForm, telepon: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>NIK (KTP)</label><input type="text" value={editForm.nik || ""} onChange={e => setEditForm({...editForm, nik: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Lengkap</label><input type="text" value={editForm.nama || ""} onChange={e => setEditForm({...editForm, nama: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tempat Lahir</label><input type="text" value={editForm.tempatLahir || ""} onChange={e => setEditForm({...editForm, tempatLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Tanggal Lahir</label><input type="date" value={editForm.tanggalLahir || ""} onChange={e => setEditForm({...editForm, tanggalLahir: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Jenis Kelamin</label><select value={editForm.jkelamin || ""} onChange={e => setEditForm({...editForm, jkelamin: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="laki">Laki-laki</option><option value="perempuan">Perempuan</option></select></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Status</label><select value={editForm.status || ""} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="">Pilih</option><option value="belum">Belum Kawin</option><option value="kawin">Kawin</option><option value="cerai">Cerai</option></select></div>
+                   <div style={{ gridColumn: "span 2" }}><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Status Keanggotaan</label><select value={editForm.statusKeanggotaan || ""} onChange={e => setEditForm({...editForm, statusKeanggotaan: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12, background: "white" }}><option value="Aktif">Aktif</option><option value="Non-Aktif">Non-Aktif</option></select></div>
+                   {editForm.statusKeanggotaan === "Non-Aktif" && (
+                     <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11, color: "#dc2626" }}>Tanggal Pengunduran</label><input type="date" value={editForm.tanggalPengunduran || ""} onChange={e => setEditForm({...editForm, tanggalPengunduran: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "2px solid #dc2626", fontSize: 12 }} /></div>
+                   )}
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Nama Ibu Kandung</label><input type="text" value={editForm.namaIbuKandung || ""} onChange={e => setEditForm({...editForm, namaIbuKandung: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
+                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Telepon</label><input type="tel" value={editForm.telepon || ""} onChange={e => setEditForm({...editForm, telepon: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
                   <div><label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: 11 }}>Email</label><input type="email" value={editForm.email || ""} onChange={e => setEditForm({...editForm, email: e.target.value})} style={{ width: "100%", padding: 8, borderRadius: 4, border: "1px solid #ddd", fontSize: 12 }} /></div>
                 </div>
 
