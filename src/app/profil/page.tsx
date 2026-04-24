@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useData } from "../context/DataContext";
+import AppLogo from "../components/AppLogo";
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -47,7 +48,7 @@ export default function ProfilPage() {
       <aside style={{ width: 260, background: "#1B4D3E", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }} className="no-print">
         <div style={{ padding: "0 24px", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "white" }}>
-            <span style={{ fontSize: 28 }}>🏛️</span>
+            <AppLogo width={28} height={28} />
             <div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600 }}>KSP Mulia</div>
               <div style={{ fontSize: 10, color: "#D4AF37", letterSpacing: 1 }}>Dana Sejahtera</div>

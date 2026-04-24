@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useData } from "../context/DataContext";
+import AppLogo from "./AppLogo";
 
 const formatRupiah = (num: number) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 
@@ -47,7 +48,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           height: 72
         }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-            <span style={{ fontSize: 36 }}>🏛️</span>
+            <AppLogo width={36} height={36} />
             <div>
               <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, color: "white", letterSpacing: 0.5 }}>KSP Mulia Dana Sejahtera</div>
               <div style={{ fontSize: 10, color: "#D4AF37", letterSpacing: 2, fontWeight: 500 }}>TERDAFTAR & TERAWASI</div>
