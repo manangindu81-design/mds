@@ -270,8 +270,19 @@ export default function SimpananPage() {
         </div>
       )}
 
-      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-        <form onSubmit={handleSubmit}>
+       <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+         <form onSubmit={handleSubmit}>
+           <div style={{ marginBottom: 24, padding: 16, background: "#f0f9ff", borderRadius: 12, border: "2px solid #bae6fd" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+               <span style={{ fontSize: 20 }}>ℹ️</span>
+               <div style={{ fontWeight: 600, color: "#0369a1", fontSize: 14 }}>Panduan Penarikan Sibuhar</div>
+             </div>
+             <ul style={{ margin: 0, paddingLeft: 20, fontSize: 13, color: "#0c4a6e", lineHeight: 1.7 }}>
+               <li><strong>Setoran Simpanan:</strong> Pilih jenis simpanan → Metode <em>Tunai</em> atau <em>Transfer</em></li>
+               <li><strong>Penarikan Simpanan (termasuk Sibuhar):</strong> Pilih jenis simpanan → Metode <em>Penarikan</em>. Saldo akan otomatis berkurang dan membuat transaksi Kas Keluar.</li>
+               <li>Untuk penarikan multiple data, gunakan tab <strong>Import</strong> dan pilih jenis <em>Penarikan Simpanan Bunga Harian (Sibuhar)</em>.</li>
+             </ul>
+           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
             <div>
               <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Nama Lengkap *</label>
@@ -314,14 +325,15 @@ export default function SimpananPage() {
               {formErrors.jumlah && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.jumlah}</div>}
             </div>
             <div>
-              <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Metode *</label>
-              <select value={formData.metodePembayaran} onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
-                <option value="">Pilih metode</option>
-                <option value="tunai">Tunai</option>
-                <option value="bri-tigabinanga">Transfer BRI Cab. Tigabinanga</option>
-                <option value="bri-berastagi">Transfer BRI Cab. Berastagi</option>
-                <option value="penarikan">Penarikan</option>
-              </select>
+               <label style={{ display: "block", fontWeight: 500, marginBottom: 6 }}>Metode Pembayaran *</label>
+               <select value={formData.metodePembayaran} onChange={(e) => setFormData({ ...formData, metodePembayaran: e.target.value })} style={{ width: "100%", padding: 12, borderRadius: 8, border: formErrors.metodePembayaran ? "2px solid #e74c3c" : "2px solid #ddd", fontSize: 14, background: "white" }}>
+                 <option value="">Pilih metode</option>
+                 <option value="tunai">💰 Tunai (Setoran)</option>
+                 <option value="bri-tigabinanga">🏦 Transfer BRI Cab. Tigabinanga</option>
+                 <option value="bri-berastagi">🏦 Transfer BRI Cab. Berastagi</option>
+                 <option value="bpr-logo-asri">🏦 Transfer BPR Logo Asri</option>
+                 <option value="penarikan">⏬ Penarikan (Withdraw)</option>
+               </select>
               {formErrors.metodePembayaran && <div style={{ color: "#e74c3c", fontSize: 12, marginTop: 4 }}>{formErrors.metodePembayaran}</div>}
             </div>
           </div>
