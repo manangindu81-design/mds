@@ -117,41 +117,41 @@ export default function LaporanPage() {
     const totalKasBank = saldoKas + totalBank;
    
     // === LAPORAN ARUS KAS (CASH FLOW) ===
-    // Aktivitas Operasi: penerimaan bunga/admin/denda (Kas debet), pengeluaran beban bunga simpanan (Kas kredit)
-    const arusOperasiMasuk = transaksi
-      .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
-        t.kategori?.includes("Bunga Pinjaman") ||
-        t.kategori?.includes("Admin") ||
-        t.kategori?.includes("Denda")
-      ))
-      .reduce((acc, t) => acc + (t.debet || 0), 0);
-    
-    const arusOperasiKeluar = transaksi
-      .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
-        t.kategori?.includes("Beban") ||
-        t.kategori?.includes("Bunga Simpanan")
-      ))
-      .reduce((acc, t) => acc + (t.kredit || 0), 0);
+     // Aktivitas Operasi: penerimaan bunga/admin/denda (Kas debet), pengeluaran beban bunga simpanan (Kas kredit)
+     const arusOperasiMasuk = transaksi
+       .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
+         t.kategori?.toLowerCase().includes("bunga pinjaman") ||
+         t.kategori?.toLowerCase().includes("admin") ||
+         t.kategori?.toLowerCase().includes("denda")
+       ))
+       .reduce((acc, t) => acc + (t.debet || 0), 0);
+     
+     const arusOperasiKeluar = transaksi
+       .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
+         t.kategori?.toLowerCase().includes("beban") ||
+         t.kategori?.toLowerCase().includes("bunga simpanan")
+       ))
+       .reduce((acc, t) => acc + (t.kredit || 0), 0);
     
     const netOperasi = arusOperasiMasuk - arusOperasiKeluar;
     
     // Aktivitas Investasi: biasanya 0 (KSP tidak ada pembelian aset tetap signifikan)
     const netInvestasi = 0;
     
-    // Aktivitas Pendanaan: setoran simpanan (masuk), penarikan & pencairan pinjaman (keluar)
-    const arusPendanaanMasuk = transaksi
-      .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
-        t.kategori?.includes("Setoran Simpanan") ||
-        t.kategori?.includes("Pendapatan Pengunduran")
-      ))
-      .reduce((acc, t) => acc + (t.debet || 0), 0);
-    
-    const arusPendanaanKeluar = transaksi
-      .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
-        t.kategori?.includes("Penarikan") ||
-        t.kategori?.includes("Pencairan Pinjaman")
-      ))
-      .reduce((acc, t) => acc + (t.kredit || 0), 0);
+     // Aktivitas Pendanaan: setoran simpanan (masuk), penarikan & pencairan pinjaman (keluar)
+     const arusPendanaanMasuk = transaksi
+       .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
+         t.kategori?.toLowerCase().includes("setoran simpanan") ||
+         t.kategori?.toLowerCase().includes("pendapatan pengunduran")
+       ))
+       .reduce((acc, t) => acc + (t.debet || 0), 0);
+     
+     const arusPendanaanKeluar = transaksi
+       .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
+         t.kategori?.toLowerCase().includes("penarikan") ||
+         t.kategori?.toLowerCase().includes("pencairan pinjaman")
+       ))
+       .reduce((acc, t) => acc + (t.kredit || 0), 0);
     
     const netPendanaan = arusPendanaanMasuk - arusPendanaanKeluar;
     const netCashChange = netOperasi + netInvestasi + netPendanaan;

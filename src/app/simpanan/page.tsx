@@ -89,17 +89,32 @@ export default function SimpananPage() {
     );
   }, [simpanan, searchQuery]);
 
-  const validateForm = () => {
-    const errors: Record<string, string> = {};
-    if (!formData.nama.trim()) errors.nama = "Nama wajib diisi";
-    if (!formData.nomorAnggota.trim()) errors.nomorAnggota = "Nomor anggota wajib diisi";
-    if (!formData.tanggal) errors.tanggal = "Tanggal wajib diisi";
-    if (!formData.jenisSimpanan) errors.jenisSimpanan = "Jenis simpanan wajib dipilih";
-    if (!formData.jumlah) errors.jumlah = "Jumlah wajib diisi";
-    if (!formData.metodePembayaran) errors.metodePembayaran = "Metode pembayaran wajib dipilih";
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+   const validateForm = () => {
+     const errors: Record<string, string> = {};
+     if (!formData.nama.trim()) errors.nama = "Nama wajib diisi";
+     if (!formData.nomorAnggota.trim()) errors.nomorAnggota = "Nomor anggota wajib diisi";
+     if (!formData.tanggal) errors.tanggal = "Tanggal wajib diisi";
+     if (!formData.jenisSimpanan) errors.jenisSimpanan = "Jenis simpanan wajib dipilih";
+     if (!formData.jumlah) errors.jumlah = "Jumlah wajib diisi";
+     if (!formData.metodePembayaran) errors.metodePembayaran = "Metode pembayaran wajib dipilih";
+     
+     // Balance validation for withdrawals (penarikan)
+     if (formData.metodePembayaran === "penarikan") {
+       const nominated = anggota.find(a => a.nomorNBA?.trim().toLowerCase() === formData.nomorAnggota.trim().toLowerCase());
+       if (nominated) {
+         const currentBalance = simpanan
+           .filter(s => s.idAnggota === nominated.id && s.jenisSimpanan === formData.jenisSimpanan)
+           .reduce((sum, s) => sum + s.jumlah, 0);
+         const withdrawalAmount = parseInt(formData.jumlah.replace(/\D/g, "")) || 0;
+         if (withdrawalAmount > currentBalance) {
+           errors.jumlah = `Saldo tidak mencukupi! Saldo saat ini: Rp ${currentBalance.toLocaleString("id-ID")}`;
+         }
+       }
+     }
+     
+     setFormErrors(errors);
+     return Object.keys(errors).length === 0;
+   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +129,9 @@ export default function SimpananPage() {
         return;
       }
 
+      const isPenarikan = formData.metodePembayaran === "penarikan";
+      const jumlahFinal = isPenarikan ? -Math.abs(jumlahNum) : Math.abs(jumlahNum);
+
       const newSimpanan: SimpananType = {
         id: simpanan.length + 1,
         idAnggota: nominated.id,
@@ -121,43 +139,46 @@ export default function SimpananPage() {
         nomorAnggota: nominated.nomorNBA,
         tanggal: formData.tanggal,
         jenisSimpanan: formData.jenisSimpanan,
-        jumlah: jumlahNum,
-        metode: formData.metodePembayaran,
+        jumlah: jumlahFinal,
+        metode: isPenarikan ? "tunai" : formData.metodePembayaran,
         bunga: 0,
       };
       addSimpanan(newSimpanan);
 
       const getAkun = (metode: string) => {
-        if (metode === "tunai") return "Kas";
+        if (metode === "tunai" || isPenarikan) return "Kas";
         if (metode === "bri-tigabinanga") return "Bank BRI Cab. Tigabinanga";
         if (metode === "bri-berastagi") return "Bank BRI Cab. Berastagi";
         if (metode === "bpr-logo-asri") return "Bank BPR Logo Asri";
         return "Kas";
       };
 
-      const getKategoriSimpanan = (jenis: string) => {
+      const getKategoriSimpanan = (jenis: string, isWithdrawal: boolean) => {
+        const prefix = isWithdrawal ? "Penarikan Simpanan" : "Setoran Simpanan";
         switch (jenis) {
-          case "pokok": return "Setoran Simpanan Pokok";
-          case "wajib": return "Setoran Simpanan Wajib";
-          case "sibuhar": return "Setoran Sibuhar";
-          case "simapan": return "Setoran Simapan";
-          case "sihat": return "Setoran Sihat";
-          case "sihar": return "Setoran Sihar";
-          case "berjangka": return "Setoran Berjangka";
-          default: return "Setoran Anggota";
+          case "pokok": return `${prefix} Pokok`;
+          case "wajib": return `${prefix} Wajib`;
+          case "sibuhar": return `${prefix} Sibuhar`;
+          case "simapan": return `${prefix} Simapan`;
+          case "sihat": return `${prefix} Sihat`;
+          case "sihar": return `${prefix} Sihar`;
+          case "berjangka": return `${prefix} Berjangka`;
+          default: return `${prefix} Anggota`;
         }
       };
 
+      const noBukti = `${isPenarikan ? "PD" : "SM"}-${formData.tanggal.replace(/-/g, "")}-${String(simpanan.length + 1).padStart(3, "0")}`;
+
       addTransaksi({
         id: 0,
-        noBukti: `SM-${formData.tanggal.replace(/-/g, "")}-${String(simpanan.length + 1).padStart(3, "0")}`,
+        noBukti: noBukti,
         tanggal: formData.tanggal,
         jam: "10:00",
         akun: getAkun(formData.metodePembayaran),
-        kategori: getKategoriSimpanan(formData.jenisSimpanan),
-        uraian: `${formData.jenisSimpanan} - ${nominated.nama}`,
-        debet: jumlahNum,
-        kredit: 0,
+        kategori: getKategoriSimpanan(formData.jenisSimpanan, isPenarikan),
+        uraian: `${isPenarikan ? "Penarikan" : "Setoran"} Simpanan ${formData.jenisSimpanan.charAt(0).toUpperCase() + formData.jenisSimpanan.slice(1)} — ${nominated.nama}`,
+        debet: isPenarikan ? 0 : Math.abs(jumlahNum),
+        kredit: isPenarikan ? Math.abs(jumlahNum) : 0,
         saldo: 0,
         operator: "Admin",
       });
@@ -166,9 +187,9 @@ export default function SimpananPage() {
       setTimeout(() => {
         setSubmitted(false);
         setFormData({ nama: "", nomorAnggota: "", tanggal: "", jenisSimpanan: "", jumlah: "", metodePembayaran: "", catatan: "" });
-       }, 3000);
-     }
-   };
+      }, 3000);
+    }
+  };
 
    const validateExcelDate = (value: any): string | null => {
      if (!value && value !== 0) return null;
@@ -764,16 +785,17 @@ export default function SimpananPage() {
                          validationErrors.push({ row: rowNum, field: "Nama Anggota", value: "", message: "wajib diisi (kosong)" });
                        }
 
-                       // Validate anggota exists (skip if noNBA is empty)
-                       if (noNBA) {
-                         const anggotaFound = anggota.find(a => {
-                           const aNBA = String(a.nomorNBA || "").trim().toLowerCase();
-                           return aNBA === noNBA.toLowerCase() || aNBA === `nba-${noNBA.padStart(3, "0")}` || aNBA === `nba-${noNBA}`;
-                         });
-                         if (!anggotaFound) {
-                           validationErrors.push({ row: rowNum, field: "No. NBA", value: noNBA, message: "tidak ditemukan di data anggota" });
-                         }
-                       }
+                        // Validate anggota exists
+                        let anggotaFound: any = null;
+                        if (noNBA) {
+                          anggotaFound = anggota.find(a => {
+                            const aNBA = String(a.nomorNBA || "").trim().toLowerCase();
+                            return aNBA === noNBA.toLowerCase() || aNBA === `nba-${noNBA.padStart(3, "0")}` || aNBA === `nba-${noNBA}`;
+                          });
+                          if (!anggotaFound) {
+                            validationErrors.push({ row: rowNum, field: "No. NBA", value: noNBA, message: "tidak ditemukan di data anggota" });
+                          }
+                        }
 
                        // Validate jumlah
                        let jumlah = 0;
@@ -793,12 +815,28 @@ export default function SimpananPage() {
                            validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: "tipe data tidak valid" });
                          }
 
-                         if (jumlah > 0 && jumlah <= 0) {
-                           validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: `harus > 0 (saat ini: ${jumlah})` });
-                         }
-                       }
+                          if (jumlah > 0 && jumlah <= 0) {
+                            validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: `harus > 0 (saat ini: ${jumlah})` });
+                          }
+                        }
 
-                       // Validate tanggal (required)
+                        // Balance validation for withdrawals (only for penarikan import)
+                        if (importType.startsWith("penarikan") && anggotaFound && jumlah > 0) {
+                          const jenisSimpanan = importType.replace("penarikan-", "");
+                          const currentBalance = simpanan
+                            .filter(s => s.idAnggota === anggotaFound.id && s.jenisSimpanan === jenisSimpanan)
+                            .reduce((sum, s) => sum + s.jumlah, 0);
+                          if (jumlah > currentBalance) {
+                            validationErrors.push({
+                              row: rowNum,
+                              field: "Jumlah Transaksi",
+                              value: String(jmlRaw),
+                              message: `Saldo ${jenisSimpanan} tidak mencukupi. Saldo saat ini: Rp ${currentBalance.toLocaleString("id-ID")}`
+                            });
+                          }
+                        }
+
+                        // Validate tanggal (required)
                        const tanggal = validateExcelDate(tglRaw);
                        if (!tanggal) {
                          validationErrors.push({ row: rowNum, field: "Tanggal Transaksi", value: String(tglRaw ?? ""), message: "format tidak valid (gunakan DD-MM-YYYY)" });
