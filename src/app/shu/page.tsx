@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData, Pengurus, Pengawas, Karyawan } from "../context/DataContext";
+import Letterhead from "../components/Letterhead";
 
 // SHU Allocation categories with percentages
 const SHU_ALLOCATIONS = [
@@ -285,19 +286,18 @@ export default function SHUPage() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
   };
 
-  return (
-    <div>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: "#1B4D3E", marginBottom: 8 }}>Sisa Hasil Usaha (SHU)</h1>
-        <p style={{ fontSize: 14, color: "#6b7280" }}>Perhitungan dan Distribusi SHU - KSP Mulia Dana Sejahtera</p>
-      </div>
+   return (
+     <div>
+       <Letterhead
+         title="SISA HASIL USAHA (SHU)"
+         subtitle="Perhitungan dan Distribusi SHU"
+       />
 
-      <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
-        <Link href="/dashboard" style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, textDecoration: "none", fontWeight: 600 }}>
-          ← Kembali ke Dashboard
-        </Link>
-      </div>
+       <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
+         <Link href="/dashboard" style={{ padding: "10px 20px", background: "#1B4D3E", color: "white", borderRadius: 8, textDecoration: "none", fontWeight: 600 }}>
+           ← Kembali ke Dashboard
+         </Link>
+       </div>
 
       <div style={{ background: "white", borderRadius: 16, padding: 24, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>

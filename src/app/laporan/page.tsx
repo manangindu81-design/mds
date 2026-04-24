@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
+import Letterhead from "../components/Letterhead";
 
 const laporanTypes = [
   { 
@@ -267,10 +268,11 @@ export default function LaporanPage() {
           {/* NERACA */}
           {activeReport === "neraca" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>NERACA (LAPORAN POSISI KEUANGAN)</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="NERACA (LAPORAN POSISI KEUANGAN)"
+                subtitle="Laporan Posisi Keuangan"
+                periode={`Per ${periode} Desember`}
+              />
               
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
@@ -340,10 +342,11 @@ export default function LaporanPage() {
           {/* PHU */}
           {activeReport === "phu" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>PERHITUNGAN HASIL USAHA (PHU)</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="PERHITUNGAN HASIL USAHA (PHU)"
+                subtitle="Laporan Laba Rugi"
+                periode={`Per ${periode} Desember`}
+              />
               
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
@@ -439,10 +442,11 @@ export default function LaporanPage() {
           {/* KAS */}
           {activeReport === "kas" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>LAPORAN ARUS KAS</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="LAPORAN ARUS KAS"
+                subtitle="Cash Flow Statement"
+                periode={`Per ${periode} Desember`}
+              />
               
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
@@ -494,10 +498,11 @@ export default function LaporanPage() {
           {/* EKUITAS */}
           {activeReport === "ekuitas" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>LAPORAN PERUBAHAN EKUITAS</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="LAPORAN PERUBAHAN EKUITAS"
+                subtitle="Statement of Changes in Equity"
+                periode={`Per ${periode} Desember`}
+              />
               
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
@@ -567,10 +572,11 @@ export default function LaporanPage() {
           {/* CaLK */}
           {activeReport === "calk" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>CATATAN ATAS LAPORAN KEUANGAN</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="CATATAN ATAS LAPORAN KEUANGAN"
+                subtitle="Notes to the Financial Statements"
+                periode={`Per ${periode} Desember`}
+              />
               
               <div style={{ marginBottom: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>1. PENDAHULUAN</h3>
@@ -708,10 +714,11 @@ export default function LaporanPage() {
           {/* PROMOSI */}
           {activeReport === "promosi" && (
             <div style={{ padding: 32 }}>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 600 }}>LAPORAN PROMOSI EKONOMI ANGGOTA</h2>
-                <p style={{ fontSize: 14, color: "#6b7280" }}>Per {periode} Desember</p>
-              </div>
+              <Letterhead
+                title="LAPORAN PROMOSI EKONOMI ANGGOTA"
+                subtitle="Laporan Kesejahteraan Anggota"
+                periode={`Per ${periode} Desember`}
+              />
               
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <tbody>
