@@ -910,13 +910,20 @@ export default function SimpananPage() {
 
                      if (!confirm(confirmMsg)) return;
 
-                     // Proceed with import
-                     jsonData.forEach((row, index) => {
-                       const noNBA = String(row["No. NBA"]).trim();
-                       const nama = row["Nama Anggota"];
-                       const jmlRaw = row["Jumlah Transaksi"];
-                       const tglRaw = row["Tanggal Transaksi"];
-                       const jenisBayar = String(row["Jenis Pembayaran"] || "").trim();
+                      // Proceed with import
+                      jsonData.forEach((row, index) => {
+                        // Helper to get column value using normalized mapping
+                        const getCol = (colKey: string) => {
+                          const normKey = normalize(colKey);
+                          const actualKey = normalizedMap[normKey];
+                          return actualKey ? row[actualKey] : undefined;
+                        };
+
+                        const noNBA = String(getCol("no. nba") ?? "").trim();
+                        const nama = String(getCol("nama anggota") ?? "").trim();
+                        const jmlRaw = getCol("jumlah transaksi");
+                        const tglRaw = getCol("tanggal transaksi");
+                        const jenisBayar = String(getCol("jenis pembayaran") ?? "").trim();
 
                        const anggotaFound = anggota.find(a => String(a.nomorNBA).trim().toLowerCase() === noNBA.toLowerCase());
                        if (!anggotaFound) return; // Should not happen after validation
