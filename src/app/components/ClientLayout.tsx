@@ -17,6 +17,7 @@ const navItems = [
   { label: "Pengeluaran", href: "/pengeluaran", icon: "💸" },
   { label: "Dashboard", href: "/dashboard", icon: "📊" },
   { label: "Laporan", href: "/laporan", icon: "📑" },
+  { label: "Profil", href: "/profil", icon: "🏢" },
 ];
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {

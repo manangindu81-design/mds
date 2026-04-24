@@ -57,7 +57,7 @@ export default function LaporanPage() {
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 2023 + 1 }, (_, i) => 2023 + i);
   const [periode, setPeriode] = useState(String(currentYear));
-  const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
+  const { anggota, simpanan, pinjaman, angsuran, transaksi, pengurus, pengawas, karyawan } = useData();
   
   // === RATE BUNGA SIMPANAN (PER TAON) ===
   const RATE_SIBUHAR = 0.03; // 3%
@@ -619,20 +619,91 @@ export default function LaporanPage() {
                   <tr><td style={{ padding: "8px 0" }}>Simpanan Berjangka</td><td style={{ textAlign: "right" }}>{formatRupiah(simpananBerjangka)}</td></tr>
                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>{formatRupiah(totalSimpanan)}</td></tr>
                 </table>
-              </div>
+               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>6. PINJAMAN ANGGOTA</h3>
-                <table style={{ width: "100%", marginLeft: 16 }}>
-                  <tr><td style={{ padding: "8px 0" }}>Pinjaman Biasa</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Pinjaman Investasi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Pinjaman Konsumsi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bunga Accrued</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                </table>
+               <div style={{ marginBottom: 24 }}>
+                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>6. PINJAMAN ANGGOTA</h3>
+                 <table style={{ width: "100%", marginLeft: 16 }}>
+                   <tr><td style={{ padding: "8px 0" }}>Pinjaman Biasa</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Pinjaman Investasi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Pinjaman Konsumsi</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Bunga Accrued</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                 </table>
+               </div>
+
+               <div style={{ marginBottom: 24 }}>
+                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>7. PERSONALIA</h3>
+                 <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16, paddingLeft: 16 }}>
+                   Susunan organisasi KSP Mulia Dana Sejahtera per {periode}:
+                 </p>
+
+                 <div style={{ marginBottom: 20 }}>
+                   <h4 style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", marginBottom: 8 }}>Pengurus</h4>
+                   <table style={{ width: "100%", marginLeft: 16, borderCollapse: "collapse", fontSize: 13 }}>
+                     <tbody>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ textAlign: "left", padding: 6 }}>No</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Jabatan</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Nama</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Gelar</th>
+                       </tr>
+                       {(pengurus || []).map((p, idx) => (
+                         <tr key={`pengurus-${p.id}`}>
+                           <td style={{ padding: 6 }}>{idx + 1}</td>
+                           <td style={{ padding: 6 }}>{p.jabatan}</td>
+                           <td style={{ padding: 6 }}>{p.nama}</td>
+                           <td style={{ padding: 6, fontStyle: "italic" }}>{p.gelar || "-"}</td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+
+                 <div style={{ marginBottom: 20 }}>
+                   <h4 style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", marginBottom: 8 }}>Pengawas</h4>
+                   <table style={{ width: "100%", marginLeft: 16, borderCollapse: "collapse", fontSize: 13 }}>
+                     <tbody>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ textAlign: "left", padding: 6 }}>No</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Jabatan</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Nama</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Gelar</th>
+                       </tr>
+                       {(pengawas || []).map((p, idx) => (
+                         <tr key={`pengawas-${p.id}`}>
+                           <td style={{ padding: 6 }}>{idx + 1}</td>
+                           <td style={{ padding: 6 }}>{p.jabatan}</td>
+                           <td style={{ padding: 6 }}>{p.nama}</td>
+                           <td style={{ padding: 6, fontStyle: "italic" }}>{p.gelar || "-"}</td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+
+                 <div style={{ marginBottom: 20 }}>
+                   <h4 style={{ fontSize: 14, fontWeight: 600, color: "#1B4D3E", marginBottom: 8 }}>Karyawan</h4>
+                   <table style={{ width: "100%", marginLeft: 16, borderCollapse: "collapse", fontSize: 13 }}>
+                     <tbody>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ textAlign: "left", padding: 6 }}>No</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Jabatan</th>
+                         <th style={{ textAlign: "left", padding: 6 }}>Nama</th>
+                       </tr>
+                       {(karyawan || []).map((k, idx) => (
+                         <tr key={`karyawan-${k.id}`}>
+                           <td style={{ padding: 6 }}>{idx + 1}</td>
+                           <td style={{ padding: 6 }}>{k.jabatan}</td>
+                           <td style={{ padding: 6 }}>{k.nama}</td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* PROMOSI */}
           {activeReport === "promosi" && (

@@ -119,6 +119,26 @@ export interface Pengeluaran {
   operator: string;
 }
 
+export interface Pengurus {
+  id: number;
+  jabatan: string;
+  nama: string;
+  gelar?: string;
+}
+
+export interface Pengawas {
+  id: number;
+  jabatan: string;
+  nama: string;
+  gelar?: string;
+}
+
+export interface Karyawan {
+  id: number;
+  jabatan: string;
+  nama: string;
+}
+
 interface DataContextType {
   anggota: Anggota[];
   simpanan: Simpanan[];
@@ -126,6 +146,9 @@ interface DataContextType {
   angsuran: Angsuran[];
   transaksi: Transaksi[];
   pengeluaran: Pengeluaran[];
+  pengurus: Pengurus[];
+  pengawas: Pengawas[];
+  karyawan: Karyawan[];
   addAnggota: (data: Anggota) => void;
   addSimpanan: (data: Simpanan) => void;
   addPinjaman: (data: Pinjaman) => void;
@@ -133,6 +156,9 @@ interface DataContextType {
   updatePinjaman: (id: number, sudahDibayar: number, outstanding: number) => void;
   addTransaksi: (data: Transaksi) => void;
   addPengeluaran: (data: Pengeluaran) => void;
+  addPengurus: (data: Pengurus) => void;
+  addPengawas: (data: Pengawas) => void;
+  addKaryawan: (data: Karyawan) => void;
   updateAnggota: (id: number, data: Partial<Anggota>) => void;
   deleteAnggota: (id: number) => void;
   deletePinjaman: (id: number) => void;
@@ -144,6 +170,12 @@ interface DataContextType {
   deletePengeluaran: (id: number) => void;
   deleteAllPengeluaran: () => void;
   setPengeluaran: React.Dispatch<React.SetStateAction<Pengeluaran[]>>;
+  setPengurus: React.Dispatch<React.SetStateAction<Pengurus[]>>;
+  setPengawas: React.Dispatch<React.SetStateAction<Pengawas[]>>;
+  setKaryawan: React.Dispatch<React.SetStateAction<Karyawan[]>>;
+  deleteAllPengurus: () => void;
+  deleteAllPengawas: () => void;
+  deleteAllKaryawan: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -174,6 +206,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [angsuran, setAngsuran] = useState<Angsuran[]>(() => getLocalStorage("ksp_angsuran"));
   const [transaksi, setTransaksi] = useState<Transaksi[]>(() => getLocalStorage("ksp_transaksi"));
   const [pengeluaran, setPengeluaran] = useState<Pengeluaran[]>(() => getLocalStorage("ksp_pengeluaran"));
+  const [pengurus, setPengurus] = useState<Pengurus[]>(() => getLocalStorage("ksp_pengurus") || [
+    { id: 1, jabatan: "Ketua", nama: "Samudera Ginting", gelar: "S.H" },
+    { id: 2, jabatan: "Wakil Ketua", nama: "Abel Lesmana Tarigan", gelar: "S.P" },
+    { id: 3, jabatan: "Sekretaris", nama: "Carolla Sembiring", gelar: "S.H., M.Kn" },
+    { id: 4, jabatan: "Bendahara", nama: "Juniawan Sebayang", gelar: "S.P., CHt" },
+    { id: 5, jabatan: "Wakil Bendahara", nama: "Dustin Farrel Sembiring Pandia", gelar: "" },
+  ]);
+  const [pengawas, setPengawas] = useState<Pengawas[]>(() => getLocalStorage("ksp_pengawas") || [
+    { id: 1, jabatan: "Ketua", nama: "Sayang David Ginting", gelar: "S.H., S.Pn" },
+    { id: 2, jabatan: "Sekretaris", nama: "Sahala Panjaitan", gelar: "S.P" },
+    { id: 3, jabatan: "Anggota", nama: "Mika Jepani Br Karosekali", gelar: "" },
+  ]);
+  const [karyawan, setKaryawan] = useState<Karyawan[]>(() => getLocalStorage("ksp_karyawan") || [
+    { id: 1, jabatan: "Manager", nama: "Marwan Esra Bangun" },
+    { id: 2, jabatan: "Admin", nama: "Erni Sembiring" },
+    { id: 3, jabatan: "Marketing", nama: "Ezzra Mazmur Sembiring" },
+  ]);
 
   useEffect(() => {
     saveLocalStorage("ksp_anggota", anggota);
@@ -191,13 +240,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocalStorage("ksp_angsuran", angsuran);
   }, [angsuran]);
 
-   useEffect(() => {
-     saveLocalStorage("ksp_transaksi", transaksi);
-   }, [transaksi]);
+  useEffect(() => {
+    saveLocalStorage("ksp_transaksi", transaksi);
+  }, [transaksi]);
 
-   useEffect(() => {
-     saveLocalStorage("ksp_pengeluaran", pengeluaran);
-   }, [pengeluaran]);
+  useEffect(() => {
+    saveLocalStorage("ksp_pengeluaran", pengeluaran);
+  }, [pengeluaran]);
+
+  useEffect(() => {
+    saveLocalStorage("ksp_pengurus", pengurus);
+  }, [pengurus]);
+
+  useEffect(() => {
+    saveLocalStorage("ksp_pengawas", pengawas);
+  }, [pengawas]);
+
+  useEffect(() => {
+    saveLocalStorage("ksp_karyawan", karyawan);
+  }, [karyawan]);
 
   const addAnggota = (data: Anggota) => {
     setAnggota(prev => [...prev, { ...data, id: prev.length + 1 }]);
@@ -234,22 +295,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setAnggota(prev => prev.filter(a => a.id !== id));
   };
 
-   const clearAllData = () => {
-     setAnggota([]);
-     setSimpanan([]);
-     setPinjaman([]);
-     setAngsuran([]);
-     setTransaksi([]);
-     setPengeluaran([]);
-     if (typeof window !== "undefined") {
-       localStorage.removeItem("ksp_anggota");
-       localStorage.removeItem("ksp_simpanan");
-       localStorage.removeItem("ksp_pinjaman");
-       localStorage.removeItem("ksp_angsuran");
-       localStorage.removeItem("ksp_transaksi");
-       localStorage.removeItem("ksp_pengeluaran");
-     }
-   };
+    const clearAllData = () => {
+      setAnggota([]);
+      setSimpanan([]);
+      setPinjaman([]);
+      setAngsuran([]);
+      setTransaksi([]);
+      setPengeluaran([]);
+      setPengurus([]);
+      setPengawas([]);
+      setKaryawan([]);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("ksp_anggota");
+        localStorage.removeItem("ksp_simpanan");
+        localStorage.removeItem("ksp_pinjaman");
+        localStorage.removeItem("ksp_angsuran");
+        localStorage.removeItem("ksp_transaksi");
+        localStorage.removeItem("ksp_pengeluaran");
+        localStorage.removeItem("ksp_pengurus");
+        localStorage.removeItem("ksp_pengawas");
+        localStorage.removeItem("ksp_karyawan");
+      }
+    };
 
   const deleteSimpanan = (id: number) => {
     setSimpanan(prev => prev.filter(s => s.id !== id));
@@ -277,37 +344,74 @@ export function DataProvider({ children }: { children: ReactNode }) {
      setPengeluaran(prev => prev.filter(p => p.id !== id));
    };
 
-   const deleteAllPengeluaran = () => {
-     setPengeluaran([]);
-   };
+    const deleteAllPengeluaran = () => {
+      setPengeluaran([]);
+    };
 
-    return (
-      <DataContext.Provider value={{
-        anggota,
-        simpanan,
-        pinjaman,
-        angsuran,
-        transaksi,
-        pengeluaran,
-        addAnggota,
-        addSimpanan,
-        addPinjaman,
-        addAngsuran,
-        updatePinjaman,
-        addTransaksi,
-        addPengeluaran,
-        updateAnggota,
-        deleteAnggota,
-        deletePinjaman,
-        deleteAllPinjaman,
-        clearAllData,
-        setSimpanan,
-        deleteSimpanan,
-        deleteAllSimpanan,
-        deletePengeluaran,
-        deleteAllPengeluaran,
-        setPengeluaran,
-      }}>
+    // Personnel management
+    const addPengurus = (data: Pengurus) => {
+      setPengurus(prev => [...prev, { ...data, id: prev.length + 1 }]);
+    };
+
+    const addPengawas = (data: Pengawas) => {
+      setPengawas(prev => [...prev, { ...data, id: prev.length + 1 }]);
+    };
+
+    const addKaryawan = (data: Karyawan) => {
+      setKaryawan(prev => [...prev, { ...data, id: prev.length + 1 }]);
+    };
+
+    const deleteAllPengurus = () => {
+      setPengurus([]);
+    };
+
+    const deleteAllPengawas = () => {
+      setPengawas([]);
+    };
+
+    const deleteAllKaryawan = () => {
+      setKaryawan([]);
+    };
+
+     return (
+       <DataContext.Provider value={{
+         anggota,
+         simpanan,
+         pinjaman,
+         angsuran,
+         transaksi,
+         pengeluaran,
+         pengurus,
+         pengawas,
+         karyawan,
+         addAnggota,
+         addSimpanan,
+         addPinjaman,
+         addAngsuran,
+         updatePinjaman,
+         addTransaksi,
+         addPengeluaran,
+         addPengurus,
+         addPengawas,
+         addKaryawan,
+         updateAnggota,
+         deleteAnggota,
+         deletePinjaman,
+         deleteAllPinjaman,
+         clearAllData,
+         setSimpanan,
+         deleteSimpanan,
+         deleteAllSimpanan,
+         deletePengeluaran,
+         deleteAllPengeluaran,
+          setPengeluaran,
+          setPengurus,
+          setPengawas,
+          setKaryawan,
+          deleteAllPengurus,
+          deleteAllPengawas,
+          deleteAllKaryawan,
+        }}>
       {children}
     </DataContext.Provider>
   );

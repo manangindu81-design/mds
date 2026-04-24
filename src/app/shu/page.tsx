@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useData } from "../context/DataContext";
+import { useData, Pengurus, Pengawas, Karyawan } from "../context/DataContext";
 
 // SHU Allocation categories with percentages
 const SHU_ALLOCATIONS = [
@@ -24,7 +24,7 @@ interface AllocationBreakdown {
 }
 
 export default function SHUPage() {
-  const { anggota, simpanan, transaksi, pinjaman, angsuran } = useData();
+  const { anggota, simpanan, transaksi, pinjaman, angsuran, pengurus, pengawas, karyawan } = useData();
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   
   const currentYear = new Date().getFullYear();
@@ -154,24 +154,54 @@ export default function SHUPage() {
      };
    }, [selectedYear, transaksi, angsuran, pinjaman]);
 
-  // Calculate SHU allocation breakdown
-  const allocationBreakdown = useMemo((): AllocationBreakdown[] => {
-    const shuBersih = shuCalculation.shuBersih;
-    if (shuBersih <= 0) {
-      return SHU_ALLOCATIONS.map(alloc => ({
-        category: alloc.key,
-        label: alloc.label,
-        percentage: alloc.percentage,
-        amount: 0
-      }));
-    }
-    return SHU_ALLOCATIONS.map(alloc => ({
-      category: alloc.key,
-      label: alloc.label,
-      percentage: alloc.percentage,
-      amount: Math.round(shuBersih * (alloc.percentage / 100))
-    }));
-  }, [shuCalculation.shuBersih]);
+   // Calculate SHU allocation breakdown
+   const allocationBreakdown = useMemo((): AllocationBreakdown[] => {
+     const shuBersih = shuCalculation.shuBersih;
+     if (shuBersih <= 0) {
+       return SHU_ALLOCATIONS.map(alloc => ({
+         category: alloc.key,
+         label: alloc.label,
+         percentage: alloc.percentage,
+         amount: 0
+       }));
+     }
+     return SHU_ALLOCATIONS.map(alloc => ({
+       category: alloc.key,
+       label: alloc.label,
+       percentage: alloc.percentage,
+       amount: Math.round(shuBersih * (alloc.percentage / 100))
+     }));
+   }, [shuCalculation.shuBersih]);
+
+   // Personnel allocation: split Pengurus/Pengawas (5%) and Karyawan (5%) among individuals
+   const personnelAllocation = useMemo(() => {
+     const shuBersih = shuCalculation.shuBersih;
+     if (shuBersih <= 0) return { pengurus: [], pengawas: [], karyawan: [] };
+
+     const pengurusList = pengurus || [];
+     const pengawasList = pengawas || [];
+     const karyawanList = karyawan || [];
+
+     // Find allocation amounts
+     const pengurusPengawasAlloc = allocationBreakdown.find(a => a.category === "pengurus_pengawas");
+     const kesejahteraanKaryawanAlloc = allocationBreakdown.find(a => a.category === "kesejahteraan_karyawan");
+
+     const pengurusPengawasAmount = pengurusPengawasAlloc?.amount || 0;
+     const kesejahteraanKaryawanAmount = kesejahteraanKaryawanAlloc?.amount || 0;
+
+     const totalPengurusPengawas = pengurusList.length + pengawasList.length;
+     const totalKaryawan = karyawanList.length;
+
+     // Split equally
+     const perPengurusPengawas = totalPengurusPengawas > 0 ? Math.round(pengurusPengawasAmount / totalPengurusPengawas) : 0;
+     const perKaryawan = totalKaryawan > 0 ? Math.round(kesejahteraanKaryawanAmount / totalKaryawan) : 0;
+
+     return {
+       pengurus: pengurusList.map((p: Pengurus) => ({ ...p, alokasi: perPengurusPengawas })),
+       pengawas: pengawasList.map((p: Pengawas) => ({ ...p, alokasi: perPengurusPengawas })),
+       karyawan: karyawanList.map((k: Karyawan) => ({ ...k, alokasi: perKaryawan }))
+     };
+   }, [shuCalculation.shuBersih, pengurus, pengawas, karyawan, allocationBreakdown]);
 
   // Calculate SHU per anggota with full allocation breakdown
   const shuDistribution = useMemo(() => {
@@ -580,6 +610,102 @@ export default function SHUPage() {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Personnel SHU Allocation */}
+      <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginTop: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+          <span style={{ fontSize: 32 }}>👥</span>
+          <div>
+            <h3 style={{ fontSize: 18, color: "#1B4D3E", marginBottom: 4 }}>📋 Alokasi SHU ke Personel</h3>
+            <p style={{ fontSize: 12, color: "#6b7280" }}>
+              Distribusi Dana Pengurus/Pengawas (5%) dan Dana Kesejahteraan Karyawan (5%)
+            </p>
+          </div>
+        </div>
+
+        {(personnelAllocation.pengurus.length > 0 || personnelAllocation.pengawas.length > 0 || personnelAllocation.karyawan.length > 0) ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }}>
+            {/* Pengurus & Pengawas */}
+            {personnelAllocation.pengurus.length > 0 && (
+              <div>
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: "#dc2626", marginBottom: 12, borderBottom: "2px solid #dc2626", paddingBottom: 8 }}>
+                  Dana Pengurus/Pengawas (5%)
+                </h4>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <tbody>
+                    {personnelAllocation.pengurus.map((p) => (
+                      <tr key={`pengurus-${p.id}`} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <td style={{ padding: 8, fontWeight: 500, color: "#1f2937" }}>{p.jabatan}</td>
+                        <td style={{ padding: 8, color: "#374151" }}>{p.nama} {p.gelar ? `(${p.gelar})` : ""}</td>
+                        <td style={{ padding: 8, textAlign: "right", fontWeight: 600, color: "#059669" }}>
+                          {formatRupiah(p.alokasi)}
+                        </td>
+                      </tr>
+                    ))}
+                    {personnelAllocation.pengawas.map((p) => (
+                      <tr key={`pengawas-${p.id}`} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <td style={{ padding: 8, fontWeight: 500, color: "#1f2937" }}>{p.jabatan}</td>
+                        <td style={{ padding: 8, color: "#374151" }}>{p.nama} {p.gelar ? `(${p.gelar})` : ""}</td>
+                        <td style={{ padding: 8, textAlign: "right", fontWeight: 600, color: "#059669" }}>
+                          {formatRupiah(p.alokasi)}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr style={{ background: "#f0fdf4", fontWeight: 600 }}>
+                      <td colSpan={2} style={{ padding: 8, textAlign: "right", color: "#059669" }}>Total</td>
+                      <td style={{ padding: 8, textAlign: "right", color: "#059669" }}>
+                        {formatRupiah(
+                          personnelAllocation.pengurus.reduce((sum, p) => sum + p.alokasi, 0) +
+                          personnelAllocation.pengawas.reduce((sum, p) => sum + p.alokasi, 0)
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Karyawan */}
+            {personnelAllocation.karyawan.length > 0 && (
+              <div>
+                <h4 style={{ fontSize: 14, fontWeight: 600, color: "#2563eb", marginBottom: 12, borderBottom: "2px solid #2563eb", paddingBottom: 8 }}>
+                  Dana Kesejahteraan Karyawan (5%)
+                </h4>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <tbody>
+                    {personnelAllocation.karyawan.map((k) => (
+                      <tr key={`karyawan-${k.id}`} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                        <td style={{ padding: 8, fontWeight: 500, color: "#1f2937" }}>{k.jabatan}</td>
+                        <td style={{ padding: 8, color: "#374151" }}>{k.nama}</td>
+                        <td style={{ padding: 8, textAlign: "right", fontWeight: 600, color: "#059669" }}>
+                          {formatRupiah(k.alokasi)}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr style={{ background: "#f0fdf4", fontWeight: 600 }}>
+                      <td colSpan={2} style={{ padding: 8, textAlign: "right", color: "#059669" }}>Total</td>
+                      <td style={{ padding: 8, textAlign: "right", color: "#059669" }}>
+                        {formatRupiah(personnelAllocation.karyawan.reduce((sum, k) => sum + k.alokasi, 0))}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", padding: 32, background: "#f9fafb", borderRadius: 12 }}>
+            <p style={{ color: "#6b7280", fontSize: 13 }}>Data personel (pengurus, pengawas, karyawan) belum lengkap atau SHU Bersih masih 0.</p>
+          </div>
+        )}
+
+        {/* Summary note */}
+        <div style={{ marginTop: 20, padding: 16, background: "#fef3c7", borderRadius: 8, fontSize: 12, color: "#92400e", border: "1px solid #fcd34d" }}>
+          <strong>Catatan:</strong> Alokasi di atas dibagi secara equal untuk setiap orang. 
+          Dana Pengurus/Pengawas (5% dari SHU Bersih) dibagi ke {personnelAllocation.pengurus.length + personnelAllocation.pengawas.length} orang.
+          Dana Kesejahteraan Karyawan (5%) dibagi ke {personnelAllocation.karyawan.length} orang.
+        </div>
       </div>
 
       {/* Info Box */}
