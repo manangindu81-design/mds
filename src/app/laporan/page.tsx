@@ -390,19 +390,21 @@ export default function LaporanPage() {
                 </tbody>
               </table>
 
-              <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div style={{ background: "#f9fafb", padding: 16, borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: "#6b7280" }}>Pembagian SHU</div>
-                  <table style={{ width: "100%", marginTop: 8 }}>
-                    <tr><td style={{ padding: "4px 0" }}>Cadangan %</td><td style={{ textAlign: "right" }}>25%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Jasa Anggota %</td><td style={{ textAlign: "right" }}>30%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Dana Sosial %</td><td style={{ textAlign: "right" }}>5%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Dana Pendidikan %</td><td style={{ textAlign: "right" }}>5%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Pengurus %</td><td style={{ textAlign: "right" }}>10%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Karyawan %</td><td style={{ textAlign: "right" }}>5%</td></tr>
-                    <tr><td style={{ padding: "4px 0" }}>Dana Mutual %</td><td style={{ textAlign: "right" }}>20%</td></tr>
-                  </table>
-                </div>
+               <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                 <div style={{ background: "#f9fafb", padding: 16, borderRadius: 8 }}>
+                   <div style={{ fontSize: 12, color: "#6b7280" }}>Pembagian SHU</div>
+                   <table style={{ width: "100%", marginTop: 8 }}>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Cadangan Umum</td><td style={{ textAlign: "right" }}>5%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Cadangan Resiko</td><td style={{ textAlign: "right" }}>5%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Jasa Modal</td><td style={{ textAlign: "right" }}>55%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Jasa Transaksi</td><td style={{ textAlign: "right" }}>20%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Pengurus/Pengawas</td><td style={{ textAlign: "right" }}>5%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Kesejahteraan Karyawan</td><td style={{ textAlign: "right" }}>5%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Pendidikan</td><td style={{ textAlign: "right" }}>2%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Sosial</td><td style={{ textAlign: "right" }}>2%</td></tr>
+                     <tr><td style={{ padding: "4px 0" }}>Dana Pembangunan Daerah Kerja</td><td style={{ textAlign: "right" }}>1%</td></tr>
+                   </table>
+                 </div>
                 <div style={{ background: "#f9fafb", padding: 16, borderRadius: 8 }}>
                   <div style={{ fontSize: 12, color: "#6b7280" }}>Keterangan</div>
                   <p style={{ fontSize: 13, marginTop: 8, color: "#374151" }}>

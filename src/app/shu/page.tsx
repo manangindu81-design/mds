@@ -414,20 +414,20 @@ export default function SHUPage() {
               <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Jasa ke Anggota</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#059669" }}>
                 {formatRupiah(allocationBreakdown.filter(a => a.category === "jasa_modal" || a.category === "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
-                <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
-                  (Jasa Modal 55% + Jasa Transaksi 20%)
-                </div>
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Cadangan & Dana</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#dc2626" }}>
-                {formatRupiah(allocationBreakdown.filter(a => a.category !== "jasa_modal" && a.category !== "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
-                <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
-                  (7 kategori: 25%)
-                </div>
-              </div>
-            </div>
+                 <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
+                   (Jasa Modal 55% + Jasa Transaksi 20%)
+                 </div>
+               </div>
+             </div>
+             <div>
+               <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total Cadangan & Dana</div>
+               <div style={{ fontSize: 18, fontWeight: 700, color: "#dc2626" }}>
+                 {formatRupiah(allocationBreakdown.filter(a => a.category !== "jasa_modal" && a.category !== "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
+                 <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
+                   (7 kategori: 30%)
+                 </div>
+               </div>
+             </div>
             <div>
               <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}>Total SHU Bersih</div>
               <div style={{ fontSize: 18, fontWeight: 700, color: "#1B4D3E" }}>
@@ -601,7 +601,7 @@ export default function SHUPage() {
             <ul style={{ fontSize: 12, color: "#6b7280", marginLeft: 20, lineHeight: 1.8 }}>
               <li><strong>Jasa Modal (55%)</strong> - Dibagikan ke anggota berdasarkan simpanan</li>
               <li><strong>Jasa Transaksi (20%)</strong> - Dibagikan ke anggota berdasarkan simpanan</li>
-              <li><strong>Cadangan & Dana (25%)</strong> - 7 kategori untuk KSP</li>
+               <li><strong>Cadangan & Dana (30%)</strong> - 7 kategori untuk KSP</li>
             </ul>
           </div>
         </div>
