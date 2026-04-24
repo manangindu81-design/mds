@@ -101,17 +101,18 @@ export default function LaporanPage() {
   const pendapatanDenda = totalDenda;
   const totalPendapatan = pendapatanBunga + pendapatanAdmin + pendapatanDenda;
   
-  // === KAS & BANK (ASET LANCAR) ===
-  const kasMasuk = transaksi.filter(t => t.kategori === "Setoran Anggota" || t.kategori === "Pembayaran Pinjaman").reduce((acc, t) => acc + (t.debet || 0), 0);
-  const kasKeluar = transaksi.filter(t => t.kategori === "Pencairan Pinjaman" || t.kategori === "Penarikan").reduce((acc, t) => acc + (t.kredit || 0), 0);
-  const saldoKas = kasMasuk - kasKeluar;
-  
-  // Kas dan Bank berdasarkan akun transaksi
-  const kasTunai = transaksi.filter(t => t.akun === "Kas" && t.kategori === "Setoran Anggota").reduce((acc, t) => acc + (t.debet || 0), 0);
-  const bankBRITigabinanga = transaksi.filter(t => t.akun === "Bank BRI Cab. Tigabinanga").reduce((acc, t) => acc + (t.debet || 0), 0);
-  const bankBRIBerastagi = transaksi.filter(t => t.akun === "Bank BRI Cab. Berastagi").reduce((acc, t) => acc + (t.debet || 0), 0);
-  const bankBPRLogoAsri = transaksi.filter(t => t.akun === "Bank BPR Logo Asri").reduce((acc, t) => acc + (t.debet || 0), 0);
-  const totalKasBank = kasTunai + bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri;
+   // === KAS & BANK (ASET LANCAR) ===
+   // Cash: net of debet and kredit
+   const kasDebet = transaksi.filter(t => t.akun === "Kas").reduce((acc, t) => acc + (t.debet || 0), 0);
+   const kasKredit = transaksi.filter(t => t.akun === "Kas").reduce((acc, t) => acc + (t.kredit || 0), 0);
+   const saldoKas = kasDebet - kasKredit;
+   
+   // Bank accounts: only debet (deposits) as withdrawals use cash
+   const bankBRITigabinanga = transaksi.filter(t => t.akun === "Bank BRI Cab. Tigabinanga").reduce((acc, t) => acc + (t.debet || 0), 0);
+   const bankBRIBerastagi = transaksi.filter(t => t.akun === "Bank BRI Cab. Berastagi").reduce((acc, t) => acc + (t.debet || 0), 0);
+   const bankBPRLogoAsri = transaksi.filter(t => t.akun === "Bank BPR Logo Asri").reduce((acc, t) => acc + (t.debet || 0), 0);
+   const totalBank = bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri;
+   const totalKasBank = saldoKas + totalBank;
   
   // === SHU (SISA HASIL USAHA) ===
   // Beban = Beban Bunga Simpanan + Beban Operasional (jika ada input pengeluaran)
@@ -242,22 +243,22 @@ export default function LaporanPage() {
                     <th style={{ textAlign: "right", padding: 12, borderBottom: "2px solid #374151" }}> jumlah</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>ASET LANCAR</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(saldoKas)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(0)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPinjamanDisetujui)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Dibayar Dimuka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                 <tbody>
+                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>ASET LANCAR</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(saldoKas)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalBank)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPiutang)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Dibayar Dimuka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td colSpan={2} style={{ padding: "12px 0 8px", fontWeight: 600 }}>ASET TETAP</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Inventaris</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Akumulasi Penyusutan</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tfoot>
-                    <tr style={{ background: "#f9fafb", fontWeight: 700, borderTop: "2px solid #374151" }}>
-                      <td style={{ padding: 12 }}>TOTAL ASET</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(saldoKas + totalPinjamanDisetujui)}</td>
-                    </tr>
-                  </tfoot>
+                   <tfoot>
+                     <tr style={{ background: "#f9fafb", fontWeight: 700, borderTop: "2px solid #374151" }}>
+                       <td style={{ padding: 12 }}>TOTAL ASET</td>
+                       <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalKasBank + totalPiutang)}</td>
+                     </tr>
+                   </tfoot>
                 </tbody>
               </table>
 
@@ -553,24 +554,24 @@ export default function LaporanPage() {
 
               <div style={{ marginBottom: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>3. KAS DAN SETARA KAS</h3>
-                <table style={{ width: "100%", marginLeft: 16 }}>
-                  <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>{formatRupiah(kasTunai)}</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRITigabinanga)}</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRIBerastagi)}</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Bank BPR Logo Asri</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBPRLogoAsri)}</td></tr>
-                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>{formatRupiah(kasTunai + bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri)}</td></tr>
-                </table>
+                 <table style={{ width: "100%", marginLeft: 16 }}>
+                   <tr><td style={{ padding: "8px 0" }}>Kas Tunai</td><td style={{ textAlign: "right" }}>{formatRupiah(saldoKas)}</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Tigabinanga</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRITigabinanga)}</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Bank BRI Cab. Berastagi</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBRIBerastagi)}</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Bank BPR Logo Asri</td><td style={{ textAlign: "right" }}>{formatRupiah(bankBPRLogoAsri)}</td></tr>
+                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah</td><td style={{ textAlign: "right" }}>{formatRupiah(totalKasBank)}</td></tr>
+                 </table>
               </div>
 
-              <div style={{ marginBottom: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>4. PIUTANG</h3>
-                <table style={{ width: "100%", marginLeft: 16 }}>
-                  <tr><td style={{ padding: "8px 0" }}>Piutang Anggota</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 0" }}>Penyisihan Piutang</td><td style={{ textAlign: "right" }}>(Rp 0)</td></tr>
-                  <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah Neto</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
-                </table>
-              </div>
+               <div style={{ marginBottom: 24 }}>
+                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>4. PIUTANG</h3>
+                 <table style={{ width: "100%", marginLeft: 16 }}>
+                   <tr><td style={{ padding: "8px 0" }}>Piutang Anggota</td><td style={{ textAlign: "right" }}>{formatRupiah(totalPiutang)}</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right" }}>Rp 0</td></tr>
+                   <tr><td style={{ padding: "8px 0" }}>Penyisihan Piutang</td><td style={{ textAlign: "right" }}>(Rp 0)</td></tr>
+                   <tr style={{ fontWeight: 600 }}><td style={{ padding: "8px 0" }}>Jumlah Neto</td><td style={{ textAlign: "right" }}>{formatRupiah(totalPiutang)}</td></tr>
+                 </table>
+               </div>
 
               <div style={{ marginBottom: 24 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>5. SIMPANAN ANGGOTA</h3>
