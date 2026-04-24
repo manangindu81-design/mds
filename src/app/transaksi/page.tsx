@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
+import AppLogo from "../components/AppLogo";
 
 const kategoriAkun = [
   { kode: "1101", nama: "Kas", jenis: "Aset" },
@@ -82,7 +83,7 @@ export default function TransaksiPage() {
       <aside style={{ width: 260, background: "var(--color-primary)", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }} className="no-print">
         <div style={{ padding: "0 24px", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "white" }}>
-            <span style={{ fontSize: 28 }}>🏛️</span>
+            <AppLogo width={28} height={28} />
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: 16, fontWeight: 600 }}>KSP Mulia</div>
               <div style={{ fontSize: 10, color: "var(--color-secondary)", letterSpacing: 1 }}>Dana Sejahtera</div>

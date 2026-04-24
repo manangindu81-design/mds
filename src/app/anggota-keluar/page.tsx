@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useData, Anggota } from "../context/DataContext";
+import AppLogo from "../components/AppLogo";
 
 export default function AnggotaKeluarPage() {
   const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota, deleteAnggota } = useData();

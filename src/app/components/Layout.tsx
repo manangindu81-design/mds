@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useData } from "../context/DataContext";
+import AppLogo from "./AppLogo";
 
 interface NavItem {
   label: string;
@@ -47,7 +49,7 @@ export default function Layout({ children, title, subtitle }: LayoutProps) {
           height: 72
         }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-            <span style={{ fontSize: 36 }}>🏛️</span>
+            <AppLogo width={36} height={36} />
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 700, color: "white", letterSpacing: 0.5 }}>KSP Mulia Dana Sejahtera</div>
               <div style={{ fontSize: 10, color: "#D4AF37", letterSpacing: 2, fontWeight: 500 }}>TERDAFTAR & TERAWASI</div>

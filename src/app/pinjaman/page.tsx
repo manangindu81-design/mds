@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useData, Pinjaman as PinjamanType } from "../context/DataContext";
+import AppLogo from "../components/AppLogo";
 
 export default function PinjamanPage() {
   const { anggota, pinjaman, angsuran, addPinjaman, addAngsuran, updatePinjaman, addTransaksi, deleteAllPinjaman } = useData();
@@ -319,7 +320,7 @@ export default function PinjamanPage() {
       <header style={{ background: "var(--color-surface)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
         <div className="container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 80 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-            <span style={{ fontSize: 32 }}>🏛️</span>
+            <AppLogo width={32} height={32} />
             <div><div style={{ fontFamily: "var(--font-heading)", fontSize: 20, fontWeight: 600, color: "var(--color-primary)" }}>KSP Mulia Dana Sejahtera</div><div style={{ fontSize: 11, color: "var(--color-secondary)", letterSpacing: 1 }}>TERDAFTAR & TERAWASI</div></div>
           </Link>
           <nav style={{ display: "flex", gap: 24 }}>

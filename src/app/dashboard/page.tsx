@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
+import AppLogo from "../components/AppLogo";
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -576,7 +577,7 @@ export default function DashboardPage() {
       <aside style={{ width: 260, background: "var(--color-primary)", color: "white", padding: "24px 0", position: "fixed", height: "100vh" }}>
         <div style={{ padding: "0 24px", marginBottom: 32 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", color: "white" }}>
-            <span style={{ fontSize: 32 }}>🏛️</span>
+            <AppLogo width={32} height={32} />
             <div>
               <div style={{ fontFamily: "var(--font-heading)", fontSize: 18, fontWeight: 600 }}>KSP Mulia</div>
               <div style={{ fontSize: 11, color: "#b8d4c8", letterSpacing: 1 }}>DANA SEJAHTERA</div>
