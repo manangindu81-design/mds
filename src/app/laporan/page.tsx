@@ -170,8 +170,8 @@ export default function LaporanPage() {
    // Kewajiban (Liabilities): Simpanan Berjangka-type (sibuhar, simapan, sihat, sihar, berjangka)
    const totalKewajiban = simpananSibuhar + simpananSimapan + simpananSihat + simpananSihar + simpananBerjangka;
    
-   // Ekuitas (Equity): Modal Pokok + Modal Wajib + SHU
-   const totalEkuitas = simpananPokok + simpananWajib + shuBersih;
+    // Ekuitas (Equity): Modal Pokok + Modal Wajib + SHU
+    const totalEkuitas = simpananPokok + simpananWajib + shuBersih;
    
    const totalKanan = totalKewajiban + totalEkuitas;
    
