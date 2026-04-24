@@ -112,36 +112,72 @@ export default function LaporanPage() {
    const bankBRIBerastagi = transaksi.filter(t => t.akun === "Bank BRI Cab. Berastagi").reduce((acc, t) => acc + (t.debet || 0), 0);
    const bankBPRLogoAsri = transaksi.filter(t => t.akun === "Bank BPR Logo Asri").reduce((acc, t) => acc + (t.debet || 0), 0);
    const totalBank = bankBRITigabinanga + bankBRIBerastagi + bankBPRLogoAsri;
-   const totalKasBank = saldoKas + totalBank;
-  
-  // === SHU (SISA HASIL USAHA) ===
+    const totalKasBank = saldoKas + totalBank;
+   
+    // === LAPORAN ARUS KAS (CASH FLOW) ===
+    // Aktivitas Operasi: penerimaan bunga/admin/denda (Kas debet), pengeluaran beban bunga simpanan (Kas kredit)
+    const arusOperasiMasuk = transaksi
+      .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
+        t.kategori?.includes("Bunga Pinjaman") ||
+        t.kategori?.includes("Admin") ||
+        t.kategori?.includes("Denda")
+      ))
+      .reduce((acc, t) => acc + (t.debet || 0), 0);
+    
+    const arusOperasiKeluar = transaksi
+      .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
+        t.kategori?.includes("Beban") ||
+        t.kategori?.includes("Bunga Simpanan")
+      ))
+      .reduce((acc, t) => acc + (t.kredit || 0), 0);
+    
+    const netOperasi = arusOperasiMasuk - arusOperasiKeluar;
+    
+    // Aktivitas Investasi: biasanya 0 (KSP tidak ada pembelian aset tetap signifikan)
+    const netInvestasi = 0;
+    
+    // Aktivitas Pendanaan: setoran simpanan (masuk), penarikan & pencairan pinjaman (keluar)
+    const arusPendanaanMasuk = transaksi
+      .filter(t => t.akun === "Kas" && (t.debet || 0) > 0 && (
+        t.kategori?.includes("Setoran Simpanan") ||
+        t.kategori?.includes("Pendapatan Pengunduran")
+      ))
+      .reduce((acc, t) => acc + (t.debet || 0), 0);
+    
+    const arusPendanaanKeluar = transaksi
+      .filter(t => t.akun === "Kas" && (t.kredit || 0) > 0 && (
+        t.kategori?.includes("Penarikan") ||
+        t.kategori?.includes("Pencairan Pinjaman")
+      ))
+      .reduce((acc, t) => acc + (t.kredit || 0), 0);
+    
+    const netPendanaan = arusPendanaanMasuk - arusPendanaanKeluar;
+    const netCashChange = netOperasi + netInvestasi + netPendanaan;
+    const saldoAwal = totalKasBank - netCashChange;
+    const saldoAkhir = totalKasBank;
+   
+   // === SHU (SISA HASIL USAHA) ===
   // Beban = Beban Bunga Simpanan + Beban Operasional (jika ada input pengeluaran)
   const totalBeban = totalBebanBungaSimpanan; // Nanti bisa ditambah beban operasional
   const shuSebelumPajak = totalPendapatan - totalBeban;
   const shuSetelahPajak = shuSebelumPajak * 0.25; // Asumsi pajak 25%
   const shuBersih = shuSebelumPajak - (shuSebelumPajak * 0.25);
   
-  // === VALIDASI NERACA (BALANCE CHECK) ===
-  // Total Aset (Sisi Kiri PDF) = Kas + Bank + Piutang
-  const totalAset = totalKasBank + totalPiutang;
-  
-  // Total Pasiva (Sisi Kanan PDF) = Simpanan Harian + Simpanan Berencana + Simpanan Berjangka + Simpanan Pokok + Simpanan Wajib + SHU
-  // - Simpanan Berencana: Sihat + Sihar + Simapan
-  // - Simpanan Berjangka: Sibuhar / Berjangka
-  // - Simpanan Pokok: Modal Pokok
-  // - Simpanan Wajib: Modal Wajib
-  // - SHU: Sisa Hasil Usaha
-  const simpananBerencana = simpananSihat + simpananSihar + simpananSimapan;
-  const totalPasiva = simpananBerencana + simpananBerjangka + simpananPokok + simpananWajib + shuBersih;
-  
-  // Total Kanan = Total Liabilitas + Total Ekuitas
-  const totalLiabilitas = simpananBerencana + simpananBerjangka;
-  const totalEkuitas = simpananPokok + simpananWajib + shuBersih;
-  const totalKanan = totalLiabilitas + totalEkuitas;
-  
-  // Selisih (Harus 0 untuk balance)
-  const selisih = totalAset - totalPasiva;
-  const isBalance = selisih === 0;
+   // === VALIDASI NERACA (BALANCE CHECK) ===
+   // Total Aset (Sisi Kiri) = Kas + Bank + Piutang
+   const totalAset = totalKasBank + totalPiutang;
+   
+   // Kewajiban (Liabilities): Simpanan Berjangka-type (sibuhar, simapan, sihat, sihar, berjangka)
+   const totalKewajiban = simpananSibuhar + simpananSimapan + simpananSihat + simpananSihar + simpananBerjangka;
+   
+   // Ekuitas (Equity): Modal Pokok + Modal Wajib + SHU
+   const totalEkuitas = simpananPokok + simpananWajib + shuBersih;
+   
+   const totalKanan = totalKewajiban + totalEkuitas;
+   
+   // Check balance
+   const selisih = totalAset - totalKanan;
+   const isBalance = Math.abs(selisih) < 1; // Allow rounding diff
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }} className="no-print">
@@ -247,7 +283,7 @@ export default function LaporanPage() {
                    <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>ASET LANCAR</td></tr>
                    <tr><td style={{ padding: "8px 12px 8px 24px" }}>Kas</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(saldoKas)}</td></tr>
                    <tr><td style={{ padding: "8px 12px 8px 24px" }}>Bank</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalBank)}</td></tr>
-                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPiutang)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Anggota (Pinjaman Berjalan)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(totalPiutang)}</td></tr>
                    <tr><td style={{ padding: "8px 12px 8px 24px" }}>Piutang Bukan Anggota</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                    <tr><td style={{ padding: "8px 12px 8px 24px" }}>Beban Dibayar Dimuka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
                   <tr><td colSpan={2} style={{ padding: "12px 0 8px", fontWeight: 600 }}>ASET TETAP</td></tr>
@@ -262,26 +298,22 @@ export default function LaporanPage() {
                 </tbody>
               </table>
 
-              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 32 }}>
-                <tbody>
-                  <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>KEWAJIBAN</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Pokok</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananPokok)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Wajib</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananWajib)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sibuhar (Bunga Harian 3%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSibuhar)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simapan (Masa Depan 5%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSimapan)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihat (Hari Tua 6%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihat)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihar (Hari Raya 4%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihar)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Berjangka</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananBerjangka)}</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Pinjaman Diterima</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tr><td style={{ padding: "8px 12px 8px 24px" }}>Hutang Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>Rp 0</td></tr>
-                  <tfoot>
-                    <tr style={{ background: "#f9fafb", fontWeight: 700 }}>
-                      <td style={{ padding: 12 }}>TOTAL KEWAJIBAN</td>
-                      <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalSimpanan)}</td>
-                    </tr>
-                  </tfoot>
-                </tbody>
-              </table>
+               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 32 }}>
+                 <tbody>
+                   <tr><td colSpan={2} style={{ padding: "12px 0", fontWeight: 600 }}>KEWAJIBAN (LIABILITIES)</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sibuhar (Bunga Harian 3%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSibuhar)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simapan (Masa Depan 5%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSimapan)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihat (Hari Tua 6%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihat)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Sihar (Hari Raya 4%)</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananSihar)}</td></tr>
+                   <tr><td style={{ padding: "8px 12px 8px 24px" }}>Simpanan Berjangka Lainnya</td><td style={{ textAlign: "right", padding: "8px 12px" }}>{formatRupiah(simpananBerjangka)}</td></tr>
+                   <tfoot>
+                     <tr style={{ background: "#f9fafb", fontWeight: 700 }}>
+                       <td style={{ padding: 12 }}>JUMLAH KEWAJIBAN</td>
+                       <td style={{ textAlign: "right", padding: 12 }}>{formatRupiah(totalKewajiban)}</td>
+                     </tr>
+                   </tfoot>
+                 </tbody>
+               </table>
 
               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 32 }}>
                 <tbody>
