@@ -804,16 +804,35 @@ export default function SimpananPage() {
                          validationErrors.push({ row: rowNum, field: "Tanggal Transaksi", value: String(tglRaw ?? ""), message: "format tidak valid (gunakan DD-MM-YYYY)" });
                        }
 
-                       // Validate jenis pembayaran (required)
-                       if (!jenisBayar) {
-                         validationErrors.push({ row: rowNum, field: "Jenis Pembayaran", value: "", message: "wajib dipilih (kosong)" });
-                       } else {
-                         const validMetode = ["tunai", "bri-tigabinanga", "bri-berastagi", "bpr-logo-asri", "penarikan"];
-                         const isValidMetode = validMetode.some(m => jenisBayar.toLowerCase().includes(m));
-                         if (!isValidMetode) {
-                           validationErrors.push({ row: rowNum, field: "Jenis Pembayaran", value: jenisBayar, message: `tidak dikenali. Gunakan: Tunai / Transfer BRI Cab. Tigabinanga / Transfer BRI Cab. Berastagi / Transfer BPR Logo Asri / Penarikan` });
-                         }
-                       }
+                        // Validate jenis pembayaran (required)
+                        if (!jenisBayar) {
+                          validationErrors.push({ row: rowNum, field: "Jenis Pembayaran", value: "", message: "wajib dipilih (kosong)" });
+                        } else {
+                          // Normalize: lowercase, trim, replace punctuation with spaces, collapse multiple spaces
+                          const normalizedInput = jenisBayar.toLowerCase().trim().replace(/[\.\-_,]/g, " ").replace(/\s+/g, " ");
+                          
+                          // Define payment type patterns (normalized space-separated keywords)
+                          const paymentPatterns: Record<string, string[]> = {
+                            "tunai": ["tunai"],
+                            "bri-tigabinanga": ["bri tigabinanga", "bri cab tigabinanga", "tigabinanga"],
+                            "bri-berastagi": ["bri berastagi", "bri cab berastagi", "berastagi"],
+                            "bpr-logo-asri": ["bpr logo asri", "bpr"],
+                            "penarikan": ["penarikan", "tarik", "withdraw"]
+                          };
+
+                          const isValid = Object.entries(paymentPatterns).some(([key, patterns]) => 
+                            patterns.some(pattern => normalizedInput.includes(pattern))
+                          );
+
+                          if (!isValid) {
+                            validationErrors.push({ 
+                              row: rowNum, 
+                              field: "Jenis Pembayaran", 
+                              value: jenisBayar, 
+                              message: `tidak dikenali. Gunakan: Tunai / Transfer BRI Cab. Tigabinanga / Transfer BRI Cab. Berastagi / Transfer BPR Logo Asri / Penarikan` 
+                            });
+                          }
+                        }
                      });
 
                      // STRICT MODE: If ANY errors, abort entire import
@@ -905,11 +924,12 @@ export default function SimpananPage() {
                        const tanggal = validateExcelDate(tglRaw)!;
                        const jenisSimpanan = isPenarikan ? importType.replace("penarikan-", "") : importType;
 
-                       let metode = "tunai";
-                       const bayarLower = jenisBayar.toLowerCase();
-                       if (bayarLower.includes("tigabinanga")) metode = "bri-tigabinanga";
-                       else if (bayarLower.includes("berastagi")) metode = "bri-berastagi";
-                       else if (bayarLower.includes("bpr")) metode = "bpr-logo-asri";
+                        let metode = "tunai";
+                        const bayarNorm = jenisBayar.toLowerCase().trim().replace(/[\.\-_,]/g, " ").replace(/\s+/g, " ");
+                        if (bayarNorm.includes("tigabinanga")) metode = "bri-tigabinanga";
+                        else if (bayarNorm.includes("berastagi")) metode = "bri-berastagi";
+                        else if (bayarNorm.includes("bpr") && bayarNorm.includes("logo")) metode = "bpr-logo-asri";
+                        else if (bayarNorm.includes("bpr")) metode = "bpr-logo-asri"; // fallback
 
                        const jumlahFinal = isPenarikan ? -Math.abs(jumlah) : Math.abs(jumlah);
                        const metodeFinal = isPenarikan ? "tunai" : metode;
