@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useData } from "../context/DataContext";
 
 const formatRupiah = (value: number) => {
@@ -278,9 +279,11 @@ export default function ProfilPage() {
                   <div style={{ textAlign: "center" }}>
                     {logoBase64 ? (
                       <div>
-                        <img
+                        <Image
                           src={logoBase64}
                           alt="Logo KSP"
+                          width={300}
+                          height={200}
                           style={{
                             maxWidth: 300,
                             maxHeight: 200,
@@ -291,6 +294,7 @@ export default function ProfilPage() {
                             padding: 8,
                             background: "white"
                           }}
+                          unoptimized
                         />
                         <div style={{ marginTop: 16 }}>
                           <button
