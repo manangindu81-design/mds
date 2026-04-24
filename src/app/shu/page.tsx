@@ -424,7 +424,7 @@ export default function SHUPage() {
                <div style={{ fontSize: 18, fontWeight: 700, color: "#dc2626" }}>
                  {formatRupiah(allocationBreakdown.filter(a => a.category !== "jasa_modal" && a.category !== "jasa_transaksi").reduce((sum, a) => sum + a.amount, 0))}
                  <div style={{ fontSize: 11, fontWeight: 400, color: "#6b7280" }}>
-                   (7 kategori: 30%)
+                   (7 kategori: 25%)
                  </div>
                </div>
              </div>
