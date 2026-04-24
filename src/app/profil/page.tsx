@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useData } from "../context/DataContext";
+import { useData, Pengurus, Pengawas, Karyawan } from "../context/DataContext";
 import AppLogo from "../components/AppLogo";
 
 const formatRupiah = (value: number) => {
@@ -10,8 +10,46 @@ const formatRupiah = (value: number) => {
 };
 
 export default function ProfilPage() {
-  const { pengurus, pengawas, karyawan, logoBase64, setLogoBase64 } = useData();
+  const { pengurus, pengawas, karyawan, setPengurus, setPengawas, setKaryawan, logoBase64, setLogoBase64 } = useData();
   const [activeTab, setActiveTab] = useState<"pengurus" | "pengawas" | "karyawan" | "logo">("pengurus");
+
+  // Edit state
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ jabatan: "", nama: "", gelar: "" });
+
+  const startEditing = (item: Pengurus | Pengawas | Karyawan) => {
+    setEditingId(item.id);
+    setEditForm({
+      jabatan: item.jabatan,
+      nama: item.nama,
+      gelar: "gelar" in item ? (item.gelar || "") : ""
+    });
+  };
+
+  const saveEdit = (type: "pengurus" | "pengawas" | "karyawan") => {
+    if (editingId === null) return;
+
+    if (type === "pengurus") {
+      setPengurus(prev => prev.map(p =>
+        p.id === editingId ? { ...p, ...editForm } as Pengurus : p
+      ));
+    } else if (type === "pengawas") {
+      setPengawas(prev => prev.map(p =>
+        p.id === editingId ? { ...p, ...editForm } as Pengawas : p
+      ));
+    } else {
+      setKaryawan(prev => prev.map(k =>
+        k.id === editingId ? { ...k, ...editForm } as Karyawan : k
+      ));
+    }
+    setEditingId(null);
+    setEditForm({ jabatan: "", nama: "", gelar: "" });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({ jabatan: "", nama: "", gelar: "" });
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,16 +226,74 @@ export default function ProfilPage() {
                     <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Gelar</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {pengurus.map((item, index) => (
-                    <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                      <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
-                      <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
-                      <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
-                      <td style={{ padding: 12, fontSize: 13, color: "#6b7280", fontStyle: "italic" }}>{item.gelar || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
+                  <tbody>
+                    {pengawas.map((item, index) => (
+                      <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                        <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
+                        {editingId === item.id ? (
+                          <>
+                            <td style={{ padding: 8 }}>
+                              <input
+                                type="text"
+                                value={editForm.jabatan}
+                                onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
+                                style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                                autoFocus
+                              />
+                            </td>
+                            <td style={{ padding: 8 }}>
+                              <input
+                                type="text"
+                                value={editForm.nama}
+                                onChange={(e) => setEditForm({ ...editForm, nama: e.target.value })}
+                                style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                              />
+                            </td>
+                            <td style={{ padding: 8 }}>
+                              <input
+                                type="text"
+                                value={editForm.gelar}
+                                onChange={(e) => setEditForm({ ...editForm, gelar: e.target.value })}
+                                style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14, fontStyle: "italic" }}
+                                placeholder="Gelar (opsional)"
+                              />
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
+                            <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
+                            <td style={{ padding: 12, fontSize: 13, color: "#6b7280", fontStyle: "italic" }}>{item.gelar || "-"}</td>
+                          </>
+                        )}
+                        <td style={{ padding: 12 }}>
+                          {editingId === item.id ? (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={() => saveEdit("pengawas")}
+                                style={{ padding: "6px 12px", background: "#059669", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                              >
+                                ✅ Simpan
+                              </button>
+                             <button
+                               onClick={cancelEdit}
+                               style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                             >
+                               ❌ Batal
+                             </button>
+                           </div>
+                         ) : (
+                           <button
+                             onClick={() => startEditing(item)}
+                             style={{ padding: "6px 12px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                           >
+                             ✏️ Edit
+                           </button>
+                         )}
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
               </table>
             </div>
           )}
@@ -212,26 +308,85 @@ export default function ProfilPage() {
                 </div>
               </div>
 
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#f9fafb" }}>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>No</th>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Jabatan</th>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Nama</th>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Gelar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pengawas.map((item, index) => (
-                    <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                      <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
-                      <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
-                      <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
-                      <td style={{ padding: 12, fontSize: 13, color: "#6b7280", fontStyle: "italic" }}>{item.gelar || "-"}</td>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f9fafb" }}>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>No</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Jabatan</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Nama</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Gelar</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {pengawas.map((item, index) => (
+                     <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                       <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
+                       {editingId === item.id ? (
+                         <>
+                           <td style={{ padding: 8 }}>
+                             <input
+                               type="text"
+                               value={editForm.jabatan}
+                               onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
+                               style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                               autoFocus
+                             />
+                           </td>
+                           <td style={{ padding: 8 }}>
+                             <input
+                               type="text"
+                               value={editForm.nama}
+                               onChange={(e) => setEditForm({ ...editForm, nama: e.target.value })}
+                               style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                             />
+                           </td>
+                           <td style={{ padding: 8 }}>
+                             <input
+                               type="text"
+                               value={editForm.gelar}
+                               onChange={(e) => setEditForm({ ...editForm, gelar: e.target.value })}
+                               style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14, fontStyle: "italic" }}
+                               placeholder="Gelar (opsional)"
+                             />
+                           </td>
+                         </>
+                       ) : (
+                         <>
+                           <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
+                           <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
+                           <td style={{ padding: 12, fontSize: 13, color: "#6b7280", fontStyle: "italic" }}>{item.gelar || "-"}</td>
+                         </>
+                       )}
+                       <td style={{ padding: 12 }}>
+                         {editingId === item.id ? (
+                           <div style={{ display: "flex", gap: 8 }}>
+                             <button
+                               onClick={() => saveEdit("pengurus")}
+                               style={{ padding: "6px 12px", background: "#059669", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                             >
+                               ✅ Simpan
+                             </button>
+                             <button
+                               onClick={cancelEdit}
+                               style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                             >
+                               ❌ Batal
+                             </button>
+                           </div>
+                         ) : (
+                           <button
+                             onClick={() => startEditing(item)}
+                             style={{ padding: "6px 12px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                           >
+                             ✏️ Edit
+                           </button>
+                         )}
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
             </div>
           )}
 
@@ -245,23 +400,73 @@ export default function ProfilPage() {
                 </div>
               </div>
 
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#f9fafb" }}>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>No</th>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Jabatan</th>
-                    <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Nama</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {karyawan.map((item, index) => (
-                    <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
-                      <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
-                      <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
-                      <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "#f9fafb" }}>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>No</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Jabatan</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Nama</th>
+                      <th style={{ textAlign: "left", padding: 12, borderBottom: "2px solid #374151" }}>Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
+                  </thead>
+                  <tbody>
+                    {karyawan.map((item, index) => (
+                      <tr key={item.id} style={{ borderBottom: "1px solid #e5e7eb" }}>
+                        <td style={{ padding: 12, color: "#6b7280", fontSize: 13 }}>{index + 1}</td>
+                        {editingId === item.id ? (
+                          <>
+                            <td style={{ padding: 8 }}>
+                              <input
+                                type="text"
+                                value={editForm.jabatan}
+                                onChange={(e) => setEditForm({ ...editForm, jabatan: e.target.value })}
+                                style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                                autoFocus
+                              />
+                            </td>
+                            <td style={{ padding: 8 }}>
+                              <input
+                                type="text"
+                                value={editForm.nama}
+                                onChange={(e) => setEditForm({ ...editForm, nama: e.target.value })}
+                                style={{ width: "100%", padding: 8, border: "2px solid #1B4D3E", borderRadius: 6, fontSize: 14 }}
+                              />
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ padding: 12, fontWeight: 500, color: "#1f2937", fontSize: 14 }}>{item.jabatan}</td>
+                            <td style={{ padding: 12, fontSize: 14, color: "#374151" }}>{item.nama}</td>
+                          </>
+                        )}
+                        <td style={{ padding: 12 }}>
+                          {editingId === item.id ? (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button
+                                onClick={() => saveEdit("karyawan")}
+                                style={{ padding: "6px 12px", background: "#059669", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                              >
+                                ✅ Simpan
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                              >
+                                ❌ Batal
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => startEditing(item)}
+                              style={{ padding: "6px 12px", background: "#1B4D3E", color: "white", border: "none", borderRadius: 6, cursor: "pointer", fontSize: 12 }}
+                            >
+                              ✏️ Edit
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             )}
