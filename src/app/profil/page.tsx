@@ -55,8 +55,6 @@ export default function ProfilPage() {
             </div>
           </Link>
         </div>
-          </Link>
-        </div>
 
         <nav style={{ padding: "0 12px" }}>
           <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 12, padding: "0 16px" }}>INFORMASI KOPERASI</div>
