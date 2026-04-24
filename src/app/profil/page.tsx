@@ -8,8 +8,37 @@ const formatRupiah = (value: number) => {
 };
 
 export default function ProfilPage() {
-  const { pengurus, pengawas, karyawan } = useData();
-  const [activeTab, setActiveTab] = useState<"pengurus" | "pengawas" | "karyawan">("pengurus");
+  const { pengurus, pengawas, karyawan, logoBase64, setLogoBase64 } = useData();
+  const [activeTab, setActiveTab] = useState<"pengurus" | "pengawas" | "karyawan" | "logo">("pengurus");
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("File harus berupa gambar");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Ukuran file maksimal 2MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoBase64(reader.result as string);
+      alert("Logo berhasil diupload!");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoBase64(null);
+    alert("Logo dihapus");
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f5f7fa" }}>
@@ -89,6 +118,27 @@ export default function ProfilPage() {
           >
             <span>💼</span>
             <span>Karyawan</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("logo")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              width: "100%",
+              padding: "12px 16px",
+              background: activeTab === "logo" ? "rgba(255,255,255,0.15)" : "none",
+              border: "none",
+              borderRadius: 8,
+              color: "white",
+              cursor: "pointer",
+              textAlign: "left",
+              fontSize: 14,
+              marginBottom: 4,
+            }}
+          >
+            <span>🖼️</span>
+            <span>Logo KSP</span>
           </button>
         </nav>
 
@@ -210,11 +260,108 @@ export default function ProfilPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-  );
-}
+                </table>
+              </div>
+            )}
+
+            {activeTab === "logo" && (
+              <div style={{ padding: 32 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+                  <span style={{ fontSize: 32 }}>🖼️</span>
+                  <div>
+                    <h2 style={{ fontSize: 20, fontWeight: 600, color: "#1B4D3E" }}>Logo KSP</h2>
+                    <p style={{ fontSize: 13, color: "#6b7280" }}>Unggah logo resmi untuk kop surat dan laporan</p>
+                  </div>
+                </div>
+
+                <div style={{ background: "#f9fafb", padding: 24, borderRadius: 12, border: "2px dashed #d1d5db" }}>
+                  <div style={{ textAlign: "center" }}>
+                    {logoBase64 ? (
+                      <div>
+                        <img
+                          src={logoBase64}
+                          alt="Logo KSP"
+                          style={{
+                            maxWidth: 300,
+                            maxHeight: 200,
+                            objectFit: "contain",
+                            marginBottom: 16,
+                            border: "2px solid #e5e7eb",
+                            borderRadius: 8,
+                            padding: 8,
+                            background: "white"
+                          }}
+                        />
+                        <div style={{ marginTop: 16 }}>
+                          <button
+                            onClick={handleRemoveLogo}
+                            style={{
+                              padding: "10px 24px",
+                              background: "#dc2626",
+                              color: "white",
+                              border: "none",
+                              borderRadius: 8,
+                              cursor: "pointer",
+                              fontWeight: 600,
+                              fontSize: 14
+                            }}
+                          >
+                            🗑️ Hapus Logo
+                          </button>
+                        </div>
+                        <p style={{ fontSize: 12, color: "#6b7280", marginTop: 12 }}>
+                          Logo saat ini ditampilkan di header semua laporan.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 64, marginBottom: 16 }}>🏛️</div>
+                        <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 16 }}>
+                          Belum ada logo yang diupload. Upload logo untuk ditampilkan di header laporan.
+                        </p>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 24 }}>
+                      <label
+                        htmlFor="logo-upload"
+                        style={{
+                          display: "inline-block",
+                          padding: "12px 32px",
+                          background: "#1B4D3E",
+                          color: "white",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          border: "none"
+                        }}
+                      >
+                        📤 {logoBase64 ? "Ganti Logo" : "Upload Logo"}
+                      </label>
+                      <input
+                        id="logo-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        style={{ display: "none" }}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: 16, fontSize: 12, color: "#9ca3af" }}>
+                      Format yang didukung: PNG, JPG, JPEG, SVG<br />
+                      Ukuran maksimal: 2MB
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 24, padding: 16, background: "#fef3c7", borderRadius: 8, fontSize: 12, color: "#92400e", border: "1px solid #fcd34d" }}>
+                  <strong>Catatan:</strong> Logo yang diupload akan otomatis muncul di header semua laporan (Neraca, PHU, Arus Kas, dll) dan Slip SHU.
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  }

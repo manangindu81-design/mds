@@ -149,6 +149,7 @@ interface DataContextType {
   pengurus: Pengurus[];
   pengawas: Pengawas[];
   karyawan: Karyawan[];
+  logoBase64: string | null; // Store uploaded logo as base64
   addAnggota: (data: Anggota) => void;
   addSimpanan: (data: Simpanan) => void;
   addPinjaman: (data: Pinjaman) => void;
@@ -176,6 +177,7 @@ interface DataContextType {
   deleteAllPengurus: () => void;
   deleteAllPengawas: () => void;
   deleteAllKaryawan: () => void;
+  setLogoBase64: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -223,6 +225,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     { id: 2, jabatan: "Admin", nama: "Erni Sembiring" },
     { id: 3, jabatan: "Marketing", nama: "Ezzra Mazmur Sembiring" },
   ]);
+  const [logoBase64, setLogoBase64] = useState<string | null>(() => {
+    const data = getLocalStorage("ksp_logo");
+    return data && data.length > 0 ? data[0] : null;
+  });
 
   useEffect(() => {
     saveLocalStorage("ksp_anggota", anggota);
@@ -256,9 +262,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     saveLocalStorage("ksp_pengawas", pengawas);
   }, [pengawas]);
 
-  useEffect(() => {
-    saveLocalStorage("ksp_karyawan", karyawan);
-  }, [karyawan]);
+   useEffect(() => {
+     saveLocalStorage("ksp_karyawan", karyawan);
+   }, [karyawan]);
+
+   useEffect(() => {
+     saveLocalStorage("ksp_logo", logoBase64 ? [logoBase64] : []);
+   }, [logoBase64]);
 
   const addAnggota = (data: Anggota) => {
     setAnggota(prev => [...prev, { ...data, id: prev.length + 1 }]);
@@ -305,6 +315,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setPengurus([]);
       setPengawas([]);
       setKaryawan([]);
+      setLogoBase64(null);
       if (typeof window !== "undefined") {
         localStorage.removeItem("ksp_anggota");
         localStorage.removeItem("ksp_simpanan");
@@ -315,6 +326,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("ksp_pengurus");
         localStorage.removeItem("ksp_pengawas");
         localStorage.removeItem("ksp_karyawan");
+        localStorage.removeItem("ksp_logo");
       }
     };
 
@@ -381,33 +393,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
          angsuran,
          transaksi,
          pengeluaran,
-         pengurus,
-         pengawas,
-         karyawan,
-         addAnggota,
-         addSimpanan,
-         addPinjaman,
-         addAngsuran,
-         updatePinjaman,
-         addTransaksi,
-         addPengeluaran,
-         addPengurus,
-         addPengawas,
-         addKaryawan,
-         updateAnggota,
-         deleteAnggota,
-         deletePinjaman,
-         deleteAllPinjaman,
-         clearAllData,
-         setSimpanan,
-         deleteSimpanan,
-         deleteAllSimpanan,
-         deletePengeluaran,
-         deleteAllPengeluaran,
+          pengurus,
+          pengawas,
+          karyawan,
+          logoBase64,
+          addAnggota,
+          addSimpanan,
+          addPinjaman,
+          addAngsuran,
+          updatePinjaman,
+          addTransaksi,
+          addPengeluaran,
+          addPengurus,
+          addPengawas,
+          addKaryawan,
+          updateAnggota,
+          deleteAnggota,
+          deletePinjaman,
+          deleteAllPinjaman,
+          clearAllData,
+          setSimpanan,
+          deleteSimpanan,
+          deleteAllSimpanan,
+          deletePengeluaran,
+          deleteAllPengeluaran,
           setPengeluaran,
           setPengurus,
           setPengawas,
           setKaryawan,
+          setLogoBase64,
           deleteAllPengurus,
           deleteAllPengawas,
           deleteAllKaryawan,

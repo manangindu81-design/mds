@@ -1,6 +1,6 @@
 "use client";
 
-import { KSP_IDENTITY, getAlamatLengkap, LOGO_PATH, BANNER_PATH } from "@/constants/ksp";
+import { useData } from "../context/DataContext";
 import Image from "next/image";
 
 interface LetterheadProps {
@@ -11,6 +11,8 @@ interface LetterheadProps {
 }
 
 export default function Letterhead({ title, subtitle, showBanner = true, periode }: LetterheadProps) {
+  const { logoBase64 } = useData();
+
   return (
     <div style={{ marginBottom: 32 }}>
       {/* Banner / Letterhead Header */}
@@ -35,7 +37,7 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
             backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px)"
           }} />
 
-          {/* Logo placeholder - would use actual logo when available */}
+          {/* Logo - either uploaded image or fallback emoji */}
           <div style={{
             position: "absolute",
             left: 24,
@@ -45,20 +47,36 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
             alignItems: "center",
             gap: 16
           }}>
-            <div style={{
-              width: 70,
-              height: 70,
-              borderRadius: "50%",
-              background: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 36,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              border: "2px solid #D4AF37"
-            }}>
-              🏛️
-            </div>
+            {logoBase64 ? (
+              <Image
+                src={logoBase64}
+                alt="Logo KSP Mulia"
+                width={70}
+                height={70}
+                style={{
+                  borderRadius: "50%",
+                  border: "2px solid #D4AF37",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  objectFit: "cover"
+                }}
+                unoptimized // Since it's base64
+              />
+            ) : (
+              <div style={{
+                width: 70,
+                height: 70,
+                borderRadius: "50%",
+                background: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 36,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                border: "2px solid #D4AF37"
+              }}>
+                🏛️
+              </div>
+            )}
             <div style={{ color: "white" }}>
               <div style={{
                 fontFamily: "'Playfair Display', serif",
@@ -67,7 +85,7 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
                 letterSpacing: 0.5,
                 lineHeight: 1.2
               }}>
-                {KSP_IDENTITY.nama}
+                Koperasi Simpan Pinjam Mulia Dana Sejahtera
               </div>
               <div style={{
                 fontSize: 12,
@@ -75,7 +93,7 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
                 letterSpacing: 1,
                 marginTop: 4
               }}>
-                {KSP_IDENTITY.slogan}
+                Melayani Dengan Ceria dan Kasih
               </div>
             </div>
           </div>
@@ -91,10 +109,10 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
             fontSize: 10,
             lineHeight: 1.6
           }}>
-            <div>Akta: {KSP_IDENTITY.aktaPendirian.nomor} / {KSP_IDENTITY.aktaPendirian.tanggal}</div>
-            <div>Pengesahan: {KSP_IDENTITY.pengesahan.nomor} ({KSP_IDENTITY.pengesahan.tahun})</div>
-            <div>NIB: {KSP_IDENTITY.nib.nomor} / {KSP_IDENTITY.nib.tanggal}</div>
-            <div>NPWP: {KSP_IDENTITY.npwp}</div>
+            <div>Akta: 03 / 09 November 2023</div>
+            <div>Pengesahan: AHU-0005532.AH.01.39 (2025)</div>
+            <div>NIB: 1111230014031 / 11 Nov 2023</div>
+            <div>NPWP: 99.043.935.8-128.000</div>
           </div>
         </div>
       )}
@@ -126,7 +144,7 @@ export default function Letterhead({ title, subtitle, showBanner = true, periode
             color: "#6b7280",
             margin: "8px 0 0"
           }}>
-            Periode: {periode}
+            {periode}
           </p>
         )}
       </div>
