@@ -24,6 +24,13 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
  - [x] Add strict Simpanan Excel import validation (all-or-nothing, 5 required columns, duplicate detection, detailed error reporting)
  - [x] Add Pengeluaran page with 15 expense categories (bunga simpanan types, gaji, operasional, insentif)
  - [x] Improve Simpanan import UI: replace button group with dropdown selector for 6 simpanan types (Pokok, Wajib, Sibuhar, Simapan, Sihat, Sihar) plus Penarikan options, with clear icons and layout
+ - [x] Update alokasi SHU ke 9 kategori (total 100%): Dana Cadangan Umum (5%), Dana Cadangan Resiko (5%), Jasa Modal (55%), Jasa Transaksi (20%), Dana Pengurus/Pengawas (5%), Dana Kesejahteraan Karyawan (5%), Dana Pendidikan (2%), Dana Sosial (2%), Dana Pembangunan Daerah Kerja (1%)
+ - [x] Tambah data personalia koperasi (pengurus, pengawas, karyawan) di DataContext + localStorage; buat halaman Profil untuk menampilkan susunan organisasi
+ - [x] Integrasi SHU dengan personalia: Dana Pengurus/Pengawas (5%) dibagi rata ke 8 orang, Dana Kesejahteraan Karyawan (5%) dibagi ke 3 orang; tampilkan rincian nominal per orang di halaman SHU
+ - [x] Update profil identitas KSP dengan data resmi (Nama, Slogan, Akta, Pengesahan, NIB, NPWP, Alamat, Email, WA) dan implementasi kop surat resmi via Letterhead di semua laporan
+ - [x] Tambah fitur upload logo (Logo_KSP): state logoBase64 di DataContext + localStorage; UI upload di Profil tab 'Logo KSP'; tampilkan logo di header semua laporan dengan fallback emoji
+ - [x] Ganti ikon gedung (🏛️) dengan logo terbaru di semua halaman: buat komponen AppLogo reusable; implementasi di ClientLayout, Layout, Dashboard, Pinjaman, Transaksi, Laporan, Profil, Letterhead
+ - [x] Edit inline pengurus/pengawas/karyawan di halaman Profil: tombol Edit per row, form input untuk jabatan/nama/gelar, simpan/batal; perubahan tersimpan ke localStorage dan tercermin di SHU & laporan
 
 ## Struktur Aplikasi
 
@@ -104,3 +111,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-24 | **Relax duplicate validation** for Simpanan import: Wajib & Sibuhar now allow duplicate (No. NBA + Tanggal) combinations — multiple transactions same member same day permitted; non-recurring types maintain strict No. NBA uniqueness
 | 2026-04-24 | **Improve Simpanan import payment method validation**: make case-insensitive and space-tolerant; accepts "Transfer BRI Cab. Berastagi", "BRI Berastagi", "BPR Logo Asri", etc.; normalize input by removing punctuation and collapsing spaces; both validation and processing now handle flexible formats
 | 2026-04-24 | **Sinkronkan Jenis Pembayaran dengan akun Bank**: semua transaksi "Transfer" (BRI Cab. Berastagi, BRI Cab. Tigabinanga, BPR Logo Asri) otomatis dicatat ke akun Bank; perbaiki Laporan Neraca: nilai Bank (sebelumnya 0) sekarang menampilkan saldo sebenarnya, total aset包含 Kas + Bank + Piutang, dan Piutang Anggota menggunakan outstanding (totalPiutang); CaLK juga diperbarui
+| 2026-04-24 | **Edit inline pengurus/pengawas/karyawan** di halaman Profil: tombol Edit per row, form input untuk jabatan/nama/gelar (karyawan tanpa gelar), simpan/batal; perubahan tersimpan otomatis ke localStorage dan tercermin di SHU allocation dan semua laporan
