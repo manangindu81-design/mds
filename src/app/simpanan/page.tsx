@@ -73,7 +73,7 @@ export default function SimpananPage() {
     noBukti: string; nama: string; jenisSimpanan: string; jumlah: number; metode: string; tanggal: string;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
-   const [importType, setImportType] = useState<"pokok" | "wajib" | "sibuhar" | "simapan" | "sihat" | "sihar" | "penarikan-pokok" | "penarikan-wajib">("wajib");
+   const [importType, setImportType] = useState<"pokok" | "wajib" | "sibuhar" | "simapan" | "sihat" | "sihar" | "penarikan-pokok" | "penarikan-wajib" | "penarikan-sibuhar">("wajib");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
@@ -553,8 +553,9 @@ export default function SimpananPage() {
                >
                  <option value="pokok">🏦 Setoran Simpanan Pokok</option>
                  <option value="wajib">💰 Setoran Simpanan Wajib</option>
-                 <option value="sibuhar">📈 Setoran Simpanan Bunga Harian (Sibuhar)</option>
-                 <option value="simapan">🏫 Setoran Simpanan Masa Depan (Simapan)</option>
+                  <option value="sibuhar">📈 Setoran Simpanan Bunga Harian (Sibuhar)</option>
+                  <option value="penarikan-sibuhar">⏬ Penarikan Simpanan Bunga Harian (Sibuhar)</option>
+                  <option value="simapan">🏫 Setoran Simpanan Masa Depan (Simapan)</option>
                  <option value="sihat">👵 Setoran Simpanan Hari Tua (Sihat)</option>
                  <option value="sihar">🎉 Setoran Simpanan Hari Raya (Sihar)</option>
                  <option value="penarikan-pokok">⏬ Penarikan Simpanan Pokok</option>
@@ -568,15 +569,16 @@ export default function SimpananPage() {
              <div>
                <label style={{ display: "block", fontWeight: 600, marginBottom: 8, color: "#374151" }}>Download Template</label>
                <button 
-                 onClick={() => {
-                   const isPenarikan = importType.startsWith("penarikan");
-                   const templateData = [{
-                     "No. NBA": "1",
-                     "Nama Anggota": "Budi Santoso",
-                     "Tanggal Transaksi": "15-01-2024",
-                     "Jenis Pembayaran": isPenarikan ? "Penarikan" : "Tunai",
-                     "Jumlah Transaksi": importType === "pokok" || importType === "penarikan-pokok" ? 100000 : 25000
-                   }];
+                  onClick={() => {
+                    const isPenarikan = importType.startsWith("penarikan");
+                    const templateData = [{
+                      "No. NBA": "1",
+                      "Nama Anggota": "Budi Santoso",
+                      "Tanggal Transaksi": "15-01-2024",
+                      "Jenis Pembayaran": isPenarikan ? "Penarikan" : "Tunai",
+                      "Jumlah Transaksi": importType === "pokok" || importType === "penarikan-pokok" ? 100000 :
+                                          importType === "sibuhar" || importType === "penarikan-sibuhar" ? 25000 : 50000
+                    }];
                    const ws = XLSX.utils.json_to_sheet(templateData);
                    const wb = XLSX.utils.book_new();
                    XLSX.utils.book_append_sheet(wb, ws, "Template");
@@ -641,17 +643,17 @@ export default function SimpananPage() {
                    </tr>
                   </tbody>
                 </table>
-                 <div style={{ background: "#fff3cd", border: "2px solid #f59e0b", borderRadius: 8, padding: 12, marginBottom: 12 }}>
-                   <p style={{ fontWeight: 700, color: "#92400e", marginBottom: 6, fontSize: 13 }}>ℹ️ Aturan Duplikat No. NBA:</p>
-                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#92400e", lineHeight: 1.7 }}>
-                     <li><strong>Simpanan Wajib & Bunga Harian (Sibuhar):</strong> <em>DUPLIKAT DIZINKAN</em> — Banyak transaksi untuk No. NBA yang sama, baik pada tanggal berbeda maupun sama.</li>
-                     <li><strong>Simpanan Pokok, Penarikan, Simapan, Sihat, Sihar:</strong> Setiap No. NBA hanya boleh muncul <strong>satu kali</strong> (1 transaksi total).</li>
-                   </ul>
-                 </div>
+                  <div style={{ background: "#fff3cd", border: "2px solid #f59e0b", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                    <p style={{ fontWeight: 700, color: "#92400e", marginBottom: 6, fontSize: 13 }}>ℹ️ Aturan Duplikat No. NBA:</p>
+                    <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#92400e", lineHeight: 1.7 }}>
+                      <li><strong>Simpanan Wajib, Bunga Harian (Sibuhar), & Penarikan Sibuhar:</strong> <em>DUPLIKAT DIZINKAN</em> — Banyak transaksi untuk No. NBA yang sama, baik pada tanggal berbeda maupun sama.</li>
+                      <li><strong>Simpanan Pokok, Penarikan (Pokok/Wajib), Simapan, Sihat, Sihar:</strong> Setiap No. NBA hanya boleh muncul <strong>satu kali</strong> (1 transaksi total).</li>
+                    </ul>
+                  </div>
                 <p style={{ fontWeight: 700, color: "#1d4ed8", fontSize: 13, marginTop: 12, marginBottom: 6 }}>🔎 Validasi Import (Strict Mode):</p>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#1e40af", lineHeight: 1.8 }}>
                   <li><strong>Kolom wajib</strong> — Semua 5 kolom wajib diisi. Jika ada yang kosong → import DIBATALKAN.</li>
-                  <li><strong>No. NBA unik</strong> — Untuk Simpanan Pokok/Simapan/Sihat/Sihar/Penarikan: No. NBA hanya boleh muncul sekali. Untuk Simpanan Wajib & Sibuhar: <em>duplikat No. NBA diizinkan</em> (boleh multiple transaksi, tanggal sama atau berbeda).</li>
+                  <li><strong>No. NBA unik</strong> — Untuk Simpanan Pokok/Simapan/Sihat/Sihar/Penarikan (Pokok/Wajib): No. NBA hanya boleh muncul sekali. Untuk Simpanan Wajib, Sibuhar, & Penarikan Sibuhar: <em>duplikat No. NBA diizinkan</em> (boleh multiple transaksi, tanggal sama atau berbeda).</li>
                   <li><strong>No. NBA valid</strong> — Harus cocok dengan data anggota yang sudah terdaftar.</li>
                   <li><strong>Jumlah</strong> — Harus angka positif lebih dari 0.</li>
                   <li><strong>Tanggal</strong> — Format DD-MM-YYYY (contoh: 15-01-2024) atau serial Excel.</li>
@@ -738,9 +740,9 @@ export default function SimpananPage() {
                      }
 
                       // Check for duplicate entries
-                      // For wajib & sibuhar: allow duplicate (No. NBA + Tanggal) — multiple transactions same day allowed
-                      // For other types (pokok, penarikan, etc.): No. NBA must be unique (only one transaction total)
-                      const isRecurringType = importType === "wajib" || importType === "sibuhar";
+                       // For wajib & sibuhar (setoran & penarikan): allow duplicate (No. NBA + Tanggal) — multiple transactions same day allowed
+                       // For other types (pokok, penarikan, etc.): No. NBA must be unique (only one transaction total)
+                       const isRecurringType = importType === "wajib" || importType === "sibuhar" || importType === "penarikan-sibuhar";
                       
                       if (!isRecurringType) {
                         // Non-recurring types: enforce strict No. NBA uniqueness
@@ -827,9 +829,10 @@ export default function SimpananPage() {
                            validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: "tipe data tidak valid" });
                          }
 
-                          if (jumlah > 0 && jumlah <= 0) {
-                            validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: `harus > 0 (saat ini: ${jumlah})` });
-                          }
+                           // Validate jumlah is positive
+                           if (jumlah <= 0) {
+                             validationErrors.push({ row: rowNum, field: "Jumlah Transaksi", value: String(jmlRaw), message: `harus > 0 (saat ini: ${jumlah})` });
+                           }
                         }
 
                         // Balance validation for withdrawals (only for penarikan import)
@@ -933,14 +936,16 @@ export default function SimpananPage() {
                        return sum + jml;
                      }, 0);
 
-                     const isPenarikan = importType.startsWith("penarikan");
-                     const jenisLabel = isPenarikan
-                       ? importType === "penarikan-pokok" ? "Penarikan Simpanan Pokok"
-                         : importType === "penarikan-wajib" ? "Penarikan Simpanan Wajib"
-                         : "Penarikan Simpanan"
-                       : importType === "pokok" ? "Setoran Simpanan Pokok"
-                       : importType === "wajib" ? "Setoran Simpanan Wajib"
-                       : "Setoran Simpanan";
+                      const isPenarikan = importType.startsWith("penarikan");
+                      const jenisLabel = isPenarikan
+                        ? importType === "penarikan-pokok" ? "Penarikan Simpanan Pokok"
+                          : importType === "penarikan-wajib" ? "Penarikan Simpanan Wajib"
+                          : importType === "penarikan-sibuhar" ? "Penarikan Simpanan Bunga Harian (Sibuhar)"
+                          : "Penarikan Simpanan"
+                        : importType === "pokok" ? "Setoran Simpanan Pokok"
+                        : importType === "wajib" ? "Setoran Simpanan Wajib"
+                        : importType === "sibuhar" ? "Setoran Simpanan Bunga Harian (Sibuhar)"
+                        : "Setoran Simpanan";
 
                      const confirmMsg = `Yakin mengimpor ${totalRows} transaksi?\n\n` +
                        `Jenis: ${jenisLabel}\n` +
