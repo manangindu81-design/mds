@@ -30,7 +30,9 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
  - [x] Update profil identitas KSP dengan data resmi (Nama, Slogan, Akta, Pengesahan, NIB, NPWP, Alamat, Email, WA) dan implementasi kop surat resmi via Letterhead di semua laporan
  - [x] Tambah fitur upload logo (Logo_KSP): state logoBase64 di DataContext + localStorage; UI upload di Profil tab 'Logo KSP'; tampilkan logo di header semua laporan dengan fallback emoji
  - [x] Ganti ikon gedung (🏛️) dengan logo terbaru di semua halaman: buat komponen AppLogo reusable; implementasi di ClientLayout, Layout, Dashboard, Pinjaman, Transaksi, Laporan, Profil, Letterhead
- - [x] Edit inline pengurus/pengawas/karyawan di halaman Profil: tombol Edit per row, form input untuk jabatan/nama/gelar, simpan/batal; perubahan tersimpan ke localStorage dan tercermin di SHU & laporan
+  - [x] Edit inline pengurus/pengawas/karyawan di halaman Profil: tombol Edit per row, form input untuk jabatan/nama/gelar, simpan/batal; perubahan tersimpan ke localStorage dan tercermin di SHU & laporan
+  - [x] Enable Sibuhar withdrawals: input form now supports metode "Penarikan" with balance validation; negative Simpanan record automatically reduces Sibuhar balance; generates correct Kas Keluar transaction (kredit, kategori 'Penarikan Simpanan Sibuhar'); balance validation also added to Excel import for penarikan types
+  - [x] Fix Laporan Arus Kas: filters now case-insensitive and correctly classify cash flows — Penarikan Simpanan (all types) appear as Kas Keluar under Aktivitas Pendanaan; Setoran Simpanan appear as Kas Masuk
 
 ## Struktur Aplikasi
 
@@ -112,3 +114,4 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 | 2026-04-24 | **Improve Simpanan import payment method validation**: make case-insensitive and space-tolerant; accepts "Transfer BRI Cab. Berastagi", "BRI Berastagi", "BPR Logo Asri", etc.; normalize input by removing punctuation and collapsing spaces; both validation and processing now handle flexible formats
 | 2026-04-24 | **Sinkronkan Jenis Pembayaran dengan akun Bank**: semua transaksi "Transfer" (BRI Cab. Berastagi, BRI Cab. Tigabinanga, BPR Logo Asri) otomatis dicatat ke akun Bank; perbaiki Laporan Neraca: nilai Bank (sebelumnya 0) sekarang menampilkan saldo sebenarnya, total aset包含 Kas + Bank + Piutang, dan Piutang Anggota menggunakan outstanding (totalPiutang); CaLK juga diperbarui
 | 2026-04-24 | **Edit inline pengurus/pengawas/karyawan** di halaman Profil: tombol Edit per row, form input untuk jabatan/nama/gelar (karyawan tanpa gelar), simpan/batal; perubahan tersimpan otomatis ke localStorage dan tercermin di SHU allocation dan semua laporan
+| 2026-04-24 | **Enable Sibuhar withdrawals & fix Cash Flow**: Simpanan input form supports 'Penarikan' with balance validation; negative Simpanan record automatically reduces Sibuhar balance; generates correct Kas Keluar transaction (kredit, kategori 'Penarikan Simpanan Sibuhar'); balance validation also added to Excel import for penarikan; Laporan Arus Kas filters fixed (case-insensitive) to correctly classify Penarikan as Kas Keluar under Aktivitas Pendanaan
