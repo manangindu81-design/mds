@@ -21,6 +21,11 @@ const displayDate = (date: string) => {
   return date;
 };
 
+// Format Rupiah currency
+const formatRupiah = (num: number) => {
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+};
+
 const parseExcelDate = (value: any): string | null => {
   if (!value || value === "") return null;
 
@@ -52,7 +57,7 @@ const parseExcelDate = (value: any): string | null => {
 
 export default function AnggotaPage() {
   const { anggota, addAnggota, addSimpanan, addTransaksi, clearAllData, updateAnggota, deleteAnggota, simpanan } = useData();
-  const [activeTab, setActiveTab] = useState<"daftar" | "data" | "import">("import");
+   const [activeTab, setActiveTab] = useState<"form" | "table" | "import">("import");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,9 +71,20 @@ export default function AnggotaPage() {
     );
   }, [anggota, searchQuery]);
   
-  const nonAktifAnggota = useMemo(() => {
-    return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
-   }, [anggota]);
+   const nonAktifAnggota = useMemo(() => {
+     return (anggota || []).filter(a => a.statusKeanggotaan === "Non-Aktif");
+    }, [anggota]);
+
+   const anggotaWithSavings = useMemo(() => {
+     return filteredAnggota.map(anggota => {
+       const simpananForAnggota = simpanan.filter(s => s.idAnggota === anggota.id);
+       const pokok = simpananForAnggota.filter(s => s.jenisSimpanan === "pokok").reduce((sum, s) => sum + s.jumlah, 0);
+       const wajib = simpananForAnggota.filter(s => s.jenisSimpanan === "wajib").reduce((sum, s) => sum + s.jumlah, 0);
+       const sibuhar = simpananForAnggota.filter(s => s.jenisSimpanan === "sibuhar").reduce((sum, s) => sum + s.jumlah, 0);
+       const total = pokok + wajib + sibuhar;
+       return { ...anggota, pokok, wajib, sibuhar, total };
+     });
+   }, [filteredAnggota, simpanan]);
    
    const fileInputRef = useRef<HTMLInputElement>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -690,7 +706,7 @@ Yakin ingin memproses?`;
         });
 
         alert(`✅ Berhasil import ${validRows.length} data anggota!`);
-        setActiveTab("data"); // Switch to Data tab to show imported members
+         setActiveTab("table"); // Switch to table view to show imported members
 
       } catch (error) {
         console.error("Import error:", error);
@@ -709,11 +725,11 @@ Yakin ingin memproses?`;
         <p style={{ fontSize: 14, color: "#6b7280" }}>Pendaftaran & Data Anggota KSP</p>
       </div>
 
-      <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "white", padding: 6, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)", overflowX: "auto" }}>
-        <button onClick={() => setActiveTab("data")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "data" ? "#1B4D3E" : "transparent", color: activeTab === "data" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Daftar</button>
-        <button onClick={() => setActiveTab("daftar")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "daftar" ? "#1B4D3E" : "transparent", color: activeTab === "daftar" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({anggota.length})</button>
-        <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
-      </div>
+       <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "white", padding: 6, borderRadius: 12, boxShadow: "0 2px 10px rgba(0,0,0,0.06)", overflowX: "auto" }}>
+         <button onClick={() => setActiveTab("form")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "form" ? "#1B4D3E" : "transparent", color: activeTab === "form" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📝 Formulir</button>
+         <button onClick={() => setActiveTab("table")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "table" ? "#1B4D3E" : "transparent", color: activeTab === "table" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📋 Data ({anggota.length})</button>
+         <button onClick={() => setActiveTab("import")} style={{ padding: "10px 16px", border: "none", borderRadius: 8, background: activeTab === "import" ? "#1B4D3E" : "transparent", color: activeTab === "import" ? "white" : "#1B4D3E", fontWeight: 600, fontSize: 13, cursor: "pointer", whiteSpace: "nowrap" }}>📥 Import</button>
+       </div>
 
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
@@ -880,7 +896,7 @@ Yakin ingin memproses?`;
         </div>
       )}
 
-      {activeTab === "data" && (
+       {activeTab === "form" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           {submitted && <div style={{ background: "#d4edda", color: "#155724", padding: 16, borderRadius: 8, marginBottom: 24, textAlign: "center" }}>✓ Pendaftaran berhasil!</div>}
           <form onSubmit={handleSubmit}>
@@ -925,7 +941,7 @@ Yakin ingin memproses?`;
         </div>
       )}
 
-      {activeTab === "daftar" && (
+       {activeTab === "table" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 16, marginBottom: 24 }}>Data Anggota</h3>
           <div style={{ marginBottom: 16 }}>
@@ -944,129 +960,136 @@ Yakin ingin memproses?`;
           ) : (
             <>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-               <thead>
-                 <tr style={{ background: "#f9fafb" }}>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tempat Lahir</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis Kelamin</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status Kawin</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pasangan</th>
-                   <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Anak</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Telepon</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Saudara</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Hub Saudara</th>
-                   <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
-                   <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Pendapatan</th>
-                   <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
-                 </tr>
-               </thead>
-               <tbody>
-                 {filteredAnggota.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
-                   <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
-                     <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
-                     <td style={{ padding: 10, fontFamily: "monospace" }}>{a.nomorNBA || "-"}</td>
-                     <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
-                     <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.tempatLahir || "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
-                     <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.namaPasangan || "-"}</td>
-                     <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{a.jumlahAnak || "0"}</td>
-                     <td style={{ padding: 10 }}>{a.telepon}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.alamat || "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.namaSaudara || "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.hubungan || "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan || "-"}</td>
-                     <td style={{ padding: 10, fontSize: 11, textAlign: "right" }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
-                     <td style={{ padding: 10, textAlign: "center" }}>
-                      {editingId === a.id ? (
-                        <button 
-                          onClick={() => {
-                            updateAnggota(a.id, editForm);
-                            setEditingId(null);
-                            setEditForm({});
-                          }}
-                          style={{ padding: "6px 12px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
-                        >
-                          💾
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => {
-                            const formData = {
-                               nik: String(a.nik || ""),
-                               nama: String(a.nama || ""),
-                               tempatLahir: String(a.tempatLahir || ""),
-                               tanggalLahir: formatDate(String(a.tanggalLahir || "")),
-                               jkelamin: String(a.jkelamin || ""),
-                               status: String(a.status || ""),
-                               namaPasangan: String(a.namaPasangan || ""),
-                               jumlahAnak: String(a.jumlahAnak || ""),
-                               namaIbuKandung: String(a.namaIbuKandung || ""),
-                               namaSaudara: String(a.namaSaudara || ""),
-                               telpSaudara: String(a.telpSaudara || ""),
-                               hubungan: String(a.hubungan || ""),
-                               pekerjaan: String(a.pekerjaan || ""),
-                               alamat: String(a.alamat || ""),
-                               telepon: String(a.telepon || ""),
-                               email: String(a.email || ""),
-                               tempatKerja: String(a.tempatKerja || ""),
-                               pendapatan: String(a.pendapatan || ""),
-                               statusKeanggotaan: String(a.statusKeanggotaan || "Aktif"),
-                               tanggalPengunduran: formatDate(String(a.tanggalPengunduran || "")),
-                             };
-                            setEditForm(formData);
-                            setEditingId(a.id);
-                          }}
-                          style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
-                        >
-                          ✏️
-                        </button>
-                      )}
-                      {editingId === a.id && (
-                        <button 
-                          onClick={() => {
-                            setEditingId(null);
-                            setEditForm({});
-                          }}
-                          style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
-                        >
-                          ✕
-                        </button>
-)}
-                      {editingId !== a.id && a.statusKeanggotaan !== "Non-Aktif" && (
-                        <button 
-                          onClick={() => handlePengunduran(a.id)}
-                          style={{ padding: "6px 12px", background: "#dc2626", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
-                        >
-                          🚫
-                        </button>
-                      )}
-                      {editingId !== a.id && (
-                        <button 
-                          onClick={() => {
-                            if (confirm(`Yakin ingin menghapus anggota "${a.nama}"?`)) {
-                              deleteAnggota(a.id);
-                              alert("Anggota berhasil dihapus!");
-                            }
-                          }}
-                          style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </td>
+                <thead>
+                  <tr style={{ background: "#f9fafb" }}>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>#</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Masuk</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>No. NBA</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Nama</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>NIK</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Tgl Lahir</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jenis Kelamin</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Status Kawin</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pasangan</th>
+                    <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Anak</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Telepon</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Alamat</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Saudara</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Hub Saudara</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pekerjaan</th>
+                    <th style={{ padding: 10, textAlign: "right", borderBottom: "2px solid #ddd" }}>Pendapatan</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pokok</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Wajib</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Sibuhar</th>
+                    <th style={{ padding: 10, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total</th>
+                    <th style={{ padding: 10, textAlign: "center", borderBottom: "2px solid #ddd" }}>Aksi</th>
                   </tr>
-                ))}
-              </tbody>
+                </thead>
+                <tbody>
+                  {anggotaWithSavings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((a, i) => (
+                    <tr key={a.id} style={{ borderBottom: "1px solid #eee" }}>
+                      <td style={{ padding: 10 }}>{(currentPage - 1) * itemsPerPage + i + 1}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.tanggalJoin}</td>
+                      <td style={{ padding: 10, fontFamily: "monospace" }}>{a.nomorNBA || "-"}</td>
+                      <td style={{ padding: 10, fontWeight: 500 }}>{a.nama}</td>
+                      <td style={{ padding: 10, fontFamily: "monospace", fontSize: 10 }}>{a.nik}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.tempatLahir || "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{displayDate(a.tanggalLahir)}</td>
+                      <td style={{ padding: 10 }}>{a.jkelamin === "laki" ? "Laki-Laki" : a.jkelamin === "perempuan" ? "Perempuan" : "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum" : "Cerai"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.namaPasangan || "-"}</td>
+                      <td style={{ padding: 10, textAlign: "center", fontSize: 11 }}>{a.jumlahAnak || "0"}</td>
+                      <td style={{ padding: 10 }}>{a.telepon}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.alamat || "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.namaSaudara || "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.hubungan || "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11 }}>{a.pekerjaan || "-"}</td>
+                      <td style={{ padding: 10, fontSize: 11, textAlign: "right" }}>{a.pendapatan ? `Rp ${Number(a.pendapatan).toLocaleString("id-ID")}` : "-"}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{formatRupiah(a.pokok)}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{formatRupiah(a.wajib)}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{formatRupiah(a.sibuhar)}</td>
+                      <td style={{ padding: 10, textAlign: "right" }}>{formatRupiah(a.total)}</td>
+                      <td style={{ padding: 10, textAlign: "center" }}>
+                        {editingId === a.id ? (
+                          <button 
+                            onClick={() => {
+                              updateAnggota(a.id, editForm);
+                              setEditingId(null);
+                              setEditForm({});
+                            }}
+                            style={{ padding: "6px 12px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                          >
+                            💾
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => {
+                              const formData = {
+                                 nik: String(a.nik || ""),
+                                 nama: String(a.nama || ""),
+                                 tempatLahir: String(a.tempatLahir || ""),
+                                 tanggalLahir: formatDate(String(a.tanggalLahir || "")),
+                                 jkelamin: String(a.jkelamin || ""),
+                                 status: String(a.status || ""),
+                                 namaPasangan: String(a.namaPasangan || ""),
+                                 jumlahAnak: String(a.jumlahAnak || ""),
+                                 namaIbuKandung: String(a.namaIbuKandung || ""),
+                                 namaSaudara: String(a.namaSaudara || ""),
+                                 telpSaudara: String(a.telpSaudara || ""),
+                                 hubungan: String(a.hubungan || ""),
+                                 pekerjaan: String(a.pekerjaan || ""),
+                                 alamat: String(a.alamat || ""),
+                                 telepon: String(a.telepon || ""),
+                                 email: String(a.email || ""),
+                                 tempatKerja: String(a.tempatKerja || ""),
+                                 pendapatan: String(a.pendapatan || ""),
+                                 statusKeanggotaan: String(a.statusKeanggotaan || "Aktif"),
+                                 tanggalPengunduran: formatDate(String(a.tanggalPengunduran || "")),
+                               };
+                             setEditForm(formData);
+                             setEditingId(a.id);
+                           }}
+                           style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                         >
+                           ✏️
+                         </button>
+                       )}
+                       {editingId === a.id && (
+                         <button 
+                           onClick={() => {
+                             setEditingId(null);
+                             setEditForm({});
+                           }}
+                           style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
+                         >
+                           ✕
+                         </button>
+                       )}
+                       {editingId !== a.id && a.statusKeanggotaan !== "Non-Aktif" && (
+                         <button 
+                           onClick={() => handlePengunduran(a.id)}
+                           style={{ padding: "6px 12px", background: "#dc2626", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer" }}
+                         >
+                           🚫
+                         </button>
+                       )}
+                       {editingId !== a.id && (
+                         <button 
+                           onClick={() => {
+                             if (confirm(`Yakin ingin menghapus anggota "${a.nama}"?`)) {
+                               deleteAnggota(a.id);
+                               alert("Anggota berhasil dihapus!");
+                             }
+                           }}
+                           style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 11, cursor: "pointer", marginLeft: 4 }}
+                         >
+                           🗑️
+                         </button>
+                       )}
+                     </td>
+                    </tr>
+                  ))}
+                </tbody>
             </table>
 
             {filteredAnggota.length > itemsPerPage && (
