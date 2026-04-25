@@ -18,10 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id">
       <Head>
-        <link rel="preload" href="/js/main.js" as="script" />
+        <link rel="preload" href="/js/app.js" as="script" />
+        <link rel="preload" href="/fonts/font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </Head>
       <body style={{ margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
-        <Script src="/js/main.js" strategy="afterInteractive" />
+        <Script src="/js/app.js" strategy="afterInteractive" />
         <DataProvider>
           <ClientLayout>{children}</ClientLayout>
         </DataProvider>
