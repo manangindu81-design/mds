@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Head from "next/head";
+import Script from "next/script";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { DataProvider } from "./context/DataContext";
@@ -15,7 +17,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
+      <Head>
+        <link rel="preload" href="/js/main.js" as="script" />
+      </Head>
       <body style={{ margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+        <Script src="/js/main.js" strategy="afterInteractive" />
         <DataProvider>
           <ClientLayout>{children}</ClientLayout>
         </DataProvider>
