@@ -3,6 +3,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { useData } from "../context/DataContext";
 import AppLogo from "../components/AppLogo";
+import {
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Brush,
+} from "recharts";
 
 const formatRupiah = (value: number) => {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(value);
@@ -66,49 +77,64 @@ export default function DashboardPage() {
   const composition = komposisiPinjaman();
   const monthlyStats = statistikSimpanan();
 
-  // === TREN 6 BULAN TERAKHIR (SIMPANAN & PINJAMAN) ===
-  const getTrendData = () => {
-    const monthlySimpanan: Record<string, number> = {};
-    const monthlyPinjaman: Record<string, number> = {};
-    
-    // Get last 6 months
-    const months: string[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      months.push(d.toISOString().substring(0, 7));
-    }
-    
-    // Calculate monthly savings
-    simpanan.forEach(s => {
-      const bulan = s.tanggal?.substring(0, 7);
-      if (bulan && months.includes(bulan)) {
-        monthlySimpanan[bulan] = (monthlySimpanan[bulan] || 0) + s.jumlah;
-      }
-    });
-    
-    // Calculate monthly loans (disbursed)
-    const loansDisbursed = pinjaman.filter(p => p.status === "Disetujui");
-    loansDisbursed.forEach(p => {
-      const bulan = p.tanggal?.substring(0, 7);
-      if (bulan && months.includes(bulan)) {
-        monthlyPinjaman[bulan] = (monthlyPinjaman[bulan] || 0) + p.jumlah;
-      }
-    });
-    
-    // Build trend data
-    return months.map(bulan => ({
-      month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
-      simpanan: monthlySimpanan[bulan] || 0,
-      pinjaman: monthlyPinjaman[bulan] || 0
-    }));
-  };
-  
-  const trendData = getTrendData();
-  const maxTrendValue = Math.max(
-    ...trendData.map(d => Math.max(d.simpanan, d.pinjaman)),
-    1
-  );
+   // === TREN 6 BULAN TERAKHIR (SIMPANAN, PINJAMAN, TRANSAKSI) ===
+   const getTrendData = () => {
+     const monthlySimpanan: Record<string, number> = {};
+     const monthlyPinjaman: Record<string, number> = {};
+     const monthlyTransaksi: Record<string, number> = {}; // count of transactions
+     
+     // Get last 6 months
+     const months: string[] = [];
+     for (let i = 5; i >= 0; i--) {
+       const d = new Date();
+       d.setMonth(d.getMonth() - i);
+       months.push(d.toISOString().substring(0, 7));
+     }
+     
+     // Calculate monthly savings
+     simpanan.forEach(s => {
+       const bulan = s.tanggal?.substring(0, 7);
+       if (bulan && months.includes(bulan)) {
+         monthlySimpanan[bulan] = (monthlySimpanan[bulan] || 0) + s.jumlah;
+       }
+     });
+     
+     // Calculate monthly loans (disbursed)
+     const loansDisbursed = pinjaman.filter(p => p.status === "Disetujui");
+     loansDisbursed.forEach(p => {
+       const bulan = p.tanggal?.substring(0, 7);
+       if (bulan && months.includes(bulan)) {
+         monthlyPinjaman[bulan] = (monthlyPinjaman[bulan] || 0) + p.jumlah;
+       }
+     });
+     
+     // Count monthly transactions
+     transaksi.forEach(t => {
+       const bulan = t.tanggal?.substring(0, 7);
+       if (bulan && months.includes(bulan)) {
+         monthlyTransaksi[bulan] = (monthlyTransaksi[bulan] || 0) + 1;
+       }
+     });
+     
+     // Build trend data with month index for scatter plot
+     return months.map((bulan, index) => ({
+       month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
+       monthIndex: index, // for scatter plot x-axis
+       simpanan: monthlySimpanan[bulan] || 0,
+       pinjaman: monthlyPinjaman[bulan] || 0,
+       transactionCount: monthlyTransaksi[bulan] || 0
+     }));
+   };
+   
+   const trendData = getTrendData();
+   const maxAmount = Math.max(
+     ...trendData.map(d => Math.max(d.simpanan, d.pinjaman)),
+     1
+   );
+   const maxTransactionCount = Math.max(
+     ...trendData.map(d => d.transactionCount),
+     1
+   );
 
   // === JATUH TEMPO ANGSURAN (7 HARI KE DEPAN) ===
   const getJatuhTempo = () => {
@@ -244,48 +270,146 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Trend Chart: Simpanan vs Pinjaman */}
-            <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-              <h3 style={{ fontSize: 18, marginBottom: 24 }}>Tren Simpanan vs Pinjaman (6 Bulan Terakhir)</h3>
-              {trendData.every(d => d.simpanan === 0 && d.pinjaman === 0) ? (
-                <div style={{ textAlign: "center", padding: 32, color: "var(--color-text-secondary)" }}>
-                  <div style={{ fontSize: 32, marginBottom: 12 }}>📈</div>
-                  <p>Belum ada data untuk menampilkan tren.</p>
-                </div>
-              ) : (
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 16, height: 220 }}>
-                  {trendData.map((item, index) => (
-                    <div key={index} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: "100%", display: "flex", gap: 4, justifyContent: "center", height: `${Math.min((Math.max(item.simpanan, item.pinjaman) / maxTrendValue) * 180, 180)}px` }}>
-                        <div style={{ 
-                          width: 20, 
-                          height: `${(item.simpanan / maxTrendValue) * 180}px`, 
-                          background: "linear-gradient(180deg, #1B4D3E 0%, #2D7A5F 100%)",
-                          borderRadius: 4
-                        }} title={`Simpanan: ${formatRupiah(item.simpanan)}`} />
-                        <div style={{ 
-                          width: 20, 
-                          height: `${(item.pinjaman / maxTrendValue) * 180}px`, 
-                          background: "linear-gradient(180deg, #D4AF37 0%, #B8962E 100%)",
-                          borderRadius: 4
-                        }} title={`Pinjaman: ${formatRupiah(item.pinjaman)}`} />
-                      </div>
-                      <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{item.month}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div style={{ display: "flex", gap: 24, marginTop: 16, justifyContent: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 12, height: 12, background: "#1B4D3E", borderRadius: 2 }} />
-                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Simpanan</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 12, height: 12, background: "#D4AF37", borderRadius: 2 }} />
-                  <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Pinjaman</span>
-                </div>
-              </div>
-            </div>
+             {/* 4D/5D Visualization: Simpanan, Pinjaman, Transaksi, dan Waktu */}
+             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+               <h3 style={{ fontSize: 18, marginBottom: 24 }}>Visualisasi 4D: Simpanan, Pinjaman, Jumlah Transaksi per Bulan</h3>
+               {trendData.every(d => d.simpanan === 0 && d.pinjaman === 0 && d.transactionCount === 0) ? (
+                 <div style={{ textAlign: "center", padding: 32, color: "var(--color-text-secondary)" }}>
+                   <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
+                   <p>Belum ada data untuk menampilkan visualisasi.</p>
+                 </div>
+               ) : (
+                 <div style={{ overflowX: "auto" }}>
+                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                     <thead>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {trendData.map((item, index) => (
+                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                           <td style={{ padding: 12 }}>{item.month}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                             {formatRupiah(item.simpanan + item.pinjaman)}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+               ) : (
+                 <div style={{ overflowX: "auto" }}>
+                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                     <thead>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {trendData.map((item, index) => (
+                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                           <td style={{ padding: 12 }}>{item.month}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                             {formatRupiah(item.simpanan + item.pinjaman)}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+               ) : (
+                 <div style={{ overflowX: "auto" }}>
+                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                     <thead>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {trendData.map((item, index) => (
+                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                           <td style={{ padding: 12 }}>{item.month}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                             {formatRupiah(item.simpanan + item.pinjaman)}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+               ) : (
+                 <ResponsiveContainer width="100%" height={300}>
+                   <ScatterChart>
+                     <CartesianGrid strokeDasharray="3 3" />
+                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                     <YAxis 
+                       tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} 
+                       domain={[0, Math.max(...trendData.map(d => Math.max(d.simpanan, d.pinjaman)), 1) * 1.2]}
+                     />
+                     <Tooltip 
+                       formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`}
+                       contentStyle={{ background: '#fff', border: '1px solid #ddd', padding: 8, borderRadius: 4 }}
+                       separator={':'}
+                     />
+                     <Legend verticalAlign="top" height={36} />
+                     
+                     {/* Simpanan Bubble */}
+                     <Scatter 
+                       name="Simpanan" 
+                       dataKey={[["month", "simpanan"], "transactionCount"]} 
+                       fill="#1B4D3E"
+                       size={60}
+                     />
+                     
+                     {/* Pinjaman Bubble */}
+                     <Scatter 
+                       name="Pinjaman" 
+                       dataKey={[["month", "pinjaman"], "transactionCount"]} 
+                       fill="#D4AF37"
+                       size={60}
+                     />
+                     
+                     {/* Brush untuk zoom */}
+                     <Brush 
+                       dataKey="month" 
+                       height={30} 
+                       stroke="#2D7A5F" 
+                       fill="#2D7A5F" 
+                       fillOpacity={0.1} 
+                       strokeOpacity={0.3} 
+                     />
+                   </ScatterChart>
+                 </ResponsiveContainer>
+               )}
+             </div>
 
             {/* Jatuh Tempo & Aktivitas */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
