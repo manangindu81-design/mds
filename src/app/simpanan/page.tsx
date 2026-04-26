@@ -739,12 +739,13 @@ export default function SimpananPage() {
                        return;
                      }
 
-                       // Check for duplicate entries
+                        // Check for duplicate entries
                         // Jenis transaksi yang mengizinkan duplikat No. NBA (boleh banyak transaksi per anggota):
+                        // - Setoran Simpanan Pokok (pokok)
                         // - Setoran Simpanan Wajib (wajib)
                         // - Setoran Simpanan Bunga Harian (sibuhar)
                         // - Penarikan Simpanan Bunga Harian (penarikan-sibuhar)
-                        const typesAllowingDuplicates = ["wajib", "sibuhar", "penarikan-sibuhar"];
+                        const typesAllowingDuplicates = ["pokok", "wajib", "sibuhar", "penarikan-sibuhar"];
                         const isRecurringType = typesAllowingDuplicates.includes(importType);
                        
                        if (!isRecurringType) {
