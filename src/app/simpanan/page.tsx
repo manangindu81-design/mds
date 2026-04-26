@@ -739,34 +739,37 @@ export default function SimpananPage() {
                        return;
                      }
 
-                      // Check for duplicate entries
-                       // For wajib & sibuhar (setoran & penarikan): allow duplicate (No. NBA + Tanggal) — multiple transactions same day allowed
-                       // For other types (pokok, penarikan, etc.): No. NBA must be unique (only one transaction total)
-                       const isRecurringType = importType === "wajib" || importType === "sibuhar" || importType === "penarikan-sibuhar";
-                      
-                      if (!isRecurringType) {
-                        // Non-recurring types: enforce strict No. NBA uniqueness
-                        const seenNoNBA = new Set<string>();
-                        const duplicates = new Set<string>();
-                        jsonData.forEach((row) => {
-                          const rawNoNBA = row[normalizedMap["no. nba"]];
-                          const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
-                          if (noNBA) {
-                            if (seenNoNBA.has(noNBA)) duplicates.add(noNBA);
-                            else seenNoNBA.add(noNBA);
-                          }
-                        });
-                        if (duplicates.size > 0) {
-                          alert(
-                            `❌ DUPLIKAT No. NBA TERDETEKSI:\n\n` +
-                            `No. NBA berikut muncul lebih dari sekali:\n` +
-                            `${Array.from(duplicates).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
-                            `Untuk jenis transaksi ini (${importType}), setiap No. NBA hanya boleh muncul satu kali.\n` +
-                            `Silakan gabungkan atau hapus duplikat.`
-                          );
-                          return;
-                        }
-                      }
+                       // Check for duplicate entries
+                        // Jenis transaksi yang mengizinkan duplikat No. NBA (boleh banyak transaksi per anggota):
+                        // - Setoran Simpanan Wajib (wajib)
+                        // - Setoran Simpanan Bunga Harian (sibuhar)
+                        // - Penarikan Simpanan Bunga Harian (penarikan-sibuhar)
+                        const typesAllowingDuplicates = ["wajib", "sibuhar", "penarikan-sibuhar"];
+                        const isRecurringType = typesAllowingDuplicates.includes(importType);
+                       
+                       if (!isRecurringType) {
+                         // Non-recurring types: enforce strict No. NBA uniqueness (hanya satu transaksi total per No. NBA)
+                         const seenNoNBA = new Set<string>();
+                         const duplicates = new Set<string>();
+                         jsonData.forEach((row) => {
+                           const rawNoNBA = row[normalizedMap["no. nba"]];
+                           const noNBA = String(rawNoNBA ?? "").trim().toLowerCase();
+                           if (noNBA) {
+                             if (seenNoNBA.has(noNBA)) duplicates.add(noNBA);
+                             else seenNoNBA.add(noNBA);
+                           }
+                         });
+                         if (duplicates.size > 0) {
+                           alert(
+                             `❌ DUPLIKAT No. NBA TERDETEKSI:\n\n` +
+                             `No. NBA berikut muncul lebih dari sekali:\n` +
+                             `${Array.from(duplicates).map(d => `  • ${d.toUpperCase()}`).join("\n")}\n\n` +
+                             `Untuk jenis transaksi ini (${importType}), setiap No. NBA hanya boleh muncul satu kali (tidak boleh duplikat).\n` +
+                             `Silakan gabungkan atau hapus duplikat sebelum mengimpor.`
+                           );
+                           return;
+                         }
+                       }
                       // For recurring types (wajib, sibuhar): no duplicate check — allowed multiple transactions per member on any dates
 
                      // Strict validation: collect ALL errors first, then abort if any exist
