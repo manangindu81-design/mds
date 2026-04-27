@@ -3,11 +3,13 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useData, Anggota } from "../context/DataContext";
 import AppLogo from "../components/AppLogo";
+import * as XLSX from "xlsx";
 
 export default function AnggotaKeluarPage() {
   const { anggota, simpanan, addSimpanan, addTransaksi, updateAnggota, deleteAnggota } = useData();
   const [searchQuery, setSearchQuery] = useState("");
   const [manualMode, setManualMode] = useState(false);
+  const [importMode, setImportMode] = useState(false);
   const [selectedAnggotaId, setSelectedAnggotaId] = useState<number>(0);
   const [manualInput, setManualInput] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -17,8 +19,9 @@ export default function AnggotaKeluarPage() {
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTanggalKeluar, setEditTanggalKeluar] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-   const filteredAnggota = useMemo(() => {
+    const filteredAnggota = useMemo(() => {
      const list =anggota || [];
      const q = searchQuery.toLowerCase().trim();
      if (!q) {
@@ -191,6 +194,281 @@ Yakin ingin memproses?`;
     alert(`Anggota "${agg.nama}" telah mengundurkan diri.\n\nSimpanan Pokok & Wajib: ${aggSimpanan.length} transaksi\nTotal Simpanan: Rp ${totalSimpanan.toLocaleString("id-ID")}\nBiaya Pengunduran: Rp ${biayaPengunduran.toLocaleString("id-ID")}`);
   };
 
+  // Handle Excel import for anggota keluar
+  const handleImportExcelKeluar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = event.target?.result;
+        if (!data) {
+          alert("File tidak terbaca!");
+          return;
+        }
+
+        const workbook = XLSX.read(data, { type: "binary" });
+
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          alert("Tidak ada sheet di file Excel!");
+          return;
+        }
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        if (!sheet) {
+          alert("Sheet tidak ditemukan!");
+          return;
+        }
+
+        const jsonData = XLSX.utils.sheet_to_json(sheet) as Record<string, any>[];
+
+        if (!jsonData || jsonData.length === 0) {
+          alert("Tidak ada data di file Excel!");
+          return;
+        }
+
+        // Required columns (case-insensitive matching, supports space and underscore variants)
+        const requiredMap: Record<string, string> = {
+          "no. nba": "No. NBA",
+          "nama anggota": "Nama Anggota",
+          "tanggal keluar": "Tanggal Keluar",
+        };
+
+        const sampleRow = jsonData[0];
+        const actualColumns = Object.keys(sampleRow);
+
+        // Normalize column names (case-insensitive, handle space/underscore)
+        const normalizedActual: Record<string, string> = {};
+        actualColumns.forEach(col => {
+          const key = col.toLowerCase().trim().replace(/_/g, " ");
+          normalizedActual[key] = col;
+        });
+
+        // Check required columns (case-insensitive)
+        const missingColumns: string[] = [];
+        Object.entries(requiredMap).forEach(([key, displayName]) => {
+          if (!normalizedActual[key]) {
+            missingColumns.push(displayName);
+          }
+        });
+
+        if (missingColumns.length > 0) {
+          alert(
+            `Kolom wajib tidak ditemukan:\n${missingColumns.join("\n")}\n\n` +
+            `Kolom yang ada di file Anda:\n${actualColumns.join(", ")}\n\n` +
+            `Silakan download template yang benar.`
+          );
+          return;
+        }
+
+        // Validation function
+        const validateRow = (row: any, index: number): { isValid: boolean; errors: string[]; data?: any } => {
+          const errors: string[] = [];
+
+          // Helper to get column value (handles space/underscore variants)
+          const get = (col: string) => {
+            const normalizedKey = col.toLowerCase().replace(/_/g, " ");
+            return row[normalizedActual[normalizedKey] || col] ?? "";
+          };
+
+          const noNBA = String(get("no. nba") || "").trim();
+          const nama = String(get("nama anggota") || "").trim();
+          const tanggalKeluarRaw = get("tanggal keluar");
+
+          if (!noNBA) errors.push("No. NBA wajib diisi");
+          if (!nama) errors.push("Nama Anggota wajib diisi");
+          if (!tanggalKeluarRaw) errors.push("Tanggal Keluar wajib diisi");
+
+          // Validate date format
+          const tanggalKeluar = parseExcelDate(tanggalKeluarRaw);
+          if (!tanggalKeluar) errors.push("Format Tanggal Keluar tidak valid (gunakan DD-MM-YYYY)");
+
+          // Check if anggota exists
+          if (noNBA && nama) {
+            const anggotaExists = anggota.some(a => 
+              String(a.nomorNBA).trim().toLowerCase() === noNBA.toLowerCase() &&
+              a.nama.toLowerCase() === nama.toLowerCase()
+            );
+            
+            if (!anggotaExists) {
+              errors.push(`Anggota dengan No. NBA "${noNBA}" dan Nama "${nama}" tidak ditemukan`);
+            }
+          }
+
+          return {
+            isValid: errors.length === 0,
+            errors,
+            data: {
+              noNBA,
+              nama,
+              tanggalKeluar,
+              // Optional fields
+              nik: String(get("nomor identitas (ktp)") || get("nik") || ""),
+              tempatLahir: String(get("tempat lahir") || ""),
+              tanggalLahir: parseExcelDate(get("tanggal lahir")) || "",
+              jkelamin: String(get("jenis kelamin") || "").toLowerCase().includes("laki") ? "laki" : "perempuan",
+              statusPerkawinan: String(get("status perkawinan") || "").toLowerCase().includes("kawin") ? "kawin" : 
+                            String(get("status perkawinan") || "").toLowerCase().includes("belum") ? "belum" : "cerai",
+              alamat: String(get("alamat") || ""),
+              noHP: String(get("no hp") || ""),
+              pekerjaan: String(get("pekerjaan") || ""),
+              pendapatan: String(get("pendapatan perbulan") || "")
+            }
+          };
+        };
+
+        // Validate all rows first
+        const results = jsonData.map((row, idx) => validateRow(row, idx + 1));
+        const validRows = results.filter(r => r.isValid);
+        const invalidRows = results.filter(r => !r.isValid);
+
+        if (invalidRows.length > 0) {
+          // Show detailed error report
+          const errorReport = invalidRows.slice(0, 20).map(r => {
+            const rowNum = jsonData.findIndex((row, i) => results[i] === r) + 2; // +2 because header is row 1, and index starts at 0
+            return `Baris ${rowNum}:\n  ${r.errors.join("\n  ")}`;
+          }).join("\n\n");
+
+          const moreMsg = invalidRows.length > 20 ? `\n...dan ${invalidRows.length - 20} baris error lainnya` : "";
+          alert(
+            `IMPORT GAGAL - Ada ${invalidRows.length} baris dengan error:\n\n` +
+            `${errorReport}${moreMsg}\n\n` +
+            `Total data valid: ${validRows.length} dari ${jsonData.length}\n` +
+            `Silakan perbaiki file Excel dan coba lagi.`
+          );
+          return;
+        }
+
+        // All rows valid, proceed with import
+        if (!confirm(`Yakin mengimpor ${validRows.length} data anggota keluar?`)) return;
+
+        validRows.forEach((result, idx) => {
+          const data = result.data!;
+          const noNBA = String(jsonData[idx]["No. NBA"] || "").trim();
+          
+          // Find existing anggota to update
+          const existingAnggota = anggota.find(a => 
+            String(a.nomorNBA).trim().toLowerCase() === noNBA.toLowerCase()
+          );
+
+          if (existingAnggota) {
+            // Update existing anggota to non-active with the specified exit date
+            updateAnggota(existingAnggota.id, {
+              statusKeanggotaan: "Non-Aktif",
+              tanggalPengunduran: data.tanggalKeluar
+            });
+
+            // Get current simpanan for this anggota to create withdrawal transactions
+            const aggSimpanan = simpanan.filter(s => s.idAnggota === existingAnggota.id && 
+                                                 (s.jenisSimpanan === "pokok" || s.jenisSimpanan === "wajib"));
+            
+            const targetDate = data.tanggalKeluar;
+            const biayaPengunduran = 50000;
+
+            // Create withdrawal transactions for each simpanan
+            aggSimpanan.forEach((s, i) => {
+              addSimpanan({
+                id: 0,
+                idAnggota: existingAnggota.id,
+                nama: existingAnggota.nama,
+                nomorAnggota: existingAnggota.nomorNBA || "",
+                tanggal: targetDate,
+                jenisSimpanan: s.jenisSimpanan,
+                jumlah: -Math.abs(s.jumlah), // Negative for withdrawal
+                metode: "tunai",
+                bunga: 0,
+              });
+
+              addTransaksi({
+                id: 0,
+                noBukti: `PD-${targetDate.replace(/-/g, "")}-${String(i + 1).padStart(3, "0")}`,
+                tanggal: targetDate,
+                jam: "10:00",
+                akun: "Kas",
+                kategori: `Penarikan Simpanan ${s.jenisSimpanan.charAt(0).toUpperCase() + s.jenisSimpanan.slice(1)}`,
+                uraian: `Penarikan Simpanan ${s.jenisSimpanan} ${existingAnggota.nama}`,
+                debet: 0,
+                kredit: Math.abs(s.jumlah),
+                saldo: 0,
+                operator: "Admin",
+              });
+            });
+
+            // Add biaya pengunduran diri transaction
+            addTransaksi({
+              id: 0,
+              noBukti: `BP-${targetDate.replace(/-/g, "")}-001`,
+              tanggal: targetDate,
+              jam: "10:00",
+              akun: "Kas",
+              kategori: "Biaya Pengunduran Diri",
+              uraian: `Biaya Pengunduran Diri ${existingAnggota.nama}`,
+              debet: biayaPengunduran,
+              kredit: 0,
+              saldo: 0,
+              operator: "Admin",
+            });
+
+            addTransaksi({
+              id: 0,
+              noBukti: `BP-${targetDate.replace(/-/g, "")}-002`,
+              tanggal: targetDate,
+              jam: "10:00",
+              akun: "Pendapatan Pengunduran Diri Anggota",
+              kategori: "Pendapatan Pengunduran Diri",
+              uraian: `Biaya Pengunduran Diri ${existingAnggota.nama}`,
+              debet: 0,
+              kredit: biayaPengunduran,
+              saldo: 0,
+              operator: "Admin",
+            });
+          } else {
+            // Create new anggota with non-active status if not found
+            const newAnggota: Anggota = {
+              id: anggota.length + idx + 1,
+              nomorNBA: data.noNBA,
+              nik: data.nik || "",
+              nama: data.nama,
+              tempatLahir: data.tempatLahir || "",
+              tanggalLahir: data.tanggalLahir || "",
+              jkelamin: data.jkelamin || "laki",
+              status: data.statusPerkawinan || "belum",
+              namaPasangan: "",
+              jumlahAnak: "",
+              namaIbuKandung: "",
+              namaSaudara: "",
+              telpSaudara: "",
+              hubungan: "",
+              pekerjaan: data.pekerjaan || "",
+              alamat: data.alamat || "",
+              telepon: data.noHP || "",
+              email: "",
+              tempatKerja: "",
+              pendapatan: data.pendapatan || "",
+              tanggalJoin: data.tanggalKeluar, // Use exit date as join date for historical data
+              statusKeanggotaan: "Non-Aktif",
+              tanggalPengunduran: data.tanggalKeluar
+            };
+            addAnggota(newAnggota);
+          }
+        });
+
+        alert(`✅ Berhasil import ${validRows.length} data anggota keluar!`);
+        setImportMode(false); // Exit import mode
+        // Note: We stay on the same page to see the updated list
+
+      } catch (error) {
+        console.error("Import error:", error);
+        alert("Gagal import data. Pastikan file Excel tidak rusak dan format benar.");
+      }
+    };
+    reader.readAsBinaryString(file);
+    if (e.target) (e.target as HTMLInputElement).value = "";
+  };
+
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -205,41 +483,57 @@ Yakin ingin memproses?`;
         </Link>
       </div>
 
-      {/* Mode Selection */}
-      <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
-        <button
-          onClick={() => setManualMode(false)}
-          style={{
-            flex: 1,
-            padding: "12px 20px",
-            background: !manualMode ? "#dc2626" : "#f3f4f6",
-            color: !manualMode ? "white" : "#374151",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: "pointer"
-          }}
-        >
-          🔍 Cari dari Daftar Anggota
-        </button>
-        <button
-          onClick={() => setManualMode(true)}
-          style={{
-            flex: 1,
-            padding: "12px 20px",
-            background: manualMode ? "#dc2626" : "#f3f4f6",
-            color: manualMode ? "white" : "#374151",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 14,
-            cursor: "pointer"
-          }}
-        >
-          ✏️ Input Manual (No. NBA)
-        </button>
-      </div>
+       {/* Mode Selection */}
+       <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
+         <button
+           onClick={() => setManualMode(false)}
+           style={{
+             flex: 1,
+             padding: "12px 20px",
+             background: !manualMode ? "#dc2626" : "#f3f4f6",
+             color: !manualMode ? "white" : "#374151",
+             border: "none",
+             borderRadius: 8,
+             fontWeight: 600,
+             fontSize: 14,
+             cursor: "pointer"
+           }}
+         >
+           🔍 Cari dari Daftar Anggota
+         </button>
+         <button
+           onClick={() => setManualMode(true)}
+           style={{
+             flex: 1,
+             padding: "12px 20px",
+             background: manualMode ? "#dc2626" : "#f3f4f6",
+             color: manualMode ? "white" : "#374151",
+             border: "none",
+             borderRadius: 8,
+             fontWeight: 600,
+             fontSize: 14,
+             cursor: "pointer"
+           }}
+         >
+           ✏️ Input Manual (No. NBA)
+         </button>
+         <button
+           onClick={() => setImportMode(true)}
+           style={{
+             flex: 1,
+             padding: "12px 20px",
+             background: importMode ? "#dc2626" : "#f3f4f6",
+             color: importMode ? "white" : "#374151",
+             border: "none",
+             borderRadius: 8,
+             fontWeight: 600,
+             fontSize: 14,
+             cursor: "pointer"
+           }}
+         >
+           📥 Import Excel
+         </button>
+       </div>
 
        {!manualMode ? (
          /* SEARCH MODE */
@@ -499,14 +793,167 @@ Yakin ingin memproses?`;
                 </button>
               </div>
             )}
-            {manualInput && !foundAnggota && (
-              <div style={{ padding: 12, textAlign: "center", color: "#991b1b", fontSize: 13, marginTop: 12 }}>
-                ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+             {manualInput && !foundAnggota && (
+               <div style={{ padding: 12, textAlign: "center", color: "#991b1b", fontSize: 13, marginTop: 12 }}>
+                 ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
+               </div>
+             )}
+           </div>
+         </div>
+       ) : (
+         /* IMPORT MODE */
+         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
+           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota Keluar dari Excel</h3>
+           <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
+             Upload file Excel dengan format kolom:<br/>
+             <strong>Wajib:</strong> No. NBA, Nama Anggota, Tanggal Keluar<br/>
+             <strong>Opsional:</strong> NIK, Tempat Lahir, Tanggal Lahir, Jenis Kelamin, Status Perkawinan, Alamat, No HP, Pekerjaan, Pendapatan Perbulan
+           </p>
+           
+           <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center", marginBottom: 20 }}>
+             <input
+               type="file"
+               accept=".xlsx, .xls, .csv"
+               ref={fileInputRef}
+               onChange={handleImportExcelKeluar}
+               style={{ display: "none" }}
+               id="excel-upload-keluar"
+             />
+             <label htmlFor="excel-upload-keluar" style={{ cursor: "pointer" }}>
+               <div style={{ fontSize: 48, marginBottom: 16 }}>📁</div>
+               <div style={{ fontSize: 16, fontWeight: 600, color: "#dc2626" }}>Klik untuk upload file Excel</div>
+               <div style={{ fontSize: 13, color: "#6b7280", marginTop: 8 }}>Format: .xlsx, .xls, .csv</div>
+             </label>
+           </div>
+
+           <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
+             <button
+               onClick={() => {
+                 const templateData = [{
+                   "No. NBA": "NBA-001",
+                   "Nama Anggota": "Budi Santoso",
+                   "Tanggal Keluar": "15-01-2024",
+                   "NIK": "1234567890123456",
+                   "Tempat Lahir": "Jakarta",
+                   "Tanggal Lahir": "20-05-1980",
+                   "Jenis Kelamin": "Laki-laki",
+                   "Status Perkawinan": "Kawin",
+                   "Alamat": "Jl. Merdeka No. 10",
+                   "No HP": "081234567890",
+                   "Pekerjaan": "PNS",
+                   "Pendapatan Perbulan": "5000000"
+                 }];
+                 const ws = XLSX.utils.json_to_sheet(templateData);
+                 const wb = XLSX.utils.book_new();
+                 XLSX.utils.book_append_sheet(wb, ws, "Template");
+                 XLSX.writeFile(wb, "template_import_anggota_keluar.xlsx");
+               }}
+               style={{ padding: "10px 20px", background: "#0d9488", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+             >
+               📥 Download Template Excel
+             </button>
+           </div>
+           
+           <div style={{ padding: 16, background: "#fef2f2", borderRadius: 8 }}>
+             <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 8 }}>📌 Format Import Excel - Kolom Wajib:</div>
+             <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+               <thead>
+                 <tr>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No. NBA</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Nama Anggota</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tanggal Keluar</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>NBA-001</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Budi Santoso</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>15-01-2024</td>
+                 </tr>
+               </tbody>
+             </table>
+             
+             <div style={{ fontSize: 14, fontWeight: 600, color: "#991b1b", marginBottom: 8 }}>📌 Kolom Opsional - Data Lengkap:</div>
+             <table style={{ fontSize: 10, width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+               <thead>
+                 <tr>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>NIK</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tempat Lahir</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Tanggal Lahir</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Jenis Kelamin</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Status Perkawinan</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Alamat</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>No HP</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pekerjaan</th>
+                   <th style={{ border: "1px solid #ddd", padding: 4, background: "#f9fafb" }}>Pendapatan Perbulan</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 <tr>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>1234567890123456</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Jakarta</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>20-05-1980</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Laki-laki</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Kawin</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>Jl. Merdeka No. 10</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>081234567890</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>PNS</td>
+                   <td style={{ border: "1px solid #ddd", padding: 4 }}>5000000</td>
+                 </tr>
+               </tbody>
+             </table>
+           </div>
+           
+           <div style={{ marginTop: 24, padding: 16, background: "#fff3cd", borderRadius: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+             <div>
+               <div style={{ fontSize: 14, fontWeight: 600, color: "#856404" }}>⚠️ Hapus Semua Data</div>
+               <div style={{ fontSize: 12, color: "#856404" }}>Jika Anda ingin import ulang, hapus dulu data lama</div>
+             </div>
+             <button 
+               onClick={() => {
+                 if (confirm("Apakah Anda yakin ingin menghapus semua data pengunduran diri? Data tidak bisa dikembalikan.")) {
+                   // Note: We don't have a clearAllData function here, but we could add one or use the one from anggota context
+                   alert("Fitur hapus semua data akan ditambahkan dalam versi selanjutnya.");
+                 }
+               }}
+               style={{ padding: "10px 20px", background: "#dc3545", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+             >
+               🗑️ Hapus Semua
+             </button>
+             
+             <button 
+               onClick={() => {
+                 if (nonAktifList.length === 0) {
+                   alert("Tidak ada data untuk diexport.");
+                   return;
+                 }
+                 const exportData = nonAktifList.map(a => ({
+                   "No. NBA": a.nomorNBA || "",
+                   "Nama Anggota": a.nama,
+                   "Tanggal Keluar": a.tanggalPengunduran || "",
+                   "NIK": a.nik || "",
+                   "Tempat Lahir": a.tempatLahir || "",
+                   "Tanggal Lahir": a.tanggalLahir || "",
+                   "Jenis Kelamin": a.jkelamin === "laki" ? "Laki-laki" : "Perempuan",
+                   "Status Perkawinan": a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum Kawin" : "Cerai",
+                   "Alamat": a.alamat || "",
+                   "No HP": a.telepon || "",
+                   "Pekerjaan": a.pekerjaan || "",
+                   "Pendapatan Perbulan": a.pendapatan || ""
+                 }));
+                 const ws = XLSX.utils.json_to_sheet(exportData);
+                 const wb = XLSX.utils.book_new();
+                 XLSX.utils.book_append_sheet(wb, ws, "Anggota Keluar");
+                 XLSX.writeFile(wb, `data_anggota_keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
+                 alert(`Berhasil export ${exportData.length} data anggota keluar!`);
+               }}
+               style={{ padding: "10px 20px", background: "#22c55e", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+             >
+               📤 Export Data
+             </button>
+           </div>
+         </div>
+       )}
 
        {/* List of recently processed (non-active) members */}
        {nonAktifList.length > 0 && (

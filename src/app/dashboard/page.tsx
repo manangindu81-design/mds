@@ -20,111 +20,162 @@ const formatRupiah = (value: number) => {
 };
 
 export default function DashboardPage() {
-  const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
-  const [activeTab, setActiveTab] = useState("overview");
+   const { anggota, simpanan, pinjaman, angsuran, transaksi } = useData();
+   const [activeTab, setActiveTab] = useState("overview");
+   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  const totalanggota = anggota.length;
-  const anggotaAktif = anggota.filter(a => a.statusKeanggotaan === "Aktif" || !a.statusKeanggotaan).length;
-  const totalSimpanan = simpanan.reduce((sum, s) => sum + s.jumlah, 0);
-  const totalPinjamanDisetujui = pinjaman.filter(p => p.status === "Disetujui" && p.outstanding > 0).reduce((sum, p) => sum + p.jumlah, 0);
-  const totalPinjamanMenunggu = pinjaman.filter(p => p.status === "Menunggu").reduce((sum, p) => sum + p.jumlah, 0);
+   // Filter anggota by selected year for statistics
+   const anggotaTahunIni = anggota.filter(a => {
+     const tahunBergabung = a.tanggalJoin ? new Date(a.tanggalJoin).getFullYear() : new Date().getFullYear();
+     return tahunBergabung === selectedYear;
+   });
+   
+   const totalanggota = anggotaTahunIni.length;
+   const anggotaAktif = anggotaTahunIni.filter(a => a.statusKeanggotaan === "Aktif" || !a.statusKeanggotaan).length;
+   const anggotaBaru = anggotaTahunIni.length; // All filtered anggota are from selected year
+   const totalSimpanan = simpanan
+     .filter(s => {
+       const tahunSimpanan = s.tanggal ? new Date(s.tanggal).getFullYear() : new Date().getFullYear();
+       return tahunSimpanan === selectedYear;
+     })
+     .reduce((sum, s) => sum + s.jumlah, 0);
+   const totalPinjamanDisetujui = pinjaman
+     .filter(p => p.status === "Disetujui" && p.outstanding > 0)
+     .filter(p => {
+       const tahunPinjaman = p.tanggal ? new Date(p.tanggal).getFullYear() : new Date().getFullYear();
+       return tahunPinjaman === selectedYear;
+     })
+     .reduce((sum, p) => sum + p.jumlah, 0);
+   const totalPinjamanMenunggu = pinjaman
+     .filter(p => p.status === "Menunggu")
+     .filter(p => {
+       const tahunPinjaman = p.tanggal ? new Date(p.tanggal).getFullYear() : new Date().getFullYear();
+       return tahunPinjaman === selectedYear;
+     })
+     .reduce((sum, p) => sum + p.jumlah, 0);
 
-  const komposisiPinjaman = () => {
-    const disetujui = pinjaman.filter(p => p.status === "Disetujui");
-    if (disetujui.length === 0) return [];
-    
-    const grouped: Record<string, number> = {};
-    disetujui.forEach(p => {
-      const jenis = p.jenisPinjaman || "umum";
-      grouped[jenis] = (grouped[jenis] || 0) + p.jumlah;
-    });
-    
-    const total = Object.values(grouped).reduce((a, b) => a + b, 0);
-    const colors: Record<string, string> = {
-      bisnis: "#1B4D3E",
-      umum: "#2D7A5F",
-      pendidikan: "#D4AF37",
-      produktif: "#0A2E25",
-      "dana-sehat": "#5B8C5A"
-    };
-    
-    return Object.entries(grouped).map(([label, value]) => ({
-      label: label.charAt(0).toUpperCase() + label.slice(1).replace(/-/g, " "),
-      value: Math.round((value / total) * 100),
-      color: colors[label] || "#2D7A5F"
-    }));
-  };
+   const komposisiPinjaman = () => {
+     const disetujui = pinjaman
+       .filter(p => p.status === "Disetujui")
+       .filter(p => {
+         const tahunPinjaman = p.tanggal ? new Date(p.tanggal).getFullYear() : new Date().getFullYear();
+         return tahunPinjaman === selectedYear;
+       });
+     if (disetujui.length === 0) return [];
+     
+     const grouped: Record<string, number> = {};
+     disetujui.forEach(p => {
+       const jenis = p.jenisPinjaman || "umum";
+       grouped[jenis] = (grouped[jenis] || 0) + p.jumlah;
+     });
+     
+     const total = Object.values(grouped).reduce((a, b) => a + b, 0);
+     const colors: Record<string, string> = {
+       bisnis: "#1B4D3E",
+       umum: "#2D7A5F",
+       pendidikan: "#D4AF37",
+       produktif: "#0A2E25",
+       "dana-sehat": "#5B8C5A"
+     };
+     
+     return Object.entries(grouped).map(([label, value]) => ({
+       label: label.charAt(0).toUpperCase() + label.slice(1).replace(/-/g, " "),
+       value: Math.round((value / total) * 100),
+       color: colors[label] || "#2D7A5F"
+     }));
+   };
 
-  const statistikSimpanan = () => {
-    if (simpanan.length === 0) return [];
-    
-    const monthly: Record<string, number> = {};
-    simpanan.forEach(s => {
-      const bulan = s.tanggal?.substring(0, 7) || new Date().toISOString().substring(0, 7);
-      monthly[bulan] = (monthly[bulan] || 0) + s.jumlah;
-    });
-    
-    const sortedMonths = Object.keys(monthly).sort().slice(-6);
-    const maxValue = Math.max(...Object.values(monthly), 1);
-    
-    return sortedMonths.map(bulan => ({
-      month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
-      value: monthly[bulan],
-      height: (monthly[bulan] / maxValue) * 180
-    }));
-  };
+   const statistikSimpanan = () => {
+     const filteredSimpanan = simpanan.filter(s => {
+       const tahunSimpanan = s.tanggal ? new Date(s.tanggal).getFullYear() : new Date().getFullYear();
+       return tahunSimpanan === selectedYear;
+     });
+     
+     if (filteredSimpanan.length === 0) return [];
+     
+     const monthly: Record<string, number> = {};
+     filteredSimpanan.forEach(s => {
+       const bulan = s.tanggal?.substring(0, 7) || new Date().toISOString().substring(0, 7);
+       monthly[bulan] = (monthly[bulan] || 0) + s.jumlah;
+     });
+     
+     const sortedMonths = Object.keys(monthly).sort().slice(-6);
+     const maxValue = Math.max(...Object.values(monthly), 1);
+     
+     return sortedMonths.map(bulan => ({
+       month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
+       value: monthly[bulan],
+       height: (monthly[bulan] / maxValue) * 180
+     }));
+   };
 
   const composition = komposisiPinjaman();
   const monthlyStats = statistikSimpanan();
 
-   // === TREN 6 BULAN TERAKHIR (SIMPANAN, PINJAMAN, TRANSAKSI) ===
-   const getTrendData = () => {
-     const monthlySimpanan: Record<string, number> = {};
-     const monthlyPinjaman: Record<string, number> = {};
-     const monthlyTransaksi: Record<string, number> = {}; // count of transactions
-     
-     // Get last 6 months
-     const months: string[] = [];
-     for (let i = 5; i >= 0; i--) {
-       const d = new Date();
-       d.setMonth(d.getMonth() - i);
-       months.push(d.toISOString().substring(0, 7));
-     }
-     
-     // Calculate monthly savings
-     simpanan.forEach(s => {
-       const bulan = s.tanggal?.substring(0, 7);
-       if (bulan && months.includes(bulan)) {
-         monthlySimpanan[bulan] = (monthlySimpanan[bulan] || 0) + s.jumlah;
-       }
-     });
-     
-     // Calculate monthly loans (disbursed)
-     const loansDisbursed = pinjaman.filter(p => p.status === "Disetujui");
-     loansDisbursed.forEach(p => {
-       const bulan = p.tanggal?.substring(0, 7);
-       if (bulan && months.includes(bulan)) {
-         monthlyPinjaman[bulan] = (monthlyPinjaman[bulan] || 0) + p.jumlah;
-       }
-     });
-     
-     // Count monthly transactions
-     transaksi.forEach(t => {
-       const bulan = t.tanggal?.substring(0, 7);
-       if (bulan && months.includes(bulan)) {
-         monthlyTransaksi[bulan] = (monthlyTransaksi[bulan] || 0) + 1;
-       }
-     });
-     
-     // Build trend data with month index for scatter plot
-     return months.map((bulan, index) => ({
-       month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
-       monthIndex: index, // for scatter plot x-axis
-       simpanan: monthlySimpanan[bulan] || 0,
-       pinjaman: monthlyPinjaman[bulan] || 0,
-       transactionCount: monthlyTransaksi[bulan] || 0
-     }));
-   };
+    // === TREN 6 BULAN TERAKHIR (SIMPANAN, PINJAMAN, TRANSAKSI) ===
+    const getTrendData = () => {
+      // Filter data by selected year
+      const filteredSimpanan = simpanan.filter(s => {
+        const tahunSimpanan = s.tanggal ? new Date(s.tanggal).getFullYear() : new Date().getFullYear();
+        return tahunSimpanan === selectedYear;
+      });
+      
+      const filteredPinjaman = pinjaman.filter(p => {
+        const tahunPinjaman = p.tanggal ? new Date(p.tanggal).getFullYear() : new Date().getFullYear();
+        return tahunPinjaman === selectedYear;
+      });
+      
+      const filteredTransaksi = transaksi.filter(t => {
+        const tahunTransaksi = t.tanggal ? new Date(t.tanggal).getFullYear() : new Date().getFullYear();
+        return tahunTransaksi === selectedYear;
+      });
+      
+      const monthlySimpanan: Record<string, number> = {};
+      const monthlyPinjaman: Record<string, number> = {};
+      const monthlyTransaksi: Record<string, number> = {}; // count of transactions
+      
+      // Get last 6 months
+      const months: string[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        months.push(d.toISOString().substring(0, 7));
+      }
+      
+      // Calculate monthly savings
+      filteredSimpanan.forEach(s => {
+        const bulan = s.tanggal?.substring(0, 7);
+        if (bulan && months.includes(bulan)) {
+          monthlySimpanan[bulan] = (monthlySimpanan[bulan] || 0) + s.jumlah;
+        }
+      });
+      
+      // Calculate monthly loans (disbursed)
+      const loansDisbursed = filteredPinjaman.filter(p => p.status === "Disetujui");
+      loansDisbursed.forEach(p => {
+        const bulan = p.tanggal?.substring(0, 7);
+        if (bulan && months.includes(bulan)) {
+          monthlyPinjaman[bulan] = (monthlyPinjaman[bulan] || 0) + p.jumlah;
+        }
+      });
+      
+      // Count monthly transactions
+      filteredTransaksi.forEach(t => {
+        const bulan = t.tanggal?.substring(0, 7);
+        if (bulan && months.includes(bulan)) {
+          monthlyTransaksi[bulan] = (monthlyTransaksi[bulan] || 0) + 1;
+        }
+      });
+      
+      // Build trend data with month index for scatter plot
+      return months.map((bulan, index) => ({
+        month: new Date(bulan + "-01").toLocaleDateString("id-ID", { month: "short" }),
+        monthIndex: index, // for scatter plot x-axis
+        simpanan: monthlySimpanan[bulan] || 0,
+        pinjaman: monthlyPinjaman[bulan] || 0,
+        transactionCount: monthlyTransaksi[bulan] || 0
+      }));
+    };
    
    const trendData = getTrendData();
    const maxAmount = Math.max(
@@ -136,20 +187,26 @@ export default function DashboardPage() {
      1
    );
 
-  // === JATUH TEMPO ANGSURAN (7 HARI KE DEPAN) ===
-  const getJatuhTempo = () => {
-    const today = new Date();
-    const next7Days = new Date(today);
-    next7Days.setDate(next7Days.getDate() + 7);
-    
-    return angsuran
-      .filter(a => {
-        const dueDate = new Date(a.tanggal);
-        return dueDate >= today && dueDate <= next7Days;
-      })
-      .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
-      .slice(0, 5);
-  };
+   // === JATUH TEMPO ANGSURAN (7 HARI KE DEPAN) ===
+   const getJatuhTempo = () => {
+     // Filter angsuran by selected year
+     const filteredAngsuran = angsuran.filter(a => {
+       const tahunAngsuran = a.tanggal ? new Date(a.tanggal).getFullYear() : new Date().getFullYear();
+       return tahunAngsuran === selectedYear;
+     });
+     
+     const today = new Date();
+     const next7Days = new Date(today);
+     next7Days.setDate(next7Days.getDate() + 7);
+     
+     return filteredAngsuran
+       .filter(a => {
+         const dueDate = new Date(a.tanggal);
+         return dueDate >= today && dueDate <= next7Days;
+       })
+       .sort((a, b) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime())
+       .slice(0, 5);
+   };
   
   const jatuhTempo = getJatuhTempo();
 
@@ -649,22 +706,34 @@ export default function DashboardPage() {
       </aside>
 
       <main style={{ flex: 1, marginLeft: 260, padding: 32 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontFamily: "var(--font-heading)", color: "var(--color-text-primary)" }}>
-              {activeTab === "overview" && "Dashboard"}
-              {activeTab === "anggota" && "Data Anggota"}
-              {activeTab === "simpanan" && "Data Simpanan"}
-              {activeTab === "pinjaman" && "Data Pinjaman"}
-            </h1>
-            <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>KSP Mulia Dana Sejahtera - {new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}</p>
+          <h1 style={{ fontSize: 28, fontFamily: "var(--font-heading)", color: "var(--color-text-primary)" }}>
+          {activeTab === "overview" && "Dashboard"}
+          {activeTab === "anggota" && "Data Anggota"}
+          {activeTab === "simpanan" && "Data Simpanan"}
+          {activeTab === "pinjaman" && "Data Pinjaman"}
+          </h1>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: "var(--color-text-secondary)" }}>Tahun: </label>
+          <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+          style={{ padding: "6px 12px", borderRadius: 6, border: "2px solid var(--color-primary)", fontSize: 14, background: "white", color: "var(--color-text-primary)" }}
+          >
+          {[2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027].map(year => (
+          <option key={year} value={year}>{year}</option>
+          ))}
+          </select>
+          </div>
+          <p style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>KSP Mulia Dana Sejahtera - {new Date().toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })}</p>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            <Link href="/" style={{ padding: "12px 24px", background: "var(--color-surface)", borderRadius: 8, textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-              ← Kembali ke Website
-            </Link>
+          <Link href="/" style={{ padding: "12px 24px", background: "var(--color-surface)", borderRadius: 8, textDecoration: "none", color: "var(--color-text-primary)", fontWeight: 500, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+          ← Kembali ke Website
+          </Link>
           </div>
-        </div>
+       </div>
 
         {renderContent()}
       </main>
