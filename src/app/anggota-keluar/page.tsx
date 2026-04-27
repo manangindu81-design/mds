@@ -690,10 +690,9 @@ Yakin ingin memproses?`;
               >
                 🚪 Proses Keluar
               </button>
+             </div>
             </div>
-             )
-          </div>
-        ) : (
+          ) : (
         /* MANUAL INPUT MODE */
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
           <div style={{ marginBottom: 24 }}>
