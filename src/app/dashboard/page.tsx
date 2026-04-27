@@ -304,6 +304,64 @@ export default function DashboardPage() {
                        ))}
                      </tbody>
                    </table>
+                 </div>
+               )}
+             </div>
+               ) : (
+                 <div style={{ overflowX: "auto" }}>
+                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                     <thead>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {trendData.map((item, index) => (
+                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                           <td style={{ padding: 12 }}>{item.month}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                             {formatRupiah(item.simpanan + item.pinjaman)}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 </div>
+               )}
+             </div>
+               ) : (
+                 <div style={{ overflowX: "auto" }}>
+                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                     <thead>
+                       <tr style={{ background: "#f9fafb" }}>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       {trendData.map((item, index) => (
+                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                           <td style={{ padding: 12 }}>{item.month}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                             {formatRupiah(item.simpanan + item.pinjaman)}
+                           </td>
+                         </tr>
+                       ))}
+                     </tbody>
+                   </table>
                   </div>
                 )
               </div>
