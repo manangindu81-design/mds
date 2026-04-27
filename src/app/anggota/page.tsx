@@ -536,6 +536,7 @@ Yakin ingin memproses?`;
           "tempat lahir": "Tempat Lahir",
           "tanggal lahir": "Tanggal Lahir",
           "status perkawinan": "Status Perkawinan",
+          "status keanggotaan": "Status Keanggotaan",
           "alamat ktp": "Alamat KTP",
           "no hp": "No HP",
           "pekerjaan": "Pekerjaan",
@@ -600,14 +601,25 @@ Yakin ingin memproses?`;
             errors.push("Jenis Kelamin wajib diisi");
           }
 
-          if (statusKawin) {
-            const skLower = statusKawin.toLowerCase();
-            if (!skLower.includes("kawin") && !skLower.includes("belum") && !skLower.includes("cerai")) {
-              errors.push("Status Perkawinan harus 'Kawin', 'Belum Kawin', atau 'Cerai'");
-            }
-          } else {
-            errors.push("Status Perkawinan wajib diisi");
-          }
+           if (statusKawin) {
+             const skLower = statusKawin.toLowerCase();
+             if (!skLower.includes("kawin") && !skLower.includes("belum") && !skLower.includes("cerai")) {
+               errors.push("Status Perkawinan harus 'Kawin', 'Belum Kawin', atau 'Cerai'");
+             }
+           } else {
+             errors.push("Status Perkawinan wajib diisi");
+           }
+           
+           // Validate Status Keanggotaan
+           const statusKeanggotaan = String(get("status keanggotaan") || "").trim();
+           if (statusKeanggotaan) {
+             const skLower = statusKeanggotaan.toLowerCase();
+             if (skLower !== "aktif" && skLower !== "non-aktif") {
+               errors.push("Status Keanggotaan harus 'Aktif' atau 'Non-Aktif'");
+             }
+           } else {
+             errors.push("Status Keanggotaan wajib diisi");
+           }
 
           const tglMasuk = parseExcelDate(tglMasukRaw);
           const tglLahir = parseExcelDate(tglLahirRaw);
@@ -625,21 +637,22 @@ Yakin ingin memproses?`;
             data: {
               nama,
               nik,
-              jk: jk.toLowerCase().includes("laki") ? "laki" : "perempuan",
-              status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
-              tempatLahir: String(get("tempat lahir") || "").trim(),
-              tanggalLahir: tglLahir || "",
-              namaPasangan: String(get("nama_pasangan") || "").trim(),
-              jumlahAnak: String(get("jumlah_anak") || "").trim(),
-              namaIbuKandung: String(get("nama_ibu_kandung") || "").trim(),
-              namaSaudara: String(get("nama_saudara_tidak_serumah") || "").trim(),
-              telpSaudara: String(get("no_hp_saudara") || "").replace(/\.0$/, "").trim(),
-              hubungan: String(get("hubungan_saudara") || "").trim(),
-              alamat: String(get("alamat_ktp") || get("alamat") || "").trim(),
-              telepon: telepon,
-              pekerjaan: String(get("pekerjaan") || "").trim(),
-              pendapatan: String(get("pendapatan perbulan") || "").trim(),
-              tglMasuk: tglMasuk,
+               jk: jk.toLowerCase().includes("laki") ? "laki" : "perempuan",
+               status: statusKawin.toLowerCase().includes("kawin") ? "kawin" : statusKawin.toLowerCase().includes("belum") ? "belum" : "cerai",
+               tempatLahir: String(get("tempat lahir") || "").trim(),
+               tanggalLahir: tglLahir || "",
+               namaPasangan: String(get("nama_pasangan") || "").trim(),
+               jumlahAnak: String(get("jumlah_anak") || "").trim(),
+               namaIbuKandung: String(get("nama_ibu_kandung") || "").trim(),
+               namaSaudara: String(get("nama_saudara_tidak_serumah") || "").trim(),
+               telpSaudara: String(get("no_hp_saudara") || "").replace(/\.0$/, "").trim(),
+               hubungan: String(get("hubungan_saudara") || "").trim(),
+               alamat: String(get("alamat_ktp") || get("alamat") || "").trim(),
+               telepon: telepon,
+               pekerjaan: String(get("pekerjaan") || "").trim(),
+               pendapatan: String(get("pendapatan perbulan") || "").trim(),
+               statusKeanggotaan: statusKeanggotaan.toLowerCase() === "non-aktif" ? "Non-Aktif" : "Aktif",
+               tglMasuk: tglMasuk,
             }
           };
         };
@@ -734,10 +747,10 @@ Yakin ingin memproses?`;
       {activeTab === "import" && (
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota dari Excel</h3>
-          <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
-            Upload file Excel dengan format kolom (gunakan spasi atau underscore, contoh: &quot;nama_pasangan&quot; atau &quot;nama pasangan&quot;):<br/>
-            <strong>Wajib:</strong> Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Status Perkawinan, Alamat KTP, No HP, Pekerjaan, Pendapatan Perbulan<br/>
-            <strong>Opsional:</strong> Nama_Pasangan, Jumlah_Anak, Nama_Ibu_Kandung, Nama_Saudara_Tidak_Serumah, No_HP_Saudara, Hubungan_Saudara
+           <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 24 }}>
+             Upload file Excel dengan format kolom (gunakan spasi atau underscore, contoh: &quot;nama_pasangan&quot; atau &quot;nama pasangan&quot;):<br/>
+             <strong>Wajib:</strong> Tanggal Masuk, No. NBA, Nama Anggota, Nomor Identitas (KTP), Jenis Kelamin, Tempat Lahir, Tanggal Lahir, Status Perkawinan, Status Keanggotaan, Alamat KTP, No HP, Pekerjaan, Pendapatan Perbulan<br/>
+             <strong>Opsional:</strong> Nama_Pasangan, Jumlah_Anak, Nama_Ibu_Kandung, Nama_Saudara_Tidak_Serumah, No_HP_Saudara, Hubungan_Saudara
           </p>
           
           <div style={{ border: "2px dashed #ddd", borderRadius: 12, padding: 40, textAlign: "center", marginBottom: 20 }}>
@@ -759,26 +772,27 @@ Yakin ingin memproses?`;
           <div style={{ marginBottom: 20, display: "flex", gap: 12 }}>
             <button
               onClick={() => {
-                const templateData = [{
-                  "Tanggal Masuk": "15-01-2023",
-                  "No. NBA": "1",
-                  "Nama Anggota": "Budi Santoso",
-                  "Nomor Identitas (KTP)": "1234567890123456",
-                  "Tempat Lahir": "Jakarta",
-                  "Tanggal Lahir": "20-05-1990",
-                  "Jenis Kelamin": "Laki-laki",
-                  "Status Perkawinan": "Kawin",
-                  "Nama_Pasangan": "Siti Aminah",
-                  "Jumlah_Anak": "2",
-                  "Nama_Ibu_Kandung": "Hj. Mariam",
-                  "Nama_Saudara_Tidak_Serumah": "Ahmad",
-                  "No_HP_Saudara": "081234567891",
-                  "Hubungan_Saudara": "Adik",
-                  "Alamat_KTP": "Jl. Merdeka No. 10",
-                  "No HP": "081234567890",
-                  "Pekerjaan": "PNS",
-                  "Pendapatan_Perbulan": "5000000"
-                }];
+                 const templateData = [{
+                   "Tanggal Masuk": "15-01-2023",
+                   "No. NBA": "1",
+                   "Nama Anggota": "Budi Santoso",
+                   "Nomor Identitas (KTP)": "1234567890123456",
+                   "Tempat Lahir": "Jakarta",
+                   "Tanggal Lahir": "20-05-1990",
+                   "Jenis Kelamin": "Laki-laki",
+                   "Status Perkawinan": "Kawin",
+                   "Status Keanggotaan": "Aktif",
+                   "Nama_Pasangan": "Siti Aminah",
+                   "Jumlah_Anak": "2",
+                   "Nama_Ibu_Kandung": "Hj. Mariam",
+                   "Nama_Saudara_Tidak_Serumah": "Ahmad",
+                   "No_HP_Saudara": "081234567891",
+                   "Hubungan_Saudara": "Adik",
+                   "Alamat_KTP": "Jl. Merdeka No. 10",
+                   "No HP": "081234567890",
+                   "Pekerjaan": "PNS",
+                   "Pendapatan_Perbulan": "5000000"
+                 }];
                 const ws = XLSX.utils.json_to_sheet(templateData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Template");
