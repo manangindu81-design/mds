@@ -362,11 +362,11 @@ export default function DashboardPage() {
                        ))}
                      </tbody>
                    </table>
-                 </div>
-               )}
-             </div>
-               ) : (
-                 <ResponsiveContainer width="100%" height={300}>
+                  </div>
+                )
+              </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
                    <ScatterChart>
                      <CartesianGrid strokeDasharray="3 3" />
                      <XAxis dataKey="month" tick={{ fontSize: 12 }} />
