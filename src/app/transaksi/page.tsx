@@ -61,10 +61,14 @@ export default function TransaksiPage() {
     );
   }, [transaksi, searchQuery]);
   
-   const allTransaksi = [...filteredTransaksi].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
-  const totalMasuk = allTransaksi.filter(t => (t.debet || 0) > 0).reduce((sum, t) => sum + (t.debet || 0), 0);
-  const totalKeluar = allTransaksi.filter(t => (t.kredit || 0) > 0).reduce((sum, t) => sum + (t.kredit || 0), 0);
-  const saldoKas = totalMasuk - totalKeluar;
+    const allTransaksi = [...filteredTransaksi].sort((a, b) => {
+      const dateA = a.tanggal ? new Date(a.tanggal) : new Date(0);
+      const dateB = b.tanggal ? new Date(b.tanggal) : new Date(0);
+      return dateA.getTime() - dateB.getTime();
+    });
+    const totalMasuk = allTransaksi.filter(t => Number(t.debet || 0) > 0).reduce((sum, t) => sum + Number(t.debet || 0), 0);
+    const totalKeluar = allTransaksi.filter(t => Number(t.kredit || 0) > 0).reduce((sum, t) => sum + Number(t.kredit || 0), 0);
+    const saldoKas = totalMasuk - totalKeluar;
 
   const formatRupiahInput = (value: string) => {
     const num = value.replace(/\D/g, "");

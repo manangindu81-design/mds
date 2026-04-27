@@ -270,146 +270,43 @@ export default function DashboardPage() {
               </div>
             </div>
 
-             {/* 4D/5D Visualization: Simpanan, Pinjaman, Transaksi, dan Waktu */}
-             <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-               <h3 style={{ fontSize: 18, marginBottom: 24 }}>Visualisasi 4D: Simpanan, Pinjaman, Jumlah Transaksi per Bulan</h3>
-               {trendData.every(d => d.simpanan === 0 && d.pinjaman === 0 && d.transactionCount === 0) ? (
-                 <div style={{ textAlign: "center", padding: 32, color: "var(--color-text-secondary)" }}>
-                   <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
-                   <p>Belum ada data untuk menampilkan visualisasi.</p>
-                 </div>
-               ) : (
-                 <div style={{ overflowX: "auto" }}>
-                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                     <thead>
-                       <tr style={{ background: "#f9fafb" }}>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       {trendData.map((item, index) => (
-                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                           <td style={{ padding: 12 }}>{item.month}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
-                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
-                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
-                             {formatRupiah(item.simpanan + item.pinjaman)}
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
-                 </div>
-               )}
-             </div>
-               ) : (
-                 <div style={{ overflowX: "auto" }}>
-                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                     <thead>
-                       <tr style={{ background: "#f9fafb" }}>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       {trendData.map((item, index) => (
-                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                           <td style={{ padding: 12 }}>{item.month}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
-                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
-                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
-                             {formatRupiah(item.simpanan + item.pinjaman)}
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
-                 </div>
-               )}
-             </div>
-               ) : (
-                 <div style={{ overflowX: "auto" }}>
-                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                     <thead>
-                       <tr style={{ background: "#f9fafb" }}>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
-                         <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
-                       </tr>
-                     </thead>
-                     <tbody>
-                       {trendData.map((item, index) => (
-                         <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                           <td style={{ padding: 12 }}>{item.month}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
-                           <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
-                           <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
-                           <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
-                             {formatRupiah(item.simpanan + item.pinjaman)}
-                           </td>
-                         </tr>
-                       ))}
-                     </tbody>
-                   </table>
+              {/* 4D/5D Visualization: Simpanan, Pinjaman, Transaksi, dan Waktu */}
+              <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                <h3 style={{ fontSize: 18, marginBottom: 24 }}>Visualisasi 4D: Simpanan, Pinjaman, Jumlah Transaksi per Bulan</h3>
+                {trendData.every(d => d.simpanan === 0 && d.pinjaman === 0 && d.transactionCount === 0) ? (
+                  <div style={{ textAlign: "center", padding: 32, color: "var(--color-text-secondary)" }}>
+                    <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
+                    <p>Belum ada data untuk menampilkan visualisasi.</p>
                   </div>
-                )
-              </div>
                 ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                   <ScatterChart>
-                     <CartesianGrid strokeDasharray="3 3" />
-                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                     <YAxis 
-                       tickFormatter={(value) => `Rp ${value.toLocaleString('id-ID')}`} 
-                       domain={[0, Math.max(...trendData.map(d => Math.max(d.simpanan, d.pinjaman)), 1) * 1.2]}
-                     />
-                     <Tooltip 
-                       formatter={(value) => `Rp ${value.toLocaleString('id-ID')}`}
-                       contentStyle={{ background: '#fff', border: '1px solid #ddd', padding: 8, borderRadius: 4 }}
-                       separator={':'}
-                     />
-                     <Legend verticalAlign="top" height={36} />
-                     
-                     {/* Simpanan Bubble */}
-                     <Scatter 
-                       name="Simpanan" 
-                       dataKey={[["month", "simpanan"], "transactionCount"]} 
-                       fill="#1B4D3E"
-                       size={60}
-                     />
-                     
-                     {/* Pinjaman Bubble */}
-                     <Scatter 
-                       name="Pinjaman" 
-                       dataKey={[["month", "pinjaman"], "transactionCount"]} 
-                       fill="#D4AF37"
-                       size={60}
-                     />
-                     
-                     {/* Brush untuk zoom */}
-                     <Brush 
-                       dataKey="month" 
-                       height={30} 
-                       stroke="#2D7A5F" 
-                       fill="#2D7A5F" 
-                       fillOpacity={0.1} 
-                       strokeOpacity={0.3} 
-                     />
-                   </ScatterChart>
-                 </ResponsiveContainer>
-               )}
-             </div>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr style={{ background: "#f9fafb" }}>
+                          <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Bulan</th>
+                          <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Simpanan</th>
+                          <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Pinjaman</th>
+                          <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Jumlah Transaksi</th>
+                          <th style={{ padding: 12, textAlign: "left", borderBottom: "2px solid #ddd" }}>Total Nilai (4D)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {trendData.map((item, index) => (
+                          <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                            <td style={{ padding: 12 }}>{item.month}</td>
+                            <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.simpanan)}</td>
+                            <td style={{ padding: 12, textAlign: "right" }}>{formatRupiah(item.pinjaman)}</td>
+                            <td style={{ padding: 12, textAlign: "center" }}>{item.transactionCount}</td>
+                            <td style={{ padding: 12, textAlign: "right", fontWeight: 600 }}>
+                              {formatRupiah(item.simpanan + item.pinjaman)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
 
             {/* Jatuh Tempo & Aktivitas */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
