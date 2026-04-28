@@ -840,43 +840,30 @@ Yakin ingin memproses?`;
                    alert("Tidak ada data untuk diexport.");
                    return;
                  }
-                 const exportData = nonAktifList.map(a => ({
-                   "No. NBA": a.nomorNBA || "",
-                   "Nama Anggota": a.nama,
-                   "Tanggal Keluar": a.tanggalPengunduran || "",
-                   "NIK": a.nik || "",
-                   "Tempat Lahir": a.tempatLahir || "",
-                   "Tanggal Lahir": a.tanggalLahir || "",
-                   "Jenis Kelamin": a.jkelamin === "laki" ? "Laki-laki" : "Perempuan",
-                   "Status Perkawinan": a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum Kawin" : "Cerai",
-                   "Alamat": a.alamat || "",
-                   "No HP": a.telepon || "",
-                   "Pekerjaan": a.pekerjaan || "",
-                   "Pendapatan Perbulan": a.pendapatan || ""
-                 }));
-                 const ws = XLSX.utils.json_to_sheet(exportData);
-                 const wb = XLSX.utils.book_new();
-                 XLSX.utils.book_append_sheet(wb, ws, "Anggota Keluar");
+                  const exportData = nonAktifList.map(a => ({
+                    "No. NBA": a.nomorNBA || "",
+                    "Nama Anggota": a.nama,
+                    "Tanggal Keluar": a.tanggalPengunduran || "",
+                    "NIK": a.nik || "",
+                    "Tempat Lahir": a.tempatLahir || "",
+                    "Tanggal Lahir": a.tanggalLahir || "",
+                    "Jenis Kelamin": a.jkelamin === "laki" ? "Laki-laki" : "Perempuan",
+                    "Status Perkawinan": a.status === "kawin" ? "Kawin" : a.status === "belum" ? "Belum Kawin" : "Cerai",
+                    "Alamat": a.alamat || "",
+                    "No HP": a.telepon || "",
+                    "Pekerjaan": a.pekerjaan || "",
+                    "Pendapatan Perbulan": a.pendapatan || ""
+                  }));
+                  const ws = XLSX.utils.json_to_sheet(exportData);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, "Anggota Keluar");
                   XLSX.writeFile(wb, `data_anggota_keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
                   alert(`Berhasil export ${exportData.length} data anggota keluar!`);
-                }
-                         style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
-                       >
-                         ✏️ Edit
-                       </button>
-                       <button
-                         onClick={() => {
-                           if (confirm(`Yakin menghapus anggota "${a.nama}"? Data tidak bisa dikembalikan.`)) {
-                             deleteAnggota(a.id);
-                           }
-                         }}
-                         style={{ padding: "6px 12px", background: "#ef4444", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
-                       >
-                         🗑️
-                       </button>
-                     </>
-                   )}
-                 </div>
+                }}
+                style={{ padding: "10px 20px", background: "#22c55e", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
+              >
+                📤 Export Data
+              </button>
                </div>
              ))}
            </div>
