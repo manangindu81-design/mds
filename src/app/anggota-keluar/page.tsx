@@ -708,12 +708,12 @@ Yakin ingin memproses?`;
                 </button>
               </div>
             )}
-             {manualInput && !foundAnggota && (
-               <div style={{ padding: 12, textAlign: "center", color: "#991b1b", fontSize: 13, marginTop: 12 }}>
-                 ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
-             </div>
-            </div>
-          ) : (
+              {manualInput && !foundAnggota && (
+                <div style={{ padding: 12, textAlign: "center", color: "#991b1b", fontSize: 13, marginTop: 12 }}>
+                  ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
+                </div>
+              )}
+           ) : (
          /* IMPORT MODE */
          <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
            <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota Keluar dari Excel</h3>
