@@ -857,82 +857,9 @@ Yakin ingin memproses?`;
                  const ws = XLSX.utils.json_to_sheet(exportData);
                  const wb = XLSX.utils.book_new();
                  XLSX.utils.book_append_sheet(wb, ws, "Anggota Keluar");
-                 XLSX.writeFile(wb, `data_anggota_keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
-                 alert(`Berhasil export ${exportData.length} data anggota keluar!`);
-               }}
-               style={{ padding: "10px 20px", background: "#22c55e", color: "white", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer" }}
-             >
-               📤 Export Data
-             </button>
-           </div>
-         </div>
-       )}
-
-       {/* List of recently processed (non-active) members */}
-       {nonAktifList.length > 0 && (
-         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
-           <h3 style={{ fontSize: 16, marginBottom: 20, color: "#6b7280" }}>
-             Riwayat Anggota Yang Telah Keluar ({nonAktifList.length})
-           </h3>
-           <div style={{ maxHeight: 300, overflowY: "auto" }}>
-             {nonAktifList.map((a: Anggota) => (
-               <div key={a.id} style={{
-                 padding: 12,
-                 borderBottom: "1px solid #f3f4f6",
-                 display: "flex",
-                 justifyContent: "space-between",
-                 alignItems: "center"
-               }}>
-                 <div style={{ flex: 1 }}>
-                   <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937" }}>{a.nama}</div>
-                   <div style={{ fontSize: 11, color: "#6b7280" }}>
-                     {a.nomorNBA || "-"} | NIK: {a.nik}
-                   </div>
-                   {editingId === a.id ? (
-                     <div style={{ marginTop: 8, display: "flex", gap: 8, alignItems: "center" }}>
-                       <input
-                         type="date"
-                         value={editTanggalKeluar}
-                         onChange={(e) => setEditTanggalKeluar(e.target.value)}
-                         style={{ padding: 6, borderRadius: 6, border: "2px solid #dc2626", fontSize: 12 }}
-                       />
-                       <button
-                         onClick={() => handleSaveEdit(a.id)}
-                         style={{ padding: "6px 12px", background: "#22c55e", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
-                       >
-                         💾 Simpan
-                       </button>
-                       <button
-                         onClick={() => { setEditingId(null); setEditTanggalKeluar(""); }}
-                         style={{ padding: "6px 12px", background: "#6b7280", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
-                       >
-                         ✕ Batal
-                       </button>
-                     </div>
-                   ) : (
-                     <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
-                       Tanggal keluar: {a.tanggalPengunduran || "Belum diisi"}
-                     </div>
-                   )}
-                 </div>
-                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                   <span style={{
-                     fontSize: 11,
-                     padding: "4px 10px",
-                     background: "#fee2e2",
-                     borderRadius: 4,
-                     color: "#dc2626",
-                     fontWeight: 600
-                   }}>
-                     Non-Aktif
-                   </span>
-                   {editingId !== a.id && (
-                     <>
-                       <button
-                         onClick={() => {
-                           setEditingId(a.id);
-                           setEditTanggalKeluar(a.tanggalPengunduran || "");
-                         }}
+                  XLSX.writeFile(wb, `data_anggota_keluar_${new Date().toISOString().split('T')[0]}.xlsx`);
+                  alert(`Berhasil export ${exportData.length} data anggota keluar!`);
+                }
                          style={{ padding: "6px 12px", background: "#3b82f6", color: "white", border: "none", borderRadius: 6, fontSize: 12, cursor: "pointer" }}
                        >
                          ✏️ Edit
