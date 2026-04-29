@@ -58,6 +58,8 @@ Aplikasi Koperasi Simpan Pinjam (KSP) dengan sistem pengelolaan data anggota, si
 - TypeScript
 - Bun package manager
 
+ - [x] Fix parsing errors in anggota-keluar page: unclosed .map(), IIFE closure, extra closing divs
+
 ## Focus Sekarang
 
 - Aplikasi KSP sudah production-ready
