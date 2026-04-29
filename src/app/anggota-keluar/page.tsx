@@ -688,7 +688,7 @@ Yakin ingin memproses?`;
                        </div>
                      </div>
                    );
-                 })()}
+                                   })()}}
                  <button
                    onClick={() => handlePengunduran(foundAnggota.id)}
                   style={{
