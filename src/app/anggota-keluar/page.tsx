@@ -608,6 +608,7 @@ Yakin ingin memproses?`;
                       <div style={{ fontSize: 12, color: "#6b7280" }}>
                         NIK: {a.nik || "-"} | Status: {a.statusKeanggotaan}
             </div>
+                    </div>
           ) : (
         /* MANUAL INPUT MODE */
         <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)", marginBottom: 24 }}>
@@ -688,7 +689,7 @@ Yakin ingin memproses?`;
                        </div>
                      </div>
                    );
-                                   })()}}
+                                   })()}
                  <button
                    onClick={() => handlePengunduran(foundAnggota.id)}
                   style={{
@@ -713,7 +714,11 @@ Yakin ingin memproses?`;
                   ❌ Anggota dengan No. NBA &quot;{manualInput}&quot; tidak ditemukan atau sudah Non-Aktif
                 </div>
               )}
-           ) : (
+                    </div>
+          </div>
+        </div>
+      </div>
+    ) : (
          /* IMPORT MODE */
          <div style={{ background: "white", borderRadius: 16, padding: 32, boxShadow: "0 4px 15px rgba(0,0,0,0.08)" }}>
            <h3 style={{ fontSize: 18, marginBottom: 16 }}>Import Data Anggota Keluar dari Excel</h3>
